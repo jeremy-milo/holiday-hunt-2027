@@ -1,0 +1,291 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Holiday Countdown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS STYLES --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%);
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+
+        /* The canvas for the snow effect */
+        #snow-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+
+        /* The main content container */
+        .container {
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+            max-width: 800px;
+        }
+
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+
+        p.subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+
+        /* Countdown Timer Styles */
+        #timer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 80px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+
+        .number {
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+
+
+        .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+
+        /* HIDDEN CONTENT (Reveals at Zero Hour) */
+        #reveal-content {
+            display: none; /* Hidden by default */
+            animation: fadeIn 2s ease;
+        }
+
+
+        .btn-start {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(253, 160, 133, 0.6);
+            transition: transform 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+
+        .btn-start:hover {
+            transform: scale(1.05);
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .number { font-size: 1.8rem; }
+            .time-unit { min-width: 60px; padding: 10px; }
+            #timer { gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+
+    <canvas id="snow-canvas"></canvas>
+
+
+    <div class="container">
+        <div id="wait-mode">
+            <h1>The Smith Family Holiday</h1>
+            <p class="subtitle">Something special is arriving soon...</p>
+            
+            <div id="timer">
+                <div class="time-unit">
+                    <span class="number" id="days">00</span>
+                    <span class="label">Days</span>
+                </div>
+                <div class="time-unit">
+                    <span class="number" id="hours">00</span>
+                    <span class="label">Hours</span>
+                </div>
+                <div class="time-unit">
+                    <span class="number" id="minutes">00</span>
+                    <span class="label">Mins</span>
+                </div>
+                <div class="time-unit">
+                    <span class="number" id="seconds">00</span>
+                    <span class="label">Secs</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="reveal-content">
+            <h1>Protocol Activated</h1>
+            <p class="subtitle">The digital vault is now open. Good luck.</p>
+            <a href="#" class="btn-start" onclick="alert('Link this button to your first puzzle!')">Begin The Hunt</a>
+        </div>
+    </div>
+
+
+    <script>
+        /* --- CONFIGURATION: EDIT THIS DATE --- */
+        // Set the date we are counting down to (Year, MonthIndex 0-11, Day, Hour 0-23, Minute)
+        // Example: December 25, 2026 at 9:00 AM
+        // Note: Month is 0-indexed (0=Jan, 11=Dec)
+        const targetDate = new Date(2026, 11, 25, 9, 0, 0).getTime(); 
+
+
+        /* --- TIMER LOGIC --- */
+        const timerInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+
+            // Calculations for days, hours, minutes and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+
+            // Display the result
+            document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+            document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+
+
+            // If the count down is finished
+            if (distance < 0) {
+                clearInterval(timerInterval);
+                document.getElementById("wait-mode").style.display = "none";
+                document.getElementById("reveal-content").style.display = "block";
+            }
+        }, 1000);
+
+
+
+
+        /* --- SNOW ANIMATION LOGIC (Do not edit unless advanced) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+
+        const particles = [];
+        const particleCount = 100;
+
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
+    </script>
+</body>
+</html>
