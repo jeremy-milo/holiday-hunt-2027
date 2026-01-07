@@ -418,16 +418,169 @@
             gCtx.fillStyle = '#f6d365';
             gCtx.fillRect(20, 20, Math.min(200, (distance/WIN_DISTANCE)*200), 10);
 
-            // Vary the distance between obstacles, but always keep a minimum safe space
+            const minGap = 400 + Math.floor(gameSpeed * 25); 
+            const variance = 120 + Math.random() * 380; 
             if (distance > nextSpawnDist && distance < WIN_DISTANCE - 400) {
                 spawnObstacle();
-                // The minimum safe gap, enough space for the player to recover after each obstacle
-                const minSafeGap = 380;
-                // Add variable extra gap, up to 320 more pixels (tweak as needed)
-                const extraGap = Math.random() * 320;
-                // The next spawn distance is always a safe distance further
-                nextSpawnDist = distance + minSafeGap + extraGap;
+                nextSpawnDist = distance + minGap + variance;
             }
+
+            if (!willow.grounded) {
+                willow.dy += willow.gravity;
+                willow.y += willow.dy;
+            }
+            
+            let groundY = 300;
+            if (willow.y >= groundY) {
+                let overHole = false;
+                obstacles.forEach(obs => {
+                    if (obs.type === 'hole') {
+                        if (willow.x + 20 > obs.x && willow.x + 30 < obs.x + obs.w) {
+                             overHole = true;
+                        }
+                    }
+                });
+
+                if (overHole) {
+                    playSound('crash');
+                    gameOver();
+                    return;
+                } else {
+                    willow.y = groundY;
+                    willow.grounded = true;
+                    willow.dy = 0;
+                    if (frames % Math.max(1, Math.floor((22 - gameSpeed) / 3)) === 0) playSound('step');
+                }
+            }
+            
+            if (willow.y > GAME_HEIGHT + 50) {
+                 playSound('crash');
+                 gameOver();
+                 return;
+            }
+
+            drawWillow();
+
+            for (let i = 0; i < obstacles.length; i++) {
+                let obs = obstacles[i];
+                obs.x -= gameSpeed;
+                
+                if (obs.type === 'hole') {
+                    gCtx.fillStyle = '#1b2735';
+                    gCtx.fillRect(obs.x, 350, obs.w, 50); 
+                    gCtx.fillStyle = 'rgba(0,0,0,0.5)';
+                    gCtx.fillRect(obs.x, 350, obs.w, 10);
+                } else if (obs.type === 'stump') {
+                    // Stump main body
+                    gCtx.fillStyle = '#5d4037';
+                    gCtx.fillRect(obs.x, obs.y, obs.w, obs.h);
+
+                    // Bark texture (vertical squiggles)
+                    for (let b = 0; b < 3; b++) {
+                        let bx = obs.x + 6 + b*7 + Math.sin(frames*0.04 + b)*2;
+                        gCtx.strokeStyle = '#7a5638';
+                        gCtx.lineWidth = 2;
+                        gCtx.beginPath();
+                        gCtx.moveTo(bx, obs.y + 5);
+                        for (let sy = 0; sy < obs.h-10; sy+=8) {
+                            gCtx.lineTo(bx + Math.sin((sy+frames*3)*0.06+b)*2, obs.y + 5 + sy);
+                        }
+                        gCtx.stroke();
+                    }
+                    // Extra random patches
+                    for (let p = 0; p < 2; p++) {
+                        gCtx.fillStyle = 'rgba(120,70,40,0.18)';
+                        gCtx.beginPath();
+                        gCtx.ellipse(obs.x + 10 + Math.random()*10, obs.y + 20 + Math.random()*18, 4, 10, Math.random()*Math.PI, 0, Math.PI*2);
+                        gCtx.fill();
+                    }
+
+                    // Top end/tree rings
+                    gCtx.fillStyle = '#8d6e63';
+                    gCtx.beginPath();
+                    gCtx.ellipse(obs.x + obs.w/2, obs.y, obs.w/2, 5, 0, 0, Math.PI*2);
+                    gCtx.fill();
+                    // Tree rings
+                    gCtx.strokeStyle = '#bcaaa4';
+                    gCtx.lineWidth = 1;
+                    for (let r = 6; r < obs.w/2; r += 5) {
+                        gCtx.beginPath();
+                        gCtx.ellipse(obs.x + obs.w/2, obs.y, r, 5-r/6, 0, 0, Math.PI*2);
+                        gCtx.stroke();
+                    }
+                } else {
+                    // Log obstacle
+                    gCtx.fillStyle = '#5d4037';
+                    gCtx.beginPath(); gCtx.arc(obs.x, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill();
+                    gCtx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                    gCtx.beginPath(); gCtx.arc(obs.x + obs.w, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill();
+
+                    // Bark texture (vertical squiggles)
+                    for (let b = 0; b < 3; b++) {
+                        let bx = obs.x + 8 + b * 14 + Math.sin(frames*0.04 + b)*2;
+                        gCtx.strokeStyle = '#7a5638';
+                        gCtx.lineWidth = 2;
+                        gCtx.beginPath();
+                        gCtx.moveTo(bx, obs.y+6);
+                        for (let sy = 0; sy < obs.h-12; sy+=6) {
+                            gCtx.lineTo(bx + Math.sin((sy+frames*3)*0.07+b)*3, obs.y + 6 + sy);
+                        }
+                        gCtx.stroke();
+                    }
+                    // Extra random patches
+                    for (let p = 0; p < 2; p++) {
+                        gCtx.fillStyle = 'rgba(120,70,40,0.18)';
+                        gCtx.beginPath();
+                        gCtx.ellipse(obs.x + 18 + Math.random()*20, obs.y + 12 + Math.random()*10, 9, 4, Math.random()*Math.PI, 0, Math.PI*2);
+                        gCtx.fill();
+                    }
+
+                    // End rings (left)
+                    gCtx.fillStyle = '#8d6e63';
+                    gCtx.beginPath(); gCtx.arc(obs.x, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill();
+                    gCtx.strokeStyle = '#bcaaa4';
+                    gCtx.lineWidth = 1;
+                    for (let r = obs.h/2-6; r > 2; r -= 4.5) {
+                        gCtx.beginPath();
+                        gCtx.arc(obs.x, obs.y + obs.h/2, r, 0, Math.PI*2);
+                        gCtx.stroke();
+                    }
+                    // End rings (right)
+                    gCtx.fillStyle = '#8d6e63';
+                    gCtx.beginPath(); gCtx.arc(obs.x + obs.w, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill();
+                    gCtx.strokeStyle = '#bcaaa4';
+                    for (let r = obs.h/2-6; r > 2; r -= 4.5) {
+                        gCtx.beginPath();
+                        gCtx.arc(obs.x + obs.w, obs.y + obs.h/2, r, 0, Math.PI*2);
+                        gCtx.stroke();
+                    }
+                }
+
+                let wx = willow.x + 18;
+                let wy = willow.y + 20;
+                let ww = 22;
+                let wh = 48;
+
+                if (wx < obs.x + obs.w && wx + ww > obs.x && wy < (obs.y + obs.h) && wy + wh > obs.y) {
+                    if (obs.type !== 'hole') {
+                        playSound('crash');
+                        gameOver();
+                    }
+                }
+
+                if (obs.x + obs.w < -100) {
+                    obstacles.splice(i, 1);
+                    i--;
+                }
+            }
+
+            if (distance > WIN_DISTANCE) {
+                gameWin();
+                return;
+            }
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
 
         function jump() {
             if (willow.grounded && isPlaying) {
