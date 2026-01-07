@@ -255,10 +255,12 @@
             // Make holes less common so gameplay is fair
             if (typeRoll < 0.45) {
                 // Stump: Tall, narrow
-                obs.w = 30; obs.h = 60; obs.type = 'stump'; obs.y = 350 - obs.h;
+                // moved 10px lower so stump sits on the white running surface
+                obs.w = 30; obs.h = 60; obs.type = 'stump'; obs.y = 350 - obs.h + 10;
             } else if (typeRoll < 0.85) {
                 // Log: Short, wide
-                obs.w = 60; obs.h = 30; obs.type = 'log'; obs.y = 350 - obs.h;
+                // moved 10px lower so log sits on the white running surface
+                obs.w = 60; obs.h = 30; obs.type = 'log'; obs.y = 350 - obs.h + 10;
             } else {
                 // Hole: Gap in the floor (rarer)
                 obs.w = 120; obs.h = 20; obs.type = 'hole'; obs.y = 350;
