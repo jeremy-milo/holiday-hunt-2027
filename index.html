@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>The Fourth Gate</title>
+    <title>The Second Gate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
@@ -12,80 +12,36 @@
     <style>
         body, html {
             margin: 0; padding: 0; 
-            width: 100%; min-height: 100vh;
+            width: 100%; min-height: 100vh; /* Allow scrolling */
             background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
             color: #ffffff; font-family: 'Montserrat', sans-serif;
             display: flex; 
+            /* Changed to flex-start + padding to handle the long scroll height safely */
             align-items: flex-start;
             justify-content: center; 
             text-align: center;
             padding-top: 50px;
             box-sizing: border-box;
-            overflow-x: hidden;
-            user-select: none;
         }
         #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        
         .container { 
             position: relative; z-index: 10; 
-            padding: 20px;
-            max-width: 800px; width: 100%; 
+            padding: 40px 20px; 
+            max-width: 600px; width: 100%; 
             box-sizing: border-box; 
         }
-
-        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-        p.instructions { margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8; }
+        h1 { font-family: 'Cinzel', serif; font-size: 2.5rem; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .puzzle-box { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); padding: 40px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .question { font-size: 1.5rem; margin-bottom: 30px; font-weight: 600; }
+        input[type="text"] {
+            width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem; border-radius: 5px; border: none; outline: none; margin-bottom: 20px; text-align: center; background: rgba(255, 255, 255, 0.9); color: #333; box-sizing: border-box;
+        }
+        button {
+            padding: 15px 40px; font-size: 1.2rem; background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #333; text-transform: uppercase; transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+        .error-msg { color: #ff6b6b; margin-top: 15px; display: none; font-weight: bold; }
         
-        #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 700px;
-            height: 300px;
-            margin: 0 auto;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 10px;
-            background: linear-gradient(to bottom, #87CEEB, #E0F7FA); /* Sky Blue to Snowy White */
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            cursor: pointer;
-        }
-
-        canvas#gameCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.6);
-            transition: opacity 0.3s;
-        }
-
-        .hidden-ui { opacity: 0; pointer-events: none; }
-        
-        #start-btn, #next-level-btn {
-            padding: 15px 40px; font-size: 1.2rem; 
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
-            border: none; border-radius: 50px; 
-            cursor: pointer; font-weight: bold; 
-            color: #333; text-transform: uppercase; 
-            transition: transform 0.2s;
-            margin-top: 10px;
-        }
-        #start-btn:hover, #next-level-btn:hover { transform: scale(1.05); }
-
-        .game-msg {
-            font-family: 'Cinzel', serif;
-            font-size: 2rem;
-            color: #fff;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #f6d365;
-        }
-
         /* Hidden text styling */
         .hidden-clue {
             color: rgba(255, 255, 255, 0.3);
@@ -94,645 +50,69 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 2px;
         }
+
+        @media (max-width: 600px) { h1 { font-size: 2rem; } .question { font-size: 1.2rem; } }
     </style>
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
-    
     <div class="container">
-        <h1>Puzzle Four: Willow's Run</h1>
-        <p class="instructions">Tap, Click, or press Spacebar to Jump. Avoid the stumps, logs and holes!</p>
-        
-        <div id="game-container">
-            <canvas id="gameCanvas"></canvas>
-            
-            <div id="ui-layer">
-                <div id="start-screen">
-                    <div class="game-msg">Ready to Run?</div>
-                    <button id="start-btn">Start Game</button>
-                </div>
-                
-                <div id="game-over-screen" style="display:none;">
-                    <div class="game-msg" style="color: #ff6b6b; text-shadow: 0 0 10px red;">Ouch!</div>
-                    <button onclick="resetGame()" id="start-btn">Try Again</button>
-                </div>
-
-                <div id="win-screen" style="display:none;">
-                    <div class="game-msg">Good Girl Willow!</div>
-                    <button id="next-level-btn" onclick="goToNextLevel()">Next Puzzle</button>
-                </div>
-            </div>
+        <div class="puzzle-box">
+            <h1>Puzzle Two</h1>
+            <p class="question">What is the name of the Milo family dog?</p>
+            <input type="text" id="answerInput" placeholder="Type the name..." autocomplete="off">
+            <br>
+            <button onclick="checkAnswer()">Submit</button>
+            <p id="error" class="error-msg">That is not the correct name.</p>
         </div>
 
         <!-- The Long Space -->
         <div style="height: 1000px;"></div>
 
         <!-- The Hidden Clue -->
-        <div class="hidden-clue">4. subject</div>
+        <div class="hidden-clue">2. gravity</div>
     </div>
 
     <script>
-        /* --- GAME LOGIC --- */
-        const gameCanvas = document.getElementById('gameCanvas');
-        const gCtx = gameCanvas.getContext('2d');
-        let animationFrameId;
-        
-        // Logical sizing for game logic
-        const GAME_WIDTH = 800;
-        const GAME_HEIGHT = 400;
-        gameCanvas.width = GAME_WIDTH;
-        gameCanvas.height = GAME_HEIGHT;
+        const _a = [87, 105, 108, 108, 111, 119];
+        const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108];
 
-        // Audio Context
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        function _decode(arr) { return String.fromCharCode(...arr); }
 
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            if (type === 'jump') {
-                // Realistic Bark
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.15);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-            } else if (type === 'step') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.05);
-            } else if (type === 'win') {
-                playNote(523.25, 0, 0.2); 
-                playNote(659.25, 0.2, 0.2); 
-                playNote(783.99, 0.4, 0.2); 
-                playNote(1046.50, 0.6, 0.8); 
-            } else if (type === 'crash') {
-                 osc.type = 'square';
-                 osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                 osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.3);
-                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                 gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                 osc.start();
-                 osc.stop(audioCtx.currentTime + 0.3);
-            }
-        }
-
-        function playNote(freq, startTime, duration) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime + startTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + startTime + duration);
-            osc.start(audioCtx.currentTime + startTime);
-            osc.stop(audioCtx.currentTime + startTime + duration);
-        }
-
-        // Game State
-        let gameSpeed = 8;
-        let distance = 0;
-        let nextSpawnDist = 400; // Track when to spawn next obstacle
-        let isPlaying = false;
-        let isGameOver = false;
-        let frames = 0;
-        const WIN_DISTANCE = 5000;
-
-        // Willow
-        const willow = {
-            x: 100,
-            y: 300,
-            width: 50,
-            height: 50,
-            dy: 0,
-            jumpPower: -13,
-            gravity: 0.65,
-            grounded: true,
-            legFrame: 0
-        };
-
-        // Obstacles
-        let obstacles = [];
-        
-        // Background elements
-        let bgOffset1 = 0;
-        let bgOffset2 = 0;
-
-        function resetGame() {
-            willow.y = 300;
-            willow.dy = 0;
-            obstacles = [];
-            distance = 0;
-            nextSpawnDist = 400; // Initial gap
-            gameSpeed = 8;
-            isPlaying = true;
-            isGameOver = false;
-            document.getElementById('ui-layer').classList.add('hidden-ui');
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('game-over-screen').style.display = 'none';
-            document.getElementById('win-screen').style.display = 'none';
-            gameLoop();
-        }
-
-        function spawnObstacle() {
-            const type = Math.random();
-            let obs = { x: GAME_WIDTH, type: 'log' };
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.trim();
+            const correct = _decode(_a);
             
-            if (type < 0.40) {
-                // Stump: Tall, narrow
-                obs.w = 30; obs.h = 60; obs.type = 'stump'; obs.y = 350 - obs.h;
-            } else if (type < 0.70) {
-                // Log: Short, wide
-                obs.w = 60; obs.h = 30; obs.type = 'log'; obs.y = 350 - obs.h;
+            if(input.toLowerCase() === correct.toLowerCase()) {
+                window.location.href = _decode(_n);
             } else {
-                // Hole: Gap in the floor
-                obs.w = 100; obs.h = 20; obs.type = 'hole'; obs.y = 350;
-            }
-            obstacles.push(obs);
-        }
-
-        // Helper to draw a "scruffy" puff (fuzzy edge) - Refined for doodle look
-        function drawScruffyFluff(cx, cy, r, color, jaggedness = 0.8) {
-            gCtx.fillStyle = color;
-            gCtx.beginPath();
-            
-            // Draw a polygon of random points around the center
-            const points = 12;
-            for (let i = 0; i <= points; i++) {
-                const angle = (i / points) * Math.PI * 2;
-                const radius = r * (0.8 + Math.random() * 0.4 * jaggedness);
-                const px = cx + Math.cos(angle) * radius;
-                const py = cy + Math.sin(angle) * radius;
-                if (i === 0) gCtx.moveTo(px, py);
-                else gCtx.lineTo(px, py);
-            }
-            gCtx.closePath();
-            gCtx.fill();
-        }
-
-        // New helper: draw many small curls to simulate curly Labradoodle fur
-        function drawCurlyFur(cx, cy, spreadX, spreadY, color, density = 12) {
-            gCtx.fillStyle = color;
-            for (let i = 0; i < density; i++) {
-                const rx = (Math.random() - 0.5) * spreadX;
-                const ry = (Math.random() - 0.5) * spreadY;
-                const r = 1.5 + Math.random() * 3;
-                gCtx.beginPath();
-                // small curl/arc
-                const angle = Math.random() * Math.PI * 2;
-                const sx = cx + rx + Math.cos(angle) * r;
-                const sy = cy + ry + Math.sin(angle) * r;
-                gCtx.arc(sx, sy, r, 0, Math.PI * 2);
-                gCtx.fill();
+                const err = document.getElementById('error');
+                err.style.display = 'block';
+                setTimeout(() => err.style.display = 'none', 2000);
             }
         }
 
-        function drawWillow() {
-            // Updated colors to evoke a warm brown Labradoodle (caramel/coffee mix)
-            const furColor = '#8D5524'; // base brown
-            const underColor = '#6B3F20'; // darker shading
-            const highlight = '#C68642'; // lighter highlights
-            const earColor = '#5D341E'; // dark ear base
-            const noseColor = '#111';
-            const eyeColor = '#1b1209';
-
-            // Body positions adjusted a bit for fluff
-            const bx = willow.x;
-            const by = willow.y;
-
-            // --- BODY ---
-            // Main fluffy volumes: chest, belly, rump - lots of small curls to read as doodle fur
-            drawScruffyFluff(bx + 34, by + 34, 22, furColor, 1.0); // mid
-            drawScruffyFluff(bx + 18, by + 38, 20, furColor, 1.0); // rump
-            drawScruffyFluff(bx + 54, by + 30, 20, furColor, 1.0); // chest
-
-            // add curly texture on top of body
-            drawCurlyFur(bx + 30, by + 30, 60, 30, highlight, 18);
-            drawCurlyFur(bx + 40, by + 36, 50, 28, underColor, 12);
-
-            // --- HEAD ---
-            gCtx.save();
-            gCtx.translate(bx + 52, by + 8);
-            gCtx.rotate(0.06 + Math.sin(frames * 0.04) * 0.02);
-
-            // Rounder forehead with scruffy edges
-            drawScruffyFluff(-3, 0, 14, furColor, 1.0);
-
-            // Muzzle: rounder and softer (lighter)
-            gCtx.fillStyle = '#d7b08a';
-            gCtx.beginPath();
-            gCtx.ellipse(8, 4, 10, 8, 0, 0, Math.PI * 2);
-            gCtx.fill();
-
-            // Small curly highlights on muzzle
-            drawCurlyFur(8, 4, 14, 8, highlight, 8);
-
-            // Nose (wet black)
-            gCtx.fillStyle = noseColor;
-            gCtx.beginPath(); gCtx.arc(15, 2, 3.5, 0, Math.PI*2); gCtx.fill();
-            gCtx.fillStyle = '#444';
-            gCtx.beginPath(); gCtx.arc(14, 0, 1, 0, Math.PI*2); gCtx.fill();
-
-            // Eyes: softer, friendly
-            gCtx.fillStyle = eyeColor;
-            gCtx.beginPath(); gCtx.arc(1, -2, 2.2, 0, Math.PI*2); gCtx.fill();
-            gCtx.restore();
-
-            // Ears: longer, wavier, and droopier for a Labradoodle
-            gCtx.save();
-            gCtx.translate(bx + 48, by + 6);
-            // make ear flop more pronounced when running
-            gCtx.rotate(-0.6 + Math.sin(frames*0.22)*0.25);
-            gCtx.fillStyle = earColor;
-            gCtx.beginPath();
-            gCtx.moveTo(0,0);
-            gCtx.quadraticCurveTo(18, 10, 10, 34);
-            gCtx.quadraticCurveTo(-6, 26, 0, 0);
-            gCtx.fill();
-            // curly edge on ear
-            drawCurlyFur(6, 18, 24, 18, highlight, 10);
-            gCtx.restore();
-
-            // left ear (behind) - subtle
-            gCtx.save();
-            gCtx.translate(bx + 44, by + 10);
-            gCtx.rotate(-0.2);
-            gCtx.fillStyle = earColor;
-            gCtx.beginPath();
-            gCtx.quadraticCurveTo(-12, 12, -6, 34);
-            gCtx.quadraticCurveTo(4, 26, -2, 12);
-            gCtx.fill();
-            drawCurlyFur(-6, 22, 18, 14, underColor, 8);
-            gCtx.restore();
-
-            // --- TAIL ---
-            // Curlier waggy tail for doodle
-            gCtx.strokeStyle = furColor;
-            gCtx.lineWidth = 6;
-            gCtx.lineCap = 'round';
-            gCtx.save();
-            gCtx.translate(bx + 6, by + 26);
-            gCtx.rotate(-0.6 + Math.sin(frames*0.35)*0.6); 
-            // main tail stroke (curly)
-            gCtx.beginPath();
-            gCtx.moveTo(0,0);
-            gCtx.bezierCurveTo(-6, -6, -14, -10, -18, -16);
-            gCtx.stroke();
-            // scruffy tip
-            drawScruffyFluff(-18, -16, 7, furColor, 1.2);
-            drawCurlyFur(-18, -16, 12, 10, highlight, 6);
-            gCtx.restore();
-
-            // --- LEGS ---
-            gCtx.strokeStyle = underColor;
-            gCtx.lineWidth = 8;
-            gCtx.lineCap = 'round';
-            const legLen = 22;
-            let l1, l2;
-
-            if (willow.grounded) {
-                const runCycle = Math.sin(frames * 0.8);
-                l1 = runCycle * 0.6;
-                l2 = -runCycle * 0.6;
-            } else {
-                l1 = -0.6;
-                l2 = 0.6;
-            }
-
-            // Front Leg (right)
-            gCtx.save();
-            gCtx.translate(bx + 50, by + 36);
-            gCtx.rotate(l1);
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            drawScruffyFluff(0, legLen, 5, furColor); // paw fluff
-            drawCurlyFur(0, legLen, 14, 8, highlight, 6);
-            gCtx.restore();
-
-            // Back Leg (left)
-            gCtx.save();
-            gCtx.translate(bx + 20, by + 36);
-            gCtx.rotate(l2);
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            drawScruffyFluff(0, legLen, 5, furColor); // paw fluff
-            drawCurlyFur(0, legLen, 14, 8, underColor, 6);
-            gCtx.restore();
-        }
-
-        function drawEnvironment() {
-            // Sky gradient
-            const gradient = gCtx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
-            gradient.addColorStop(0, "#1b2735");
-            gradient.addColorStop(1, "#546e7a");
-            gCtx.fillStyle = gradient;
-            gCtx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-
-            // Back Layer
-            gCtx.fillStyle = '#263238';
-            for(let i=0; i<GAME_WIDTH/50 + 2; i++) {
-                let x = (i*100) - (bgOffset2 % 100);
-                gCtx.beginPath(); gCtx.moveTo(x, 350); gCtx.lineTo(x+50, 200); gCtx.lineTo(x+100, 350); gCtx.fill();
-            }
-
-            // Mid Layer
-            for(let i=0; i<GAME_WIDTH/100 + 3; i++) {
-                let x = (i*200) - (bgOffset1 % 200);
-                gCtx.fillStyle = '#1b5e20';
-                gCtx.beginPath(); gCtx.moveTo(x, 350); gCtx.lineTo(x+30, 220); gCtx.lineTo(x+60, 350); gCtx.fill();
-                gCtx.fillStyle = '#5d4037';
-                gCtx.fillRect(x+80, 290, 60, 60);
-                gCtx.fillStyle = '#8d6e63';
-                gCtx.beginPath(); gCtx.moveTo(x+70, 290); gCtx.lineTo(x+110, 250); gCtx.lineTo(x+150, 290); gCtx.fill();
-                gCtx.fillStyle = '#ffeb3b';
-                gCtx.fillRect(x+95, 310, 30, 20);
-            }
-
-            // Ground
-            gCtx.fillStyle = '#eceff1'; // Snow
-            gCtx.fillRect(0, 350, GAME_WIDTH, 50);
-            gCtx.fillStyle = '#cfd8dc'; // Shadow layer
-            gCtx.fillRect(0, 350, GAME_WIDTH, 5);
-        }
-
-        function getFinishLineX() {
-            // Returns the current screen X coordinate of the finish line
-            return (WIN_DISTANCE - distance) + 200;
-        }
-
-        function drawFinishLine() {
-            const finishX = getFinishLineX();
-            // Draw if within visible range (or slightly offscreen)
-            if (finishX < GAME_WIDTH + 100 && finishX > -200) {
-                gCtx.fillStyle = '#8d6e63';
-                gCtx.fillRect(finishX, 200, 10, 150);
-                gCtx.fillRect(finishX + 100, 200, 10, 150);
-                gCtx.fillStyle = '#c62828';
-                gCtx.fillRect(finishX, 200, 100, 40);
-                gCtx.fillStyle = '#fff';
-                for(let r=0; r<2; r++) {
-                    for(let c=0; c<5; c++) {
-                        if ((r+c)%2===0) gCtx.fillRect(finishX + c*20, 200 + r*20, 20, 20);
-                    }
-                }
-                gCtx.fillStyle = '#fff';
-                gCtx.font = 'bold 16px sans-serif';
-                gCtx.fillText("FINISH", finishX + 25, 225);
-            }
-        }
-
-        function gameLoop() {
-            if (!isPlaying && !isGameOver && frames > 0) {
-                // Special case: Paused but not game over (WIN state)
-                // Continue drawing so fireworks show up
-                gCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-                drawEnvironment();
-                drawFinishLine();
-                drawWillow();
-                animateFireworks(); 
-                return;
-            }
-
-            if (!isPlaying) return;
-
-            gCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-            
-            frames++;
-            distance += gameSpeed;
-            bgOffset1 += gameSpeed * 0.5;
-            bgOffset2 += gameSpeed * 0.2;
-
-            drawEnvironment();
-            drawFinishLine();
-
-            // Progress Bar
-            gCtx.fillStyle = 'rgba(0,0,0,0.5)';
-            gCtx.fillRect(20, 20, 200, 10);
-            gCtx.fillStyle = '#f6d365';
-            gCtx.fillRect(20, 20, Math.min(200, (distance/WIN_DISTANCE)*200), 10);
-
-            // --- SPAWN LOGIC ---
-            if (distance > nextSpawnDist && distance < WIN_DISTANCE - 400) {
-                spawnObstacle();
-                const minGap = 350; 
-                const variance = Math.random() * 300; 
-                nextSpawnDist = distance + minGap + variance;
-            }
-
-            // Update Willow
-            if (!willow.grounded) {
-                willow.dy += willow.gravity;
-                willow.y += willow.dy;
-            }
-            
-            let groundY = 300;
-            if (willow.y >= groundY) {
-                // Hole logic
-                let overHole = false;
-                obstacles.forEach(obs => {
-                    if (obs.type === 'hole') {
-                        if (willow.x + 20 > obs.x && willow.x + 30 < obs.x + obs.w) {
-                             overHole = true;
-                        }
-                    }
-                });
-
-                if (overHole) {
-                    // Fall (no grounded)
-                } else {
-                    willow.y = groundY;
-                    willow.grounded = true;
-                    willow.dy = 0;
-                    
-                    // Footsteps
-                    if (frames % Math.max(1, Math.floor((20 - gameSpeed) / 2)) === 0) playSound('step');
-                }
-            }
-            
-            if (willow.y > GAME_HEIGHT + 50) {
-                 playSound('crash');
-                 gameOver();
-                 return;
-            }
-
-            drawWillow();
-
-            // Update & Draw Obstacles
-            for (let i = 0; i < obstacles.length; i++) {
-                let obs = obstacles[i];
-                obs.x -= gameSpeed;
-                
-                if (obs.type === 'hole') {
-                    gCtx.fillStyle = '#1b2735';
-                    gCtx.fillRect(obs.x, 350, obs.w, 50); 
-                    gCtx.fillStyle = 'rgba(0,0,0,0.5)';
-                    gCtx.fillRect(obs.x, 350, obs.w, 10);
-                } else if (obs.type === 'stump') {
-                    gCtx.fillStyle = '#5d4037';
-                    gCtx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                    gCtx.fillStyle = '#8d6e63';
-                    gCtx.beginPath(); gCtx.ellipse(obs.x + obs.w/2, obs.y, obs.w/2, 5, 0, 0, Math.PI*2); gCtx.fill();
-                } else {
-                    gCtx.fillStyle = '#5d4037';
-                    gCtx.beginPath(); gCtx.arc(obs.x, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill();
-                    gCtx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                    gCtx.beginPath(); gCtx.arc(obs.x + obs.w, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill();
-                    gCtx.fillStyle = '#8d6e63';
-                    gCtx.beginPath(); gCtx.arc(obs.x, obs.y + obs.h/2, obs.h/2 - 4, 0, Math.PI*2); gCtx.fill(); 
-                }
-
-                // Collision
-                let wx = willow.x + 15;
-                let wy = willow.y + 15;
-                let ww = 25;
-                let wh = 35;
-
-                if (wx < obs.x + obs.w && wx + ww > obs.x && wy < obs.y + obs.h && wy + wh > obs.y) {
-                    if (obs.type !== 'hole') {
-                        playSound('crash');
-                        gameOver();
-                    }
-                }
-
-                if (obs.x + obs.w < -100) {
-                    obstacles.splice(i, 1);
-                    i--;
-                }
-            }
-
-            // Win Condition
-            // Pass the finish line
-            if (distance > WIN_DISTANCE) {
-                gameWin();
-                return;
-            }
-
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function jump() {
-            if (willow.grounded && isPlaying) {
-                willow.dy = willow.jumpPower;
-                willow.grounded = false;
-                playSound('jump');
-            }
-        }
-
-        function gameOver() {
-            isPlaying = false;
-            isGameOver = true;
-            document.getElementById('ui-layer').classList.remove('hidden-ui');
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('game-over-screen').style.display = 'block';
-        }
-
-        function gameWin() {
-            isPlaying = false; // Stops update logic
-            // Don't set isGameOver=true, so we can detect "Win State" in loop
-            
-            playSound('win');
-            launchFireworks();
-            document.getElementById('ui-layer').classList.remove('hidden-ui');
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('win-screen').style.display = 'block';
-            
-            // Continue animation loop for fireworks
-            requestAnimationFrame(gameLoop);
-        }
-
-        /* --- FIREWORKS --- */
-        const particlesList = [];
-        function launchFireworks() {
-            const colors = ['#f6d365', '#fda085', '#fff', '#00ff00', '#ff00ff', '#00ccff'];
-            const finishX = getFinishLineX() + 50; // Center over the finish line
-            
-            // Launch multiple bursts
-            for(let b=0; b<5; b++) {
-                let startX = finishX + (Math.random()-0.5) * 200; // Spread around finish line
-                let startY = 100 + Math.random() * 150;
-                
-                for(let i=0; i<30; i++) {
-                    particlesList.push({
-                        x: startX, 
-                        y: startY,
-                        vx: (Math.random()-0.5)*8, 
-                        vy: (Math.random()-0.5)*8,
-                        color: colors[Math.floor(Math.random()*colors.length)],
-                        life: 100 + Math.random()*50
-                    });
-                }
-            }
-        }
-
-        function animateFireworks() {
-            // Draw without clearing (GameLoop clears)
-            
-            for(let i=0; i<particlesList.length; i++) {
-                let p = particlesList[i];
-                p.x += p.vx; p.y += p.vy;
-                p.vy += 0.05; // light gravity
-                p.life--;
-                
-                gCtx.fillStyle = p.color;
-                gCtx.fillRect(p.x, p.y, 4, 4);
-                
-                if(p.life <= 0) {
-                    particlesList.splice(i, 1);
-                    i--;
-                }
-            }
-        }
-
-        /* --- CONTROLS --- */
-        document.body.onkeydown = function(e){ 
-            if(e.keyCode == 32) { e.preventDefault(); jump(); }
-        }
-        document.getElementById('game-container').addEventListener('mousedown', jump);
-        document.getElementById('game-container').addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
-
-        document.getElementById('start-btn').addEventListener('click', resetGame);
-
-        /* --- NAVIGATION --- */
-        const _next = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
-        
-        function goToNextLevel() {
-            window.location.href = String.fromCharCode(..._next);
-        }
+        document.getElementById("answerInput").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") checkAnswer();
+        });
 
         /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth; let height = window.innerHeight;
         canvas.width = width; canvas.height = height;
-        const snowParticles = []; 
-        for(let i=0; i<100; i++) {
-            snowParticles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                r: Math.random() * 3 + 1,
-                sy: Math.random() * 1 + 0.5,
-                sx: Math.random() * 0.5 - 0.25,
-                o: Math.random() * 0.5 + 0.2
-            });
-        }
-        function animateSnow() {
+        const particles = []; 
+        for(let i=0; i<100; i++) particles.push({x: Math.random()*width, y: Math.random()*height, r: Math.random()*3+1, sy: Math.random()*1+0.5, sx: Math.random()*0.5-0.25, o: Math.random()*0.5+0.3});
+        function animate() {
             ctx.clearRect(0,0,width,height);
-            snowParticles.forEach(p => {
+            particles.forEach(p => {
                 p.y += p.sy; p.x += p.sx;
                 if(p.y > height) p.y=0; if(p.x > width) p.x=0; if(p.x < 0) p.x=width;
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = `rgba(255,255,255,${p.o})`; ctx.fill();
             });
-            requestAnimationFrame(animateSnow);
+            requestAnimationFrame(animate);
         }
-        animateSnow();
+        animate();
         window.addEventListener('resize', () => { width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height; });
     </script>
 </body>
