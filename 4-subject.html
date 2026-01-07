@@ -203,19 +203,20 @@
         // Speed increased by 50% (previously 8)
         let gameSpeed = 12;
         let distance = 0;
-        let nextSpawnDist = 400; // Track when to spawn next obstacle
+        // Start spawn further out so obstacles don't immediately appear
+        let nextSpawnDist = 800;
         let isPlaying = false;
         let isGameOver = false;
         let frames = 0;
         // Game length increased by 50% (previously 5000)
         const WIN_DISTANCE = 7500;
 
-        // Willow (more labradoodle-like: fluffier, curlier)
+        // Willow (completely reworked to match the attached curly, tall doodle)
         const willow = {
             x: 100,
             y: 300,
-            width: 60,
-            height: 60,
+            width: 56,
+            height: 76,
             dy: 0,
             jumpPower: -13,
             gravity: 0.65,
@@ -235,7 +236,8 @@
             willow.dy = 0;
             obstacles = [];
             distance = 0;
-            nextSpawnDist = 400; // Initial gap
+            // initial gap larger to give player breathing room
+            nextSpawnDist = 800;
             gameSpeed = 12;
             isPlaying = true;
             isGameOver = false;
@@ -247,57 +249,50 @@
         }
 
         function spawnObstacle() {
-            const type = Math.random();
+            const typeRoll = Math.random();
             let obs = { x: GAME_WIDTH, type: 'log' };
             
-            if (type < 0.40) {
+            // Make holes less common so gameplay is fair
+            if (typeRoll < 0.45) {
                 // Stump: Tall, narrow
                 obs.w = 30; obs.h = 60; obs.type = 'stump'; obs.y = 350 - obs.h;
-            } else if (type < 0.70) {
+            } else if (typeRoll < 0.85) {
                 // Log: Short, wide
                 obs.w = 60; obs.h = 30; obs.type = 'log'; obs.y = 350 - obs.h;
             } else {
-                // Hole: Gap in the floor
-                obs.w = 100; obs.h = 20; obs.type = 'hole'; obs.y = 350;
+                // Hole: Gap in the floor (rarer)
+                obs.w = 120; obs.h = 20; obs.type = 'hole'; obs.y = 350;
             }
             obstacles.push(obs);
         }
 
-        // Helper to draw a "scruffy" puff (fuzzy edge) - with optional curliness
-        function drawScruffyFluff(cx, cy, r, color, jaggedness = 1.1, curls = false) {
-            gCtx.fillStyle = color;
-            gCtx.beginPath();
-            
-            const points = 16;
-            for (let i = 0; i <= points; i++) {
-                const angle = (i / points) * Math.PI * 2;
-                const radius = r * (0.6 + Math.random() * 0.8 * jaggedness);
-                const px = cx + Math.cos(angle) * radius;
-                const py = cy + Math.sin(angle) * radius;
-                if (i === 0) gCtx.moveTo(px, py);
-                else gCtx.lineTo(px, py);
-            }
-            gCtx.closePath();
-            gCtx.fill();
+        // Reusable curly fur drawing primitives
+        function curlyPatch(cx, cy, radius, color, density = 18, curliness = 0.9) {
+            // many small overlapping arcs to suggest tight curls
+            for (let i = 0; i < density; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r = radius * (0.2 + Math.random() * 0.9);
+                const x = cx + Math.cos(a) * r * (0.6 + Math.random() * 0.8);
+                const y = cy + Math.sin(a) * r * (0.6 + Math.random() * 0.8);
+                const size = Math.max(1, radius * (0.12 + Math.random() * 0.28));
+                gCtx.fillStyle = shadeColor(color, -4 + Math.random()*8);
+                gCtx.beginPath();
+                gCtx.arc(x, y, size, 0, Math.PI*2);
+                gCtx.fill();
 
-            // Add optional small curl strokes to suggest curly fur
-            if (curls) {
-                gCtx.strokeStyle = shadeColor(color, -12);
-                gCtx.lineWidth = Math.max(1, r * 0.12);
-                for (let i = 0; i < 6; i++) {
-                    const ca = Math.random() * Math.PI * 2;
-                    const cr = r * (0.3 + Math.random() * 0.9);
-                    const sx = cx + Math.cos(ca) * cr;
-                    const sy = cy + Math.sin(ca) * cr;
+                // occasional short curl lines
+                if (Math.random() < curliness) {
+                    gCtx.strokeStyle = shadeColor(color, -12);
+                    gCtx.lineWidth = Math.max(0.6, size * 0.3);
                     gCtx.beginPath();
-                    gCtx.moveTo(sx, sy);
-                    gCtx.quadraticCurveTo(sx + Math.random()*6-3, sy + Math.random()*6-3, sx + Math.random()*8-4, sy + Math.random()*8-4);
+                    gCtx.moveTo(x + (Math.random()-0.5)*4, y + (Math.random()-0.5)*4);
+                    gCtx.quadraticCurveTo(x + (Math.random()-0.5)*6, y + (Math.random()-0.5)*6, x + (Math.random()-0.5)*8, y + (Math.random()-0.5)*8);
                     gCtx.stroke();
                 }
             }
         }
 
-        // utility to slightly darken/lighten a color
+        // utility to slightly darken/lighten a color (same helper as before)
         function shadeColor(col, percent) {
             const f = col.slice(1);
             const R = parseInt(f.substring(0,2),16);
@@ -311,118 +306,136 @@
             return "#" + ((1<<24) + (newR<<16) + (newG<<8) + newB).toString(16).slice(1);
         }
 
+        // Completely new drawWillow: tall, slender legs, long curly coat and plume tail
         function drawWillow() {
-            // Labradoodle-like colors: warm golden brown
-            const furColor = '#b07a43'; // warm
-            const furDark = '#7b4c2b';
-            const highlight = '#d4a06a';
-            const earColor = '#6f4025';
+            const base = '#a7632f'; // warm reddish-brown
+            const dark = '#7a4526';
+            const light = '#d49b62';
+            const wobble = Math.sin(frames * 0.12) * 1.2;
 
-            // Slight wobble for more lively fluff
-            const wobble = Math.sin(frames * 0.12) * 1.5;
+            // Draw torso as series of overlapping curly patches (longer body)
+            curlyPatch(willow.x + 30 + wobble, willow.y + 36, 22, base, 28, 0.95);
+            curlyPatch(willow.x + 56 + wobble*0.5, willow.y + 30, 20, shadeColor(base, -6), 26, 0.95);
+            curlyPatch(willow.x + 10 + wobble*0.3, willow.y + 28, 18, shadeColor(base, -10), 20, 0.9);
 
-            // --- BODY: multiple overlapping scruffy puffs to simulate untrimmed curly coat ---
-            drawScruffyFluff(willow.x + 15 + wobble, willow.y + 36, 20, furColor, 1.4, true);
-            drawScruffyFluff(willow.x + 40 + wobble*0.6, willow.y + 34, 22, shadeColor(furColor, -6), 1.3, true);
-            drawScruffyFluff(willow.x + 60 + wobble*0.4, willow.y + 30, 18, furColor, 1.2, true);
-            // chest tuft
-            drawScruffyFluff(willow.x + 58, willow.y + 22, 14, highlight, 1.1, true);
+            // Neck & chest tuft (long curls around chest)
+            curlyPatch(willow.x + 58, willow.y + 20, 14, light, 18, 0.9);
+            curlyPatch(willow.x + 50, willow.y + 26, 10, base, 14, 0.9);
 
-            // --- HEAD: big shaggy bangs and curly face fur ---
+            // Head: elongated muzzle with heavy curly bangs
             gCtx.save();
-            gCtx.translate(willow.x + 52 + wobble*0.3, willow.y + 10);
-            gCtx.rotate(0.08);
-            // main shaggy head mass
-            drawScruffyFluff(-5, 0, 16, furColor, 1.6, true);
-            // long bangs over forehead
-            drawScruffyFluff(0, -4, 10, shadeColor(furColor, 8), 1.9, true);
-            // snout
-            gCtx.fillStyle = furDark;
+            gCtx.translate(willow.x + 64 + wobble*0.1, willow.y + 8);
+            gCtx.rotate(0.06);
+            // main head curl cloud
+            curlyPatch(-6, -2, 14, base, 26, 1.0);
+            // bangs (dense curls over forehead)
+            curlyPatch(-2, -6, 11, shadeColor(base, -4), 28, 1.0);
+            // snout shape: elliptical darker snout
+            gCtx.fillStyle = dark;
             gCtx.beginPath();
-            gCtx.ellipse(8, 2, 9, 7, 0, 0, Math.PI * 2);
+            gCtx.ellipse(14, 2, 8, 6, -0.1, 0, Math.PI*2);
             gCtx.fill();
             // nose
             gCtx.fillStyle = '#111';
-            gCtx.beginPath(); gCtx.arc(15, 0, 3.5, 0, Math.PI*2); gCtx.fill();
-            gCtx.fillStyle = '#444'; gCtx.beginPath(); gCtx.arc(14, -1, 1, 0, Math.PI*2); gCtx.fill();
-            // eye as a dark dot peeking through bangs
+            gCtx.beginPath(); gCtx.arc(20, 0, 3.5, 0, Math.PI*2); gCtx.fill();
+            // small eye peeking through curls
             gCtx.fillStyle = '#000';
-            gCtx.beginPath(); gCtx.arc(2, -2, 2, 0, Math.PI*2); gCtx.fill();
+            gCtx.beginPath(); gCtx.arc(4, -3, 2.2, 0, Math.PI*2); gCtx.fill();
             gCtx.restore();
 
-            // EARS: longer, droopy and fuzzy
+            // Ears: long, hanging, with curl texture
             gCtx.save();
-            gCtx.translate(willow.x + 40, willow.y + 10);
-            gCtx.rotate(Math.sin(frames*0.18)*0.18 - 0.2);
-            gCtx.fillStyle = earColor;
+            gCtx.translate(willow.x + 50, willow.y + 12);
+            gCtx.rotate(-0.25 + Math.sin(frames*0.18)*0.08);
+            gCtx.fillStyle = shadeColor(base, -8);
             gCtx.beginPath();
             gCtx.moveTo(0,0);
-            gCtx.bezierCurveTo(18, 6, 18, 26, -2, 36);
-            gCtx.bezierCurveTo(-12, 30, -6, 6, 0, 0);
+            gCtx.bezierCurveTo(18, 8, 18, 34, -2, 54);
+            gCtx.bezierCurveTo(-12, 46, -8, 8, 0, 0);
             gCtx.fill();
-            // furry edge
-            drawScruffyFluff(2, 24, 6, shadeColor(earColor, -8), 1.1, false);
+            // ear curls
+            curlyPatch(2, 34, 6, shadeColor(base, -8), 8, 0.8);
             gCtx.restore();
 
             gCtx.save();
-            gCtx.translate(willow.x + 54, willow.y + 12);
-            gCtx.rotate(Math.sin(frames*0.2)*0.1 + 0.15);
-            gCtx.fillStyle = earColor;
+            gCtx.translate(willow.x + 70, willow.y + 14);
+            gCtx.rotate(0.18 + Math.sin(frames*0.2)*0.06);
+            gCtx.fillStyle = shadeColor(base, -6);
             gCtx.beginPath();
             gCtx.moveTo(0,0);
-            gCtx.bezierCurveTo(10, 10, 4, 28, -8, 30);
-            gCtx.bezierCurveTo(-16, 28, -12, 8, 0, 0);
+            gCtx.bezierCurveTo(12, 12, 6, 36, -10, 48);
+            gCtx.bezierCurveTo(-18, 40, -12, 10, 0, 0);
             gCtx.fill();
-            drawScruffyFluff(-4, 26, 5, shadeColor(earColor, -8), 1.0, false);
+            curlyPatch(-6, 36, 6, shadeColor(base, -8), 8, 0.8);
             gCtx.restore();
 
-            // --- TAIL: longer, bushy and curly ---
-            gCtx.strokeStyle = shadeColor(furColor, -8);
+            // Tail: longer plume with curls
+            const tailX = willow.x + 6;
+            const tailY = willow.y + 26;
+            gCtx.save();
+            gCtx.translate(tailX, tailY);
+            gCtx.rotate(-0.6 + Math.sin(frames*0.32)*0.35);
+            // tail spine
+            gCtx.strokeStyle = shadeColor(base, -10);
+            gCtx.lineWidth = 4;
+            gCtx.beginPath();
+            gCtx.moveTo(0,0);
+            gCtx.quadraticCurveTo(-12, -8, -28, -28);
+            gCtx.stroke();
+            // tail plume curls
+            curlyPatch(-28, -28, 10, base, 22, 1.0);
+            curlyPatch(-34, -24, 8, shadeColor(base, -4), 12, 0.9);
+            gCtx.restore();
+
+            // Legs: long and relatively thin but with curly tufts around joints
+            const legLen = 36;
+            let frontCycle = Math.sin(frames * 0.9) * 0.7;
+            let backCycle = -Math.sin(frames * 0.9) * 0.7;
+            if (!willow.grounded) { frontCycle = -0.6; backCycle = 0.6; }
+
+            // Front right leg
+            gCtx.save();
+            gCtx.translate(willow.x + 56, willow.y + 36);
+            gCtx.rotate(frontCycle);
+            gCtx.strokeStyle = shadeColor(base, -12);
             gCtx.lineWidth = 6;
-            gCtx.lineCap = 'round';
-            gCtx.save();
-            gCtx.translate(willow.x + 6, willow.y + 24);
-            gCtx.rotate(-0.5 + Math.sin(frames*0.35)*0.35);
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.quadraticCurveTo(-12, -8, -20, -18); gCtx.stroke();
-            drawScruffyFluff(-22, -18, 8, furColor, 1.2, true);
-            gCtx.restore();
-
-            // --- LEGS: shaggy, thicker fur around joints ---
-            gCtx.strokeStyle = shadeColor(furColor, -6);
-            gCtx.lineWidth = 9;
-            gCtx.lineCap = 'round';
-            const legLen = 24;
-            let l1, l2;
-
-            if (willow.grounded) {
-                const runCycle = Math.sin(frames * 0.9);
-                l1 = runCycle * 0.7;
-                l2 = -runCycle * 0.7;
-            } else {
-                l1 = -0.6;
-                l2 = 0.6;
-            }
-
-            // Front Leg
-            gCtx.save();
-            gCtx.translate(willow.x + 52, willow.y + 36);
-            gCtx.rotate(l1);
             gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            drawScruffyFluff(0, legLen, 6, furColor, 1.2, true); // paw fluff
+            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
             gCtx.restore();
 
-            // Back Leg
+            // Front left leg
             gCtx.save();
-            gCtx.translate(willow.x + 26, willow.y + 38);
-            gCtx.rotate(l2);
+            gCtx.translate(willow.x + 44, willow.y + 36);
+            gCtx.rotate(backCycle * 0.5);
+            gCtx.strokeStyle = shadeColor(base, -12);
+            gCtx.lineWidth = 6;
             gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            drawScruffyFluff(0, legLen, 6, furColor, 1.2, true); // paw fluff
+            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
             gCtx.restore();
 
-            // small highlights to suggest curly sheen
-            gCtx.fillStyle = highlight;
+            // Back right leg
+            gCtx.save();
+            gCtx.translate(willow.x + 24, willow.y + 38);
+            gCtx.rotate(backCycle);
+            gCtx.strokeStyle = shadeColor(base, -12);
+            gCtx.lineWidth = 6;
+            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
+            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
+            gCtx.restore();
+
+            // Back left leg
+            gCtx.save();
+            gCtx.translate(willow.x + 12, willow.y + 38);
+            gCtx.rotate(frontCycle * 0.5);
+            gCtx.strokeStyle = shadeColor(base, -12);
+            gCtx.lineWidth = 6;
+            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
+            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
+            gCtx.restore();
+
+            // Light highlights for sheen
             gCtx.globalAlpha = 0.08;
-            drawScruffyFluff(willow.x + 52, willow.y + 26, 6, highlight, 1.0, false);
+            curlyPatch(willow.x + 56, willow.y + 22, 6, light, 8, 0.6);
             gCtx.globalAlpha = 1;
         }
 
@@ -521,10 +534,11 @@
             gCtx.fillRect(20, 20, Math.min(200, (distance/WIN_DISTANCE)*200), 10);
 
             // --- SPAWN LOGIC ---
+            // make minGap grow with speed to preserve reaction time
+            const minGap = 400 + Math.floor(gameSpeed * 25); // e.g., speed 12 -> +300 -> 700 total
+            const variance = 120 + Math.random() * 380; // 120..500 extra
             if (distance > nextSpawnDist && distance < WIN_DISTANCE - 400) {
                 spawnObstacle();
-                const minGap = 350; 
-                const variance = Math.random() * 300; 
                 nextSpawnDist = distance + minGap + variance;
             }
 
@@ -590,11 +604,11 @@
                     gCtx.beginPath(); gCtx.arc(obs.x, obs.y + obs.h/2, obs.h/2 - 4, 0, Math.PI*2); gCtx.fill(); 
                 }
 
-                // Collision
-                let wx = willow.x + 15;
-                let wy = willow.y + 15;
-                let ww = 25;
-                let wh = 35;
+                // Collision: tuned bounding box to tall slender dog
+                let wx = willow.x + 18;
+                let wy = willow.y + 20;
+                let ww = 22;
+                let wh = 48;
 
                 if (wx < obs.x + obs.w && wx + ww > obs.x && wy < (obs.y + obs.h) && wy + wh > obs.y) {
                     if (obs.type !== 'hole') {
