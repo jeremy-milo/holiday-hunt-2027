@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>The Treasure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%);
+            color: #ffffff; font-family: 'Montserrat', sans-serif;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+        }
+        #snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .container { position: relative; z-index: 10; padding: 20px; max-width: 800px; width: 100%; }
+        h1 { font-family: 'Cinzel', serif; font-size: 3rem; margin-bottom: 30px; color: #f6d365; text-shadow: 0 0 15px rgba(246, 211, 101, 0.5); }
+        .content-box { 
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); padding: 40px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2); 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .text-block {
+            font-size: 1.1rem; opacity: 0.95; margin-bottom: 20px; line-height: 1.6; max-width: 650px; text-align: left; width: 100%;
+        }
+        .highlight-link {
+            color: #f6d365; text-decoration: underline; transition: color 0.3s;
+        }
+        .highlight-link:hover {
+            color: #fda085;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .text-block { font-size: 1rem; }
+            .content-box { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    <div class="container">
+        <div class="content-box">
+            <h1>Congratulations!</h1>
+            
+            <p class="text-block">You have solved the 12 puzzles!</p>
+            
+            <p class="text-block">Hidden in each of the 12 puzzle pages is a secret word. These are the 12 "seed words" that unlock the Bitcoin wallet where the treasure has been safely hidden. You might need to go back through each puzzle to find the 12 seed words.</p>
+            
+            <p class="text-block">Once you have the 12 seed words, download a Bitcoin wallet app (like Wallet of Satoshi) to claim the treasure. Tap "Restore Existing Wallet" and then "Restore Manually". Be sure to enter the seed words in the correct order!</p>
+            
+            <p class="text-block">After you restore the treasure wallet, you'll need to quickly send the treasure to a new Bitcoin wallet that only you control. If you don't act fast, someone else might solve the 12 puzzles and withdraw everything from the treasure wallet first!</p>
+            
+            <p class="text-block">If you successfully claim the treasure (or even if you don't!), please <a href="mailto:jeremymilo@gmail.com?subject=Milo%20Fam%20Holiday%20Hunt" class="highlight-link">drop us a note</a> and say hi.</p>
+        </div>
+    </div>
+
+    <script>
+        /* --- SNOW ANIMATION --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth; let height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        const particles = []; 
+        for(let i=0; i<100; i++) particles.push({x: Math.random()*width, y: Math.random()*height, r: Math.random()*3+1, sy: Math.random()*1+0.5, sx: Math.random()*0.5-0.25, o: Math.random()*0.5+0.3});
+        function animate() {
+            ctx.clearRect(0,0,width,height);
+            particles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if(p.y > height) p.y=0; if(p.x > width) p.x=0; if(p.x < 0) p.x=width;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = `rgba(255,255,255,${p.o})`; ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+        window.addEventListener('resize', () => { width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height; });
+    </script>
+</body>
+</html>

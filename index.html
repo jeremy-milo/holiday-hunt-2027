@@ -1,22 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Holiday Countdown</title>
+    <!-- PRIVACY SHIELD: Prevents Google from indexing this page -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>The Milo Fam Holiday Hunt - 2027 Edition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CSS STYLES --- */
+        /* --- SNOWY THEME CSS STYLES --- */
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%);
+            /* Allow scrolling on mobile */
+            min-height: 100vh;
+            /* Fix background so it doesn't scroll away */
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
             color: #ffffff;
             font-family: 'Montserrat', sans-serif;
             display: flex;
@@ -25,10 +28,8 @@
             text-align: center;
         }
 
-
-        /* The canvas for the snow effect */
         #snow-canvas {
-            position: absolute;
+            position: fixed; /* Fixed position for scrolling */
             top: 0;
             left: 0;
             width: 100%;
@@ -37,32 +38,69 @@
             pointer-events: none;
         }
 
-
-        /* The main content container */
         .container {
             position: relative;
             z-index: 10;
-            padding: 20px;
+            padding: 40px 20px; /* More padding for mobile safe areas */
             max-width: 800px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
+        /* TREASURE WIDGET STYLES */
+        .treasure-widget {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin: 0 auto 40px auto;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.5s ease;
+        }
+
+        .treasure-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .treasure-value {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: #ffffff; /* White instead of Gold */
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .treasure-claimed {
+            color: #ff6b6b; /* Red for claimed */
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+        }
 
         h1 {
             font-family: 'Cinzel', serif;
             font-size: 3rem;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
             letter-spacing: 2px;
+            line-height: 1.2;
         }
-
 
         p.subtitle {
-            font-size: 1.2rem;
-            opacity: 0.8;
+            font-size: 1.1rem;
+            opacity: 0.9;
             margin-bottom: 40px;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
-
 
         /* Countdown Timer Styles */
         #timer {
@@ -71,7 +109,6 @@
             gap: 20px;
             flex-wrap: wrap;
         }
-
 
         .time-unit {
             display: flex;
@@ -86,12 +123,10 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-
         .number {
             font-size: 2.5rem;
             font-weight: 600;
         }
-
 
         .label {
             font-size: 0.8rem;
@@ -100,13 +135,11 @@
             margin-top: 5px;
         }
 
-
         /* HIDDEN CONTENT (Reveals at Zero Hour) */
         #reveal-content {
-            display: none; /* Hidden by default */
+            display: none; 
             animation: fadeIn 2s ease;
         }
-
 
         .btn-start {
             margin-top: 30px;
@@ -126,22 +159,20 @@
             display: inline-block;
         }
 
-
         .btn-start:hover {
             transform: scale(1.05);
         }
-
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-
         /* Mobile Adjustments */
         @media (max-width: 600px) {
-            h1 { font-size: 2rem; }
-            .number { font-size: 1.8rem; }
+            h1 { font-size: 1.8rem; }
+            p.subtitle { font-size: 0.9rem; }
+            .number { font-size: 1.5rem; }
             .time-unit { min-width: 60px; padding: 10px; }
             #timer { gap: 10px; }
         }
@@ -149,14 +180,20 @@
 </head>
 <body>
 
-
     <canvas id="snow-canvas"></canvas>
 
-
     <div class="container">
+        
+        <!-- TREASURE STATUS WIDGET -->
+        <div class="treasure-widget" id="treasure-widget">
+            <div class="treasure-label">Treasure Status</div>
+            <div id="treasure-value" class="treasure-value">Checking...</div>
+        </div>
+
+        <!-- WAIT MODE -->
         <div id="wait-mode">
-            <h1>The Milo Family Holiday Hunt</h1>
-            <p class="subtitle">Something special is arriving soon!  When the countdown reaches zero, be the first to solve a series of holiday puzzles and claim the treasure (possibly some Bitcoin).  Happy holidays, and happy hunting!  </p>
+            <h1>The Mil<span id="secret-o">o</span> Fam Holiday Hunt - 2027 Edition</h1>
+            <p class="subtitle">Something special is arriving soon! When the countdown reaches zero, get cracking on 12 fun puzzles.  The first ones might seem easy, but they get harder as you get closer to the end.  Be the first to solve all 12 puzzles, then claim the treasure!  Happy holidays, and happy hunting!</p>
             
             <div id="timer">
                 <div class="time-unit">
@@ -178,55 +215,113 @@
             </div>
         </div>
 
-
+        <!-- REVEAL MODE -->
         <div id="reveal-content">
-            <h1>Protocol Activated</h1>
-            <p class="subtitle">The digital vault is now open. Good luck.</p>
-            <a href="#" class="btn-start" onclick="alert('Link this button to your first puzzle!')">Begin The Hunt</a>
+            <h1>Let's goooo!</h1>
+            <p class="subtitle">The treasure hunt is now open.  Good luck, players.</p>
+            <!-- BUTTON WILL BE INJECTED HERE BY JAVASCRIPT FOR SECURITY -->
+            <div id="button-container"></div>
         </div>
     </div>
 
-
     <script>
-        /* --- CONFIGURATION: EDIT THIS DATE --- */
-        // Set the date we are counting down to (Year, MonthIndex 0-11, Day, Hour 0-23, Minute)
-        // Example: December 25, 2026 at 9:00 AM
-        // Note: Month is 0-indexed (0=Jan, 11=Dec)
+        /* --- CONFIGURATION --- */
         const targetDate = new Date(2026, 11, 25, 9, 0, 0).getTime(); 
+        const treasureAddress = '3P9PXxko6t3Gezg5FFQtCVxNxXgAurYKwq';
 
+        const _0x4f2a = [49, 45, 99, 97, 112, 105, 116, 97, 108, 46, 104, 116, 109, 108];
+
+        function _decode(_array) {
+            return String.fromCharCode(..._array);
+        }
+
+        /* --- TREASURE CHECKER --- */
+        async function checkTreasureStatus() {
+            try {
+                // Fetch address balance and current price in parallel
+                const [addressRes, priceRes] = await Promise.all([
+                    fetch(`https://mempool.space/api/address/${treasureAddress}`),
+                    fetch('https://mempool.space/api/v1/prices')
+                ]);
+
+                const addressData = await addressRes.json();
+                const priceData = await priceRes.json();
+                
+                // Calculate balance in Satoshis
+                const chainBalance = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
+                const mempoolBalance = addressData.mempool_stats.funded_txo_sum - addressData.mempool_stats.spent_txo_sum;
+                const totalSats = chainBalance + mempoolBalance;
+                
+                // Calculate USD value
+                const btcPrice = priceData.USD;
+                const usdValue = (totalSats / 100000000) * btcPrice;
+                
+                const displayEl = document.getElementById('treasure-value');
+                
+                if (totalSats > 0) {
+                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style="font-size: 0.8em; opacity: 0.8;">$${usdValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                } else {
+                    displayEl.innerText = "CLAIMED";
+                    displayEl.classList.add('treasure-claimed');
+                    // Update widget border to red to indicate claimed status
+                    document.getElementById('treasure-widget').style.borderColor = "rgba(255, 107, 107, 0.3)";
+                }
+            } catch (error) {
+                console.error("Error fetching treasure status:", error);
+                document.getElementById('treasure-value').innerText = "Status Unknown";
+            }
+        }
+        
+        // Check immediately on load
+        checkTreasureStatus();
+
+        /* --- REVEAL LOGIC --- */
+        function revealHunt() {
+            // Stop the timer
+            clearInterval(timerInterval);
+            
+            // Swap screens
+            document.getElementById("wait-mode").style.display = "none";
+            document.getElementById("reveal-content").style.display = "block";
+            
+            // Prevent duplicate buttons if clicked multiple times
+            const container = document.getElementById("button-container");
+            if (container.innerHTML === "") {
+                const btn = document.createElement("a");
+                btn.className = "btn-start";
+                btn.innerText = "Begin The Hunt";
+                btn.href = _decode(_0x4f2a); 
+                container.appendChild(btn);
+            }
+        }
 
         /* --- TIMER LOGIC --- */
         const timerInterval = setInterval(function() {
             const now = new Date().getTime();
             const distance = targetDate - now;
 
-
-            // Calculations for days, hours, minutes and seconds
+            // Calculations
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-
-            // Display the result
+            // Display
             document.getElementById("days").innerText = days < 10 ? "0" + days : days;
             document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
             document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
             document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
 
-
             // If the count down is finished
             if (distance < 0) {
-                clearInterval(timerInterval);
-                document.getElementById("wait-mode").style.display = "none";
-                document.getElementById("reveal-content").style.display = "block";
+                revealHunt();
             }
         }, 1000);
 
+        /* --- SECRET TRIGGER --- */
+        document.getElementById("secret-o").addEventListener("click", revealHunt);
 
-
-
-        /* --- SNOW ANIMATION LOGIC (Do not edit unless advanced) --- */
+        /* --- SNOW ANIMATION LOGIC --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
@@ -234,10 +329,8 @@
         canvas.width = width;
         canvas.height = height;
 
-
         const particles = [];
         const particleCount = 100;
-
 
         class Particle {
             constructor() {
@@ -263,11 +356,9 @@
             }
         }
 
-
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());
         }
-
 
         function animate() {
             ctx.clearRect(0, 0, width, height);
@@ -279,7 +370,6 @@
         }
         animate();
 
-
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -288,6 +378,4 @@
         });
     </script>
 </body>
-
 </html>
-
