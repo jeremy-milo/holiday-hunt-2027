@@ -211,7 +211,7 @@
         // Game length increased by 50% (previously 5000)
         const WIN_DISTANCE = 7500;
 
-        // Willow (completely reworked to match the attached curly, tall doodle)
+        // Willow (simplified graphics)
         const willow = {
             x: 100,
             y: 300,
@@ -266,177 +266,101 @@
             obstacles.push(obs);
         }
 
-        // Reusable curly fur drawing primitives
-        function curlyPatch(cx, cy, radius, color, density = 18, curliness = 0.9) {
-            // many small overlapping arcs to suggest tight curls
-            for (let i = 0; i < density; i++) {
-                const a = Math.random() * Math.PI * 2;
-                const r = radius * (0.2 + Math.random() * 0.9);
-                const x = cx + Math.cos(a) * r * (0.6 + Math.random() * 0.8);
-                const y = cy + Math.sin(a) * r * (0.6 + Math.random() * 0.8);
-                const size = Math.max(1, radius * (0.12 + Math.random() * 0.28));
-                gCtx.fillStyle = shadeColor(color, -4 + Math.random()*8);
-                gCtx.beginPath();
-                gCtx.arc(x, y, size, 0, Math.PI*2);
-                gCtx.fill();
-
-                // occasional short curl lines
-                if (Math.random() < curliness) {
-                    gCtx.strokeStyle = shadeColor(color, -12);
-                    gCtx.lineWidth = Math.max(0.6, size * 0.3);
-                    gCtx.beginPath();
-                    gCtx.moveTo(x + (Math.random()-0.5)*4, y + (Math.random()-0.5)*4);
-                    gCtx.quadraticCurveTo(x + (Math.random()-0.5)*6, y + (Math.random()-0.5)*6, x + (Math.random()-0.5)*8, y + (Math.random()-0.5)*8);
-                    gCtx.stroke();
-                }
-            }
-        }
-
-        // utility to slightly darken/lighten a color (same helper as before)
-        function shadeColor(col, percent) {
-            const f = col.slice(1);
-            const R = parseInt(f.substring(0,2),16);
-            const G = parseInt(f.substring(2,4),16);
-            const B = parseInt(f.substring(4,6),16);
-            const t = percent < 0 ? 0 : 255;
-            const p = Math.abs(percent) / 100;
-            const newR = Math.round((t - R)*p) + R;
-            const newG = Math.round((t - G)*p) + G;
-            const newB = Math.round((t - B)*p) + B;
-            return "#" + ((1<<24) + (newR<<16) + (newG<<8) + newB).toString(16).slice(1);
-        }
-
-        // Completely new drawWillow: tall, slender legs, long curly coat and plume tail
+        // Simplified dog drawing: <= 15 simple shapes per frame.
         function drawWillow() {
-            const base = '#a7632f'; // warm reddish-brown
-            const dark = '#7a4526';
-            const light = '#d49b62';
+            const x = willow.x;
+            const y = willow.y;
             const wobble = Math.sin(frames * 0.12) * 1.2;
+            const bodyColor = '#a7632f';
+            const accent = '#7a4526';
+            const dark = '#4a2e1a';
 
-            // Draw torso as series of overlapping curly patches (longer body)
-            curlyPatch(willow.x + 30 + wobble, willow.y + 36, 22, base, 28, 0.95);
-            curlyPatch(willow.x + 56 + wobble*0.5, willow.y + 30, 20, shadeColor(base, -6), 26, 0.95);
-            curlyPatch(willow.x + 10 + wobble*0.3, willow.y + 28, 18, shadeColor(base, -10), 20, 0.9);
+            // We'll draw at most ~13 simple primitives:
+            // 1) body ellipse
+            gCtx.fillStyle = bodyColor;
+            gCtx.beginPath();
+            gCtx.ellipse(x + 40 + wobble, y + 28, 28, 18, 0, 0, Math.PI * 2);
+            gCtx.fill();
 
-            // Neck & chest tuft (long curls around chest)
-            curlyPatch(willow.x + 58, willow.y + 20, 14, light, 18, 0.9);
-            curlyPatch(willow.x + 50, willow.y + 26, 10, base, 14, 0.9);
+            // 2) head ellipse
+            gCtx.fillStyle = accent;
+            gCtx.beginPath();
+            gCtx.ellipse(x + 72 + wobble * 0.3, y + 8, 12, 10, 0, 0, Math.PI * 2);
+            gCtx.fill();
 
-            // Head: elongated muzzle with heavy curly bangs
-            gCtx.save();
-            gCtx.translate(willow.x + 64 + wobble*0.1, willow.y + 8);
-            gCtx.rotate(0.06);
-            // main head curl cloud
-            curlyPatch(-6, -2, 14, base, 26, 1.0);
-            // bangs (dense curls over forehead)
-            curlyPatch(-2, -6, 11, shadeColor(base, -4), 28, 1.0);
-            // snout shape: elliptical darker snout
+            // 3) left ear (simple ellipse)
+            gCtx.beginPath();
+            gCtx.ellipse(x + 58, y + 4, 4, 12, Math.PI / 8, 0, Math.PI * 2);
+            gCtx.fill();
+
+            // 4) right ear
+            gCtx.beginPath();
+            gCtx.ellipse(x + 84, y + 4, 4, 12, -Math.PI / 8, 0, Math.PI * 2);
+            gCtx.fill();
+
+            // 5) tail (simple triangle)
+            gCtx.fillStyle = accent;
+            gCtx.beginPath();
+            gCtx.moveTo(x + 10, y + 34);
+            gCtx.lineTo(x - 6 + Math.sin(frames * 0.25) * 2, y + 22);
+            gCtx.lineTo(x + 10, y + 14);
+            gCtx.closePath();
+            gCtx.fill();
+
+            // 6..9) four simple legs (rects, optionally rotated slightly)
             gCtx.fillStyle = dark;
-            gCtx.beginPath();
-            gCtx.ellipse(14, 2, 8, 6, -0.1, 0, Math.PI*2);
-            gCtx.fill();
-            // nose
-            gCtx.fillStyle = '#111';
-            gCtx.beginPath(); gCtx.arc(20, 0, 3.5, 0, Math.PI*2); gCtx.fill();
-            // small eye peeking through curls
+            // front right
+            gCtx.save();
+            gCtx.translate(x + 56, y + 36);
+            gCtx.rotate(Math.sin(frames * 0.9) * 0.12);
+            gCtx.fillRect(-4, 0, 8, 36);
+            gCtx.restore();
+
+            // front left
+            gCtx.save();
+            gCtx.translate(x + 44, y + 36);
+            gCtx.rotate(Math.sin(frames * 0.9 + 0.6) * 0.08);
+            gCtx.fillRect(-4, 0, 8, 36);
+            gCtx.restore();
+
+            // back right
+            gCtx.save();
+            gCtx.translate(x + 24, y + 38);
+            gCtx.rotate(Math.sin(frames * 0.9 + 1.2) * 0.12);
+            gCtx.fillRect(-4, 0, 8, 36);
+            gCtx.restore();
+
+            // back left
+            gCtx.save();
+            gCtx.translate(x + 12, y + 38);
+            gCtx.rotate(Math.sin(frames * 0.9 + 1.8) * 0.08);
+            gCtx.fillRect(-4, 0, 8, 36);
+            gCtx.restore();
+
+            // 10) eye
             gCtx.fillStyle = '#000';
-            gCtx.beginPath(); gCtx.arc(4, -3, 2.2, 0, Math.PI*2); gCtx.fill();
-            gCtx.restore();
-
-            // Ears: long, hanging, with curl texture
-            gCtx.save();
-            gCtx.translate(willow.x + 50, willow.y + 12);
-            gCtx.rotate(-0.25 + Math.sin(frames*0.18)*0.08);
-            gCtx.fillStyle = shadeColor(base, -8);
             gCtx.beginPath();
-            gCtx.moveTo(0,0);
-            gCtx.bezierCurveTo(18, 8, 18, 34, -2, 54);
-            gCtx.bezierCurveTo(-12, 46, -8, 8, 0, 0);
+            gCtx.arc(x + 66, y + 4, 2.2, 0, Math.PI * 2);
             gCtx.fill();
-            // ear curls
-            curlyPatch(2, 34, 6, shadeColor(base, -8), 8, 0.8);
-            gCtx.restore();
 
-            gCtx.save();
-            gCtx.translate(willow.x + 70, willow.y + 14);
-            gCtx.rotate(0.18 + Math.sin(frames*0.2)*0.06);
-            gCtx.fillStyle = shadeColor(base, -6);
+            // 11) nose
             gCtx.beginPath();
-            gCtx.moveTo(0,0);
-            gCtx.bezierCurveTo(12, 12, 6, 36, -10, 48);
-            gCtx.bezierCurveTo(-18, 40, -12, 10, 0, 0);
+            gCtx.arc(x + 84, y + 8, 3, 0, Math.PI * 2);
             gCtx.fill();
-            curlyPatch(-6, 36, 6, shadeColor(base, -8), 8, 0.8);
-            gCtx.restore();
 
-            // Tail: longer plume with curls
-            const tailX = willow.x + 6;
-            const tailY = willow.y + 26;
-            gCtx.save();
-            gCtx.translate(tailX, tailY);
-            gCtx.rotate(-0.6 + Math.sin(frames*0.32)*0.35);
-            // tail spine
-            gCtx.strokeStyle = shadeColor(base, -10);
-            gCtx.lineWidth = 4;
+            // 12) small mouth (line)
+            gCtx.strokeStyle = dark;
+            gCtx.lineWidth = 1;
             gCtx.beginPath();
-            gCtx.moveTo(0,0);
-            gCtx.quadraticCurveTo(-12, -8, -28, -28);
+            gCtx.moveTo(x + 80, y + 12);
+            gCtx.lineTo(x + 86, y + 14);
             gCtx.stroke();
-            // tail plume curls
-            curlyPatch(-28, -28, 10, base, 22, 1.0);
-            curlyPatch(-34, -24, 8, shadeColor(base, -4), 12, 0.9);
-            gCtx.restore();
 
-            // Legs: long and relatively thin but with curly tufts around joints
-            const legLen = 36;
-            let frontCycle = Math.sin(frames * 0.9) * 0.7;
-            let backCycle = -Math.sin(frames * 0.9) * 0.7;
-            if (!willow.grounded) { frontCycle = -0.6; backCycle = 0.6; }
-
-            // Front right leg
-            gCtx.save();
-            gCtx.translate(willow.x + 56, willow.y + 36);
-            gCtx.rotate(frontCycle);
-            gCtx.strokeStyle = shadeColor(base, -12);
-            gCtx.lineWidth = 6;
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
-            gCtx.restore();
-
-            // Front left leg
-            gCtx.save();
-            gCtx.translate(willow.x + 44, willow.y + 36);
-            gCtx.rotate(backCycle * 0.5);
-            gCtx.strokeStyle = shadeColor(base, -12);
-            gCtx.lineWidth = 6;
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
-            gCtx.restore();
-
-            // Back right leg
-            gCtx.save();
-            gCtx.translate(willow.x + 24, willow.y + 38);
-            gCtx.rotate(backCycle);
-            gCtx.strokeStyle = shadeColor(base, -12);
-            gCtx.lineWidth = 6;
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
-            gCtx.restore();
-
-            // Back left leg
-            gCtx.save();
-            gCtx.translate(willow.x + 12, willow.y + 38);
-            gCtx.rotate(frontCycle * 0.5);
-            gCtx.strokeStyle = shadeColor(base, -12);
-            gCtx.lineWidth = 6;
-            gCtx.beginPath(); gCtx.moveTo(0,0); gCtx.lineTo(0, legLen); gCtx.stroke();
-            curlyPatch(0, legLen + 2, 5, base, 12, 0.7);
-            gCtx.restore();
-
-            // Light highlights for sheen
-            gCtx.globalAlpha = 0.08;
-            curlyPatch(willow.x + 56, willow.y + 22, 6, light, 8, 0.6);
-            gCtx.globalAlpha = 1;
+            // 13) subtle highlight on body
+            gCtx.fillStyle = 'rgba(255,255,255,0.06)';
+            gCtx.beginPath();
+            gCtx.ellipse(x + 44 + wobble, y + 18, 10, 6, -0.3, 0, Math.PI * 2);
+            gCtx.fill();
         }
 
         function drawEnvironment() {
