@@ -48,12 +48,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            box-sizing: border-box;
         }
 
         /* Image Display */
         #puzzle-image {
             width: 100%;
+            max-width: 100%; /* Ensure it never overflows width */
             height: auto;
+            max-height: 50vh; /* Cap height to 50% of screen so inputs are visible */
+            object-fit: contain; /* Maintain aspect ratio without distortion */
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
             margin-bottom: 20px;
@@ -69,6 +73,16 @@
             margin-bottom: 20px;
         }
 
+        /* Responsive: Mobile Tweaks */
+        @media (max-width: 600px) {
+            #input-area {
+                grid-template-columns: 1fr; /* Stack inputs vertically */
+            }
+            #game-container {
+                padding: 10px; /* Reduce padding to give image more width */
+            }
+        }
+
         .answer-input {
             background: rgba(0, 0, 0, 0.6);
             border: 2px solid rgba(246, 211, 101, 0.3);
@@ -79,6 +93,8 @@
             font-size: 1rem;
             text-align: center;
             transition: all 0.3s ease;
+            box-sizing: border-box;
+            width: 100%;
         }
 
         .answer-input:focus {
@@ -112,16 +128,8 @@
             border-radius: 10px;
         }
         
-        /* Hide UI layers by default */
-        .hidden-ui { 
-            opacity: 0; 
-            pointer-events: none; 
-        }
-        
-        .active-ui {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
+        .hidden-ui { opacity: 0; pointer-events: none; }
+        .active-ui { opacity: 1 !important; pointer-events: auto !important; }
         
         .btn-style {
             padding: 15px 40px; font-size: 1.1rem; 
@@ -154,9 +162,7 @@
             letter-spacing: 2px;
             transition: color 0.3s;
         }
-        .hidden-clue:hover {
-            color: rgba(255, 255, 255, 0.8);
-        }
+        .hidden-clue:hover { color: rgba(255, 255, 255, 0.8); }
     </style>
 </head>
 <body>
@@ -167,10 +173,8 @@
         <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?</p>
         
         <div id="game-container">
-            <!-- Standard Image -->
             <img src="selfie.jpg" id="puzzle-image" alt="Selfie">
 
-            <!-- Input Slots -->
             <div id="input-area">
                 <input type="text" class="answer-input" placeholder="Difference 1">
                 <input type="text" class="answer-input" placeholder="Difference 2">
@@ -180,10 +184,8 @@
                 <input type="text" class="answer-input" placeholder="Difference 6">
             </div>
 
-            <!-- Submit Button -->
             <button class="btn-style" onclick="checkAnswers()">Verify Answers</button>
 
-            <!-- Win Screen -->
             <div id="ui-layer" class="hidden-ui">
                 <div id="win-screen">
                     <div class="game-msg">Sharp Eyes!</div>
@@ -192,10 +194,8 @@
             </div>
         </div>
 
-        <!-- The Long Space -->
         <div style="height: 600px;"></div>
 
-        <!-- The Hidden Clue -->
         <div class="hidden-clue">6. kind</div>
     </div>
 
@@ -203,36 +203,22 @@
         const uiLayer = document.getElementById('ui-layer');
         
         // Obfuscated Answer Key (ASCII Char Codes)
-        // Group 1: mustache
         const _k1 = [ [109, 117, 115, 116, 97, 99, 104, 101] ];
-        // Group 2: hair
         const _k2 = [ [104, 97, 105, 114] ];
-        // Group 3: glasses, spectacles
         const _k3 = [ [103, 108, 97, 115, 115, 101, 115], [115, 112, 101, 99, 116, 97, 99, 108, 101, 115] ];
-        // Group 4: cat, kitten, feline
         const _k4 = [ [99, 97, 116], [107, 105, 116, 116, 101, 110], [102, 101, 108, 105, 110, 101] ];
-        // Group 5: bat
         const _k5 = [ [98, 97, 116] ];
-        // Group 6: hat, cap, beanie
         const _k6 = [ [104, 97, 116], [99, 97, 112], [98, 101, 97, 110, 105, 101] ];
-
         const _masterKey = [_k1, _k2, _k3, _k4, _k5, _k6];
-
-        // Decodes array of char codes to string
         const _d = (arr) => String.fromCharCode(...arr);
 
         function checkAnswers() {
-            // Get all user inputs
             const inputElements = document.querySelectorAll('.answer-input');
             const userInputs = Array.from(inputElements).map(el => el.value.toLowerCase().trim());
             
-            // Check if every requirement group is satisfied by at least one input
             const allRequirementsMet = _masterKey.every(group => {
-                // Group is an array of acceptable synonyms (e.g. cat, kitten)
-                // We need to check if ANY of the user inputs contains ANY of the synonyms
                 return userInputs.some(inputVal => {
                     if(!inputVal) return false;
-                    // Check this specific input against all synonyms in the group
                     return group.some(encodedWord => {
                         const word = _d(encodedWord);
                         return inputVal.includes(word);
@@ -245,7 +231,6 @@
                 uiLayer.classList.remove('hidden-ui');
                 uiLayer.classList.add('active-ui');
             } else {
-                // Incorrect - Shake animation
                 playSound('slide'); 
                 inputElements.forEach(el => {
                     el.classList.remove('shake');
@@ -267,19 +252,14 @@
                 const gainNode = audioCtx.createGain();
                 osc.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
-                
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, audioCtx.currentTime);
                 osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-                
                 gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
-
             } else if (type === 'win') {
-                // Victory Fanfare
                 const now = audioCtx.currentTime;
                 const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, i) => {
@@ -334,7 +314,6 @@
                 o: Math.random() * 0.5 + 0.2
             });
         }
-
         function animateSnow() {
             ctx.clearRect(0,0,width,height);
             snowParticles.forEach(p => {
