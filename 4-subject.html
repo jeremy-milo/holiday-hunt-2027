@@ -905,7 +905,8 @@
         document.getElementById('game-container').addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
         document.getElementById('start-btn').addEventListener('click', resetGame);
 
-        const _next = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
+        // Updated for 5-state.html
+        const _next = [53, 45, 115, 116, 97, 116, 101, 46, 104, 116, 109, 108];
         function goToNextLevel() {
             const url = String.fromCharCode(..._next);
             try {
