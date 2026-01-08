@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Puzzle Six</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; 
+            width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
+            color: #ffffff; font-family: 'Montserrat', sans-serif;
+            display: flex; 
+            align-items: flex-start;
+            justify-content: center; 
+            text-align: center;
+            padding-top: 50px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        
+        .container { 
+            position: relative; z-index: 10; 
+            padding: 20px;
+            max-width: 800px; width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        p.instructions { margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8; }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; 
+            margin: 0 auto;
+            border-radius: 10px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Image Display */
+        #puzzle-image {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        /* Input Grid */
+        #input-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .answer-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(246, 211, 101, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #f6d365;
+            box-shadow: 0 0 10px rgba(246, 211, 101, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .shake {
+            animation: shake 0.5s; 
+            border-color: #ff4444 !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.9);
+            transition: opacity 0.5s;
+            z-index: 20;
+            border-radius: 10px;
+        }
+        
+        /* Hide UI layers by default */
+        .hidden-ui { 
+            opacity: 0; 
+            pointer-events: none; 
+        }
+        
+        .active-ui {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        .btn-style {
+            padding: 15px 40px; font-size: 1.1rem; 
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
+            border: none; border-radius: 50px; 
+            cursor: pointer; font-weight: bold; 
+            color: #333; text-transform: uppercase; 
+            transition: transform 0.2s;
+            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6);
+            display: inline-block;
+        }
+        .btn-style:hover { transform: scale(1.05); }
+
+        .game-msg {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #f6d365;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        /* Hidden text styling */
+        .hidden-clue {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 1rem;
+            margin-bottom: 50px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+        .hidden-clue:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="container">
+        <h1>Puzzle Six: Spot the Differences</h1>
+        <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?<br>Enter your answers in the boxes.</p>
+        
+        <div id="game-container">
+            <!-- Standard Image -->
+            <img src="selfie.jpg" id="puzzle-image" alt="Selfie">
+
+            <!-- Input Slots -->
+            <div id="input-area">
+                <input type="text" class="answer-input" placeholder="Item 1">
+                <input type="text" class="answer-input" placeholder="Item 2">
+                <input type="text" class="answer-input" placeholder="Item 3">
+                <input type="text" class="answer-input" placeholder="Item 4">
+                <input type="text" class="answer-input" placeholder="Item 5">
+                <input type="text" class="answer-input" placeholder="Item 6">
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn-style" onclick="checkAnswers()">Verify Answers</button>
+
+            <!-- Win Screen -->
+            <div id="ui-layer" class="hidden-ui">
+                <div id="win-screen">
+                    <div class="game-msg">Sharp Eyes!</div>
+                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Treasure</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Long Space -->
+        <div style="height: 600px;"></div>
+
+        <!-- The Hidden Clue -->
+        <div class="hidden-clue">6. kind</div>
+    </div>
+
+    <script>
+        const uiLayer = document.getElementById('ui-layer');
+        
+        // Obfuscated Answer Key (ASCII Char Codes)
+        // Group 1: mustache
+        const _k1 = [ [109, 117, 115, 116, 97, 99, 104, 101] ];
+        // Group 2: hair
+        const _k2 = [ [104, 97, 105, 114] ];
+        // Group 3: glasses, spectacles
+        const _k3 = [ [103, 108, 97, 115, 115, 101, 115], [115, 112, 101, 99, 116, 97, 99, 108, 101, 115] ];
+        // Group 4: cat, kitten, feline
+        const _k4 = [ [99, 97, 116], [107, 105, 116, 116, 101, 110], [102, 101, 108, 105, 110, 101] ];
+        // Group 5: bat
+        const _k5 = [ [98, 97, 116] ];
+        // Group 6: hat, cap, beanie
+        const _k6 = [ [104, 97, 116], [99, 97, 112], [98, 101, 97, 110, 105, 101] ];
+
+        const _masterKey = [_k1, _k2, _k3, _k4, _k5, _k6];
+
+        // Decodes array of char codes to string
+        const _d = (arr) => String.fromCharCode(...arr);
+
+        function checkAnswers() {
+            // Get all user inputs
+            const inputElements = document.querySelectorAll('.answer-input');
+            const userInputs = Array.from(inputElements).map(el => el.value.toLowerCase().trim());
+            
+            // Check if every requirement group is satisfied by at least one input
+            const allRequirementsMet = _masterKey.every(group => {
+                // Group is an array of acceptable synonyms (e.g. cat, kitten)
+                // We need to check if ANY of the user inputs contains ANY of the synonyms
+                return userInputs.some(inputVal => {
+                    if(!inputVal) return false;
+                    // Check this specific input against all synonyms in the group
+                    return group.some(encodedWord => {
+                        const word = _d(encodedWord);
+                        return inputVal.includes(word);
+                    });
+                });
+            });
+
+            if (allRequirementsMet) {
+                playSound('win');
+                uiLayer.classList.remove('hidden-ui');
+                uiLayer.classList.add('active-ui');
+            } else {
+                // Incorrect - Shake animation
+                playSound('slide'); 
+                inputElements.forEach(el => {
+                    el.classList.remove('shake');
+                    void el.offsetWidth; // trigger reflow
+                    el.classList.add('shake');
+                });
+            }
+        }
+
+        // --- Audio ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (type === 'slide') { // Error sound
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+
+            } else if (type === 'win') {
+                // Victory Fanfare
+                const now = audioCtx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.type = 'triangle';
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0, now + i*0.1);
+                    g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5);
+                    o.start(now + i*0.1);
+                    o.stop(now + i*0.1 + 0.5);
+                });
+            }
+        }
+
+        /* --- NAVIGATION --- */
+        const _next = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
+        function goToNextLevel() {
+            const url = String.fromCharCode(..._next);
+            try {
+                if (window.location.protocol === 'blob:') throw new Error("Restricted");
+                window.location.href = url;
+            } catch (e) {
+                const btn = document.getElementById('next-level-btn');
+                btn.innerHTML = "Click manual link below";
+                const a = document.createElement('a');
+                a.href = url;
+                a.innerText = "Click here to proceed";
+                a.style.color = "#f6d365";
+                a.style.display = "block";
+                a.style.marginTop = "10px";
+                btn.parentNode.appendChild(a);
+            }
+        }
+
+        /* SNOW ANIMATION */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth; let height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        const snowParticles = []; 
+        for (let i = 0; i < 80; i++) {
+            snowParticles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 2 + 1,
+                sy: Math.random() * 1 + 0.5,
+                sx: Math.random() * 0.6 - 0.3,
+                o: Math.random() * 0.5 + 0.2
+            });
+        }
+
+        function animateSnow() {
+            ctx.clearRect(0,0,width,height);
+            snowParticles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if (p.y > height) p.y = -5;
+                if (p.x > width) p.x = 0;
+                if (p.x < 0) p.x = width;
+                ctx.globalAlpha = p.o;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+    </script>
+</body>
+</html>
