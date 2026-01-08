@@ -164,7 +164,7 @@
     
     <div class="container">
         <h1>Puzzle Six: Spot the Differences</h1>
-        <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?<br>Enter your answers in the boxes.</p>
+        <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?</p>
         
         <div id="game-container">
             <!-- Standard Image -->
@@ -172,12 +172,12 @@
 
             <!-- Input Slots -->
             <div id="input-area">
-                <input type="text" class="answer-input" placeholder="Item 1">
-                <input type="text" class="answer-input" placeholder="Item 2">
-                <input type="text" class="answer-input" placeholder="Item 3">
-                <input type="text" class="answer-input" placeholder="Item 4">
-                <input type="text" class="answer-input" placeholder="Item 5">
-                <input type="text" class="answer-input" placeholder="Item 6">
+                <input type="text" class="answer-input" placeholder="Difference 1">
+                <input type="text" class="answer-input" placeholder="Difference 2">
+                <input type="text" class="answer-input" placeholder="Difference 3">
+                <input type="text" class="answer-input" placeholder="Difference 4">
+                <input type="text" class="answer-input" placeholder="Difference 5">
+                <input type="text" class="answer-input" placeholder="Difference 6">
             </div>
 
             <!-- Submit Button -->
@@ -187,7 +187,7 @@
             <div id="ui-layer" class="hidden-ui">
                 <div id="win-screen">
                     <div class="game-msg">Sharp Eyes!</div>
-                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Treasure</button>
+                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Puzzle</button>
                 </div>
             </div>
         </div>
@@ -299,7 +299,7 @@
         }
 
         /* --- NAVIGATION --- */
-        const _next = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
+        const _next = [55, 45, 99, 97, 108, 108, 46, 104, 116, 109, 108];
         function goToNextLevel() {
             const url = String.fromCharCode(..._next);
             try {
