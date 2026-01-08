@@ -1,1 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Puzzle Eight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; 
+            width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
+            color: #ffffff; font-family: 'Montserrat', sans-serif;
+            display: flex; 
+            align-items: flex-start;
+            justify-content: center; 
+            text-align: center;
+            padding-top: 50px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        
+        .container { 
+            position: relative; z-index: 10; 
+            padding: 20px;
+            max-width: 900px; width: 100%; 
+            box-sizing: border-box; 
+        }
 
+        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        p.instructions { margin-bottom: 30px; font-size: 1rem; opacity: 0.9; line-height: 1.5; }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        /* PIANO STYLES */
+        .piano-wrapper {
+            position: relative;
+            background: #222;
+            padding: 20px 20px 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            border-bottom: 8px solid #111;
+            display: inline-block;
+            max-width: 100%;
+            overflow-x: auto; /* Scroll on very small screens */
+        }
+
+        .keys-container {
+            display: flex;
+            position: relative;
+            height: 200px;
+        }
+
+        .white-key {
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+            border: 1px solid #ccc;
+            border-radius: 0 0 5px 5px;
+            position: relative;
+            /* removed z-index: 1 so it doesn't trap black keys if we manipulate stacking */
+            cursor: pointer;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1);
+        }
+        .white-key:active, .white-key.active {
+            background: linear-gradient(to bottom, #eee 0%, #ddd 100%);
+            transform: translateY(2px);
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2);
+            z-index: 5; /* Bring active key above neighbors */
+        }
+
+        .black-key {
+            width: 24px;
+            height: 60%;
+            background: linear-gradient(to bottom, #333 0%, #000 100%);
+            position: absolute;
+            z-index: 10; /* Ensure black keys are always on top of white keys (even hinted ones) */
+            left: -12px; /* Centered on the line between white keys */
+            border-radius: 0 0 3px 3px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        .black-key:active, .black-key.active {
+            background: #111;
+            transform: translateY(2px);
+        }
+
+        /* Key grouping wrappers to handle relative black key positioning */
+        .key-group {
+            display: flex;
+            position: relative;
+        }
+
+        /* WIN UI */
+        #ui-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.9);
+            transition: opacity 0.5s;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .active-ui {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        .btn-style {
+            padding: 15px 40px; font-size: 1.1rem; 
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
+            border: none; border-radius: 50px; 
+            cursor: pointer; font-weight: bold; 
+            color: #333; text-transform: uppercase; 
+            transition: transform 0.2s;
+            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6);
+            margin-top: 20px;
+        }
+        .btn-style:hover { transform: scale(1.05); }
+
+        .game-msg {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #f6d365;
+        }
+
+        .hidden-clue {
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            margin-top: 100px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+        .hidden-clue:hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Note Labels (Optional, for helper) */
+        .note-label {
+            position: absolute;
+            bottom: 5px;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* HINT ANIMATION */
+        @keyframes pulse-hint {
+            0% { 
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 0 0 rgba(246, 211, 101, 0.7); 
+                border-color: #f6d365;
+            }
+            50% { 
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 20px 5px rgba(246, 211, 101, 0.5); 
+                border-color: #f6d365;
+            }
+            100% { 
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 0 0 rgba(246, 211, 101, 0); 
+                border-color: #ccc;
+            }
+        }
+        .key-hint {
+            animation: pulse-hint 1.5s infinite;
+            z-index: 5 !important; /* Higher than normal, lower than black keys (10) */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="container">
+        <h1>Puzzle Eight: Play that Song</h1>
+        <p class="instructions">The yeti has a song request for you.<br>
+        (Turn up your volume!)</p>
+       
+        <div id="game-container">
+            <div class="piano-wrapper">
+                <div class="keys-container" id="piano-keys">
+                    <!-- Keys generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div id="ui-layer">
+            <div class="game-msg">Bravo!</div>
+            <p style="color: #ddd; margin-bottom: 20px;">A festive melody indeed.</p>
+            <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Puzzle</button>
+        </div>
+
+        <!-- The Long Space -->
+        <div style="height: 400px;"></div>
+
+        <!-- The Hidden Clue -->
+        <div class="hidden-clue">8. roast</div>
+    </div>
+
+    <script>
+        /* --- SNOW ANIMATION --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth; let height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        const snowParticles = []; 
+        for (let i = 0; i < 80; i++) {
+            snowParticles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 2 + 1,
+                sy: Math.random() * 1 + 0.5,
+                sx: Math.random() * 0.6 - 0.3,
+                o: Math.random() * 0.5 + 0.2
+            });
+        }
+        function animateSnow() {
+            ctx.clearRect(0,0,width,height);
+            snowParticles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if (p.y > height) p.y = -5;
+                if (p.x > width) p.x = 0;
+                if (p.x < 0) p.x = width;
+                ctx.globalAlpha = p.o;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+
+        /* --- PIANO LOGIC --- */
+        const pianoContainer = document.getElementById('piano-keys');
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // 3 Octaves: C3 to B5 (Indices 0 to 35)
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const startOctave = 3;
+        const numOctaves = 3;
+        
+        let keyMap = []; 
+        
+        function buildPiano() {
+            pianoContainer.innerHTML = '';
+            let globalIdx = 0;
+            
+            // Range Configuration:
+            // Original maxKeys was 28 (0..27).
+            // User requested: Remove 5 from left (Start at 5).
+            // Add 5 to right (Extend to 33).
+            const minKey = 5;  // F3
+            const maxKey = 33; // A5 (Exclusive limit is >32)
+            
+            for (let oct = 0; oct < numOctaves; oct++) {
+                const patterns = [
+                    { w: 'C', b: 'C#' }, { w: 'D', b: 'D#' }, { w: 'E', b: null },
+                    { w: 'F', b: 'F#' }, { w: 'G', b: 'G#' }, { w: 'A', b: 'A#' }, { w: 'B', b: null }
+                ];
+
+                for (let i = 0; i < patterns.length; i++) {
+                    // Check bounds for white key
+                    // But we must continue the loop to keep globalIdx correct for playing frequencies
+                    
+                    const p = patterns[i];
+                    
+                    if (globalIdx >= minKey && globalIdx < maxKey) {
+                        const wKey = document.createElement('div');
+                        wKey.className = 'white-key';
+                        wKey.dataset.note = globalIdx;
+                        // wKey.innerHTML = `<div class="note-label">${p.w}${startOctave + oct}</div>`;
+                        
+                        const currentIdx = globalIdx;
+                        const handlePlay = (e) => {
+                            e.preventDefault(); 
+                            playNote(currentIdx, wKey);
+                        };
+                        wKey.addEventListener('mousedown', handlePlay);
+                        wKey.addEventListener('touchstart', handlePlay);
+                        
+                        pianoContainer.appendChild(wKey);
+
+                        // Check Black Key
+                        if (p.b) {
+                             // Black key is at globalIdx + 1
+                             // Is it in range? (Logic implies it usually follows white key)
+                             // If white key is in range, we check if black key is also in range < maxKey
+                             if (globalIdx + 1 < maxKey) {
+                                 const bKey = document.createElement('div');
+                                 bKey.className = 'black-key';
+                                 bKey.dataset.note = globalIdx + 1;
+                                 
+                                 const bIdx = globalIdx + 1;
+                                 const handlePlayB = (e) => {
+                                     e.stopPropagation(); 
+                                     e.preventDefault();
+                                     playNote(bIdx, bKey);
+                                 };
+                                 bKey.addEventListener('mousedown', handlePlayB);
+                                 bKey.addEventListener('touchstart', handlePlayB);
+
+                                 wKey.appendChild(bKey);
+                             }
+                        }
+                    }
+                    
+                    // Always increment indices
+                    if (p.b) globalIdx += 2;
+                    else globalIdx += 1;
+                    
+                    // Optimization: if we are far past maxKey, we can break?
+                    // But simpler to just loop correctly.
+                    if (globalIdx > maxKey + 10) break; 
+                }
+            }
+            // Add hint after building
+            showHint();
+        }
+        
+        function showHint() {
+            // Target Middle E (Index 16 - C4 is 12, so E4 is 16)
+            const hintKey = document.querySelector('.white-key[data-note="16"]');
+            if (hintKey) hintKey.classList.add('key-hint');
+        }
+
+        function removeHints() {
+            const hints = document.querySelectorAll('.key-hint');
+            hints.forEach(k => k.classList.remove('key-hint'));
+        }
+
+        buildPiano();
+
+        /* --- AUDIO & GAME LOGIC --- */
+
+        // Target Melody: Jingle Bells Chorus (First 11 notes)
+        // E-E-E
+        // E-E-E
+        // E-G-C-D-E
+        // Notes relative to start of an octave:
+        // C=0, D=2, E=4, G=7
+        
+        const baseSeq = [
+            4,4,4,
+            4,4,4,
+            4,7,0,2,4
+        ];
+        
+        let playedBuffer = [];
+        
+        function playNote(index, element) {
+            // Remove hint on first interaction
+            removeHints();
+
+            // Audio
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Freq calculation: C3 approx 130.81 Hz
+            // Formula: f = f0 * (2)^(n/12)
+            const freq = 130.81 * Math.pow(2, index / 12);
+            
+            osc.frequency.value = freq;
+            osc.type = 'triangle';
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            osc.start(now);
+            osc.stop(now + 0.6);
+            
+            // Visual
+            element.classList.add('active');
+            setTimeout(() => element.classList.remove('active'), 150);
+            
+            // Logic
+            checkSequence(index);
+        }
+
+        let matchIndex = 0;
+        let detectedOctaveOffset = -1; // -1 means not locked yet
+
+        function checkSequence(noteIndex) {
+            // Strategy:
+            // We compare noteIndex to baseSeq[matchIndex] + offset.
+            // If matchIndex == 0, we try to set offset.
+            
+            let targetRel = baseSeq[matchIndex];
+            
+            // If we haven't started matching, or we just reset
+            if (matchIndex === 0) {
+                // Check if this note is an E (4, 16, 28)
+                const relative = noteIndex % 12;
+                if (relative === 4) {
+                    // Valid start
+                    matchIndex = 1;
+                    detectedOctaveOffset = noteIndex - 4; // e.g. 4-4=0, 16-4=12
+                    return;
+                }
+            } else {
+                // We are in a sequence
+                const expected = targetRel + detectedOctaveOffset;
+                if (noteIndex === expected) {
+                    matchIndex++;
+                    if (matchIndex >= baseSeq.length) {
+                        winGame();
+                    }
+                } else {
+                    // Mismatch. 
+                    // Does this note start a new sequence?
+                    const relative = noteIndex % 12;
+                    if (relative === 4) {
+                         matchIndex = 1;
+                         detectedOctaveOffset = noteIndex - 4;
+                    } else {
+                        matchIndex = 0;
+                        detectedOctaveOffset = -1;
+                    }
+                }
+            }
+        }
+
+        function winGame() {
+            const ui = document.getElementById('ui-layer');
+            ui.classList.add('active-ui');
+        }
+
+        /* --- NAVIGATION --- */
+        // "9-cancel.html" -> Obfuscated
+        const _dest = [57, 45, 99, 97, 110, 99, 101, 108, 46, 104, 116, 109, 108];
+        
+        function goToNextLevel() {
+            const url = String.fromCharCode(..._dest);
+            try {
+                if (window.location.protocol === 'blob:') throw new Error("Restricted");
+                window.location.href = url;
+            } catch (e) {
+                const btn = document.getElementById('next-level-btn');
+                btn.innerHTML = "Click manual link below";
+                const a = document.createElement('a');
+                a.href = url;
+                a.innerText = "Click here to proceed";
+                a.style.color = "#f6d365";
+                a.style.display = "block";
+                a.style.marginTop = "10px";
+                btn.parentNode.appendChild(a);
+            }
+        }
+    </script>
+</body>
+</html>
