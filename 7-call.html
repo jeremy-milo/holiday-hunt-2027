@@ -52,8 +52,11 @@
 
         /* Image Display */
         #puzzle-image {
-            width: 100%;
+            max-width: 100%;
+            width: auto;
             height: auto;
+            /* Ensures image fits within viewport on mobile without pushing content off screen */
+            max-height: 50vh;
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
             margin-bottom: 20px;
