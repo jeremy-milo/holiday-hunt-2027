@@ -39,42 +39,51 @@
         #game-container {
             position: relative;
             width: 100%;
-            max-width: 700px;
-            /* CHANGED: Removed fixed height for slide puzzle flexibility */
+            /* Wider max-width for landscape orientation */
+            max-width: 700px; 
+            /* Fixed aspect ratio for landscape photo (4:3) */
+            aspect-ratio: 4 / 3;
+            max-height: 75vh;
             margin: 0 auto;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 4px solid #f6d365;
             border-radius: 10px;
-            background: transparent; /* CHANGED: Transparent background for puzzle */
+            background: rgba(0,0,0,0.3);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            cursor: pointer;
         }
 
-        /* CHANGED: Removed gameCanvas and added slide puzzle styles */
         #puzzle-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr); /* 6 columns */
-            grid-template-rows: repeat(5, 1fr);    /* 5 rows */
-            gap: 2px;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
             width: 100%;
-            aspect-ratio: 6 / 5; /* Set aspect ratio to match puzzle dimensions */
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            height: 100%;
+            gap: 1px;
+            background-color: #000;
         }
 
         .puzzle-piece {
-            background-image: url('image_0.png');
-            background-size: 600% 500%; /* Adjust based on grid size */
+            /* Image set via JS */
+            background-size: 500% 500%; /* 5 columns = 500% size */
             cursor: pointer;
-            transition: transform 0.1s ease-in-out;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+            position: relative;
         }
 
         .puzzle-piece:hover {
-            transform: scale(1.02);
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: scale(0.98);
         }
 
         .empty-piece {
-            background-color: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.5) !important;
             cursor: default;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .empty-piece:hover {
+            transform: none;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
 
         #ui-layer {
@@ -82,39 +91,56 @@
             top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.6);
-            transition: opacity 0.3s;
-            z-index: 20; /* Ensure UI is above pieces */
+            background: rgba(0,0,0,0.85);
+            transition: opacity 0.5s;
+            z-index: 20;
         }
-
-        .hidden-ui { opacity: 0; pointer-events: none; }
         
-        #start-btn, #next-level-btn {
-            padding: 15px 40px; font-size: 1.2rem; 
+        /* Hide UI layers by default */
+        .hidden-ui { 
+            opacity: 0; 
+            pointer-events: none; 
+        }
+        
+        .active-ui {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        .btn-style {
+            padding: 15px 40px; font-size: 1.1rem; 
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
             border: none; border-radius: 50px; 
             cursor: pointer; font-weight: bold; 
             color: #333; text-transform: uppercase; 
             transition: transform 0.2s;
-            margin-top: 10px;
+            margin-top: 20px;
+            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6);
+            display: inline-block;
         }
-        #start-btn:hover, #next-level-btn:hover { transform: scale(1.05); }
+        .btn-style:hover { transform: scale(1.05); }
 
         .game-msg {
             font-family: 'Cinzel', serif;
             font-size: 2rem;
             color: #fff;
             margin-bottom: 20px;
-            text-shadow: 0 0 10px #f6d365;
+            text-shadow: 0 0 20px #f6d365;
+            text-align: center;
+            padding: 0 20px;
         }
 
         /* Hidden text styling */
         .hidden-clue {
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.2);
             font-size: 1rem;
             margin-bottom: 50px;
             font-family: 'Courier New', monospace;
             letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+        .hidden-clue:hover {
+            color: rgba(255, 255, 255, 0.8);
         }
     </style>
 </head>
@@ -123,25 +149,26 @@
     
     <div class="container">
         <h1>Puzzle Four: Scrambled Selfie</h1>
-        <p class="instructions">Slide the pieces to restore the original photo. Good luck!</p>
+        <p class="instructions">Tap the pieces adjacent to the empty slot to slide them.<br>Rearrange the grid to complete the photo.</p>
         
         <div id="game-container">
             <div id="puzzle-grid">
-                </div>
-            
-            <div id="ui-layer" class="hidden-ui"> <div id="start-screen" style="display:none;"> <div class="game-msg">Ready?</div>
-                    <button id="start-btn">Start Game</button>
-                </div>
-                
-                <div id="win-screen" style="display:none;">
-                    <div class="game-msg">Puzzle Solved!</div>
-                    <button id="next-level-btn" onclick="goToNextLevel()">Next Puzzle</button>
+                <!-- Grid generated by JS -->
+            </div>
+
+            <!-- Win Screen -->
+            <div id="ui-layer" class="hidden-ui">
+                <div id="win-screen">
+                    <div class="game-msg">Picture Perfect!</div>
+                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Treasure</button>
                 </div>
             </div>
         </div>
 
-        <div style="height: 1000px;"></div>
+        <!-- The Long Space -->
+        <div style="height: 600px;"></div>
 
+        <!-- The Hidden Clue -->
         <div class="hidden-clue">5. state</div>
     </div>
 
@@ -149,121 +176,214 @@
         /* --- PUZZLE LOGIC --- */
         const grid = document.getElementById('puzzle-grid');
         const uiLayer = document.getElementById('ui-layer');
-        const winScreen = document.getElementById('win-screen');
-        const COLS = 6;
+        
+        const COLS = 5;
         const ROWS = 5;
         const TOTAL_PIECES = COLS * ROWS;
-        let pieces = [];
-        let emptyIndex = TOTAL_PIECES - 1;
+        // The image must be in the same folder as this HTML file
+        const IMAGE_SRC = 'PXL_20250416_203517197.MP-EDIT.jpg';
+        
+        // State
+        let pieces = []; 
+        let boardState = [];
+        let isSolved = false;
 
-        // Create puzzle pieces
-        for (let i = 0; i < TOTAL_PIECES; i++) {
-            const piece = document.createElement('div');
-            piece.classList.add('puzzle-piece');
-            
-            if (i === emptyIndex) {
-                piece.classList.add('empty-piece');
-                piece.style.backgroundImage = 'none';
-            } else {
+        function initLogic() {
+            boardState = [];
+            grid.innerHTML = '';
+            pieces = [];
+
+            for (let i = 0; i < TOTAL_PIECES; i++) {
+                boardState.push(i);
+                
+                const piece = document.createElement('div');
+                piece.id = `p-${i}`;
+                piece.classList.add('puzzle-piece');
+                
+                // Correct coordinate for image slicing
                 const row = Math.floor(i / COLS);
                 const col = i % COLS;
-                const bgX = -col * 100 + '%';
-                const bgY = -row * 100 + '%';
-                piece.style.backgroundPosition = `${bgX} ${bgY}`;
-                piece.dataset.originalIndex = i;
-            }
-
-            piece.dataset.index = i;
-            piece.addEventListener('click', () => movePiece(i));
-            grid.appendChild(piece);
-            pieces.push(piece);
-        }
-
-        // Scramble the puzzle
-        function scramble() {
-            for (let i = 0; i < TOTAL_PIECES * 5; i++) {
-                const adjacentIndices = getAdjacentIndices(emptyIndex);
-                const randomIndex = adjacentIndices[Math.floor(Math.random() * adjacentIndices.length)];
-                movePiece(randomIndex, true); // true for scrambling, no win check
-            }
-        }
-
-        // Move a piece if adjacent to the empty spot
-        function movePiece(index, isScrambling = false) {
-            if (getAdjacentIndices(emptyIndex).includes(index)) {
-                // Swap the piece with the empty spot
-                const clickedPiece = pieces[index];
-                const emptyPiece = pieces[emptyIndex];
-
-                // Swap styles and data-index
-                [clickedPiece.style.backgroundPosition, emptyPiece.style.backgroundPosition] = [emptyPiece.style.backgroundPosition, clickedPiece.style.backgroundPosition];
-                [clickedPiece.dataset.originalIndex, emptyPiece.dataset.originalIndex] = [emptyPiece.dataset.originalIndex, clickedPiece.dataset.originalIndex];
+                const bgX = (col / (COLS - 1)) * 100;
+                const bgY = (row / (ROWS - 1)) * 100;
                 
-                emptyPiece.classList.remove('empty-piece');
-                clickedPiece.classList.add('empty-piece');
-                emptyPiece.style.backgroundImage = 'url("image_0.png")';
-                clickedPiece.style.backgroundImage = 'none';
-
-                emptyIndex = index;
-
-                if (!isScrambling) {
-                    checkWin();
+                // Apply the image
+                piece.style.backgroundImage = `url('${IMAGE_SRC}')`;
+                piece.style.backgroundPosition = `${bgX}% ${bgY}%`;
+                
+                if (i === TOTAL_PIECES - 1) {
+                    piece.classList.add('empty-piece');
+                    piece.style.backgroundImage = 'none';
                 }
+
+                piece.onclick = () => tryMove(i);
+                grid.appendChild(piece);
+                pieces.push(piece);
+            }
+            
+            // Scramble
+            setTimeout(shuffle, 800);
+        }
+
+        function drawBoard() {
+            for (let i = 0; i < TOTAL_PIECES; i++) {
+                const pieceId = boardState[i]; // Which piece is at visual slot i?
+                const pieceEl = pieces[i]; // The actual DIV at slot i
+                
+                // Visual coordinates based on piece ID
+                const row = Math.floor(pieceId / COLS);
+                const col = pieceId % COLS;
+                const bgX = (col / (COLS - 1)) * 100;
+                const bgY = (row / (ROWS - 1)) * 100;
+
+                if (pieceId === TOTAL_PIECES - 1) {
+                    pieceEl.classList.add('empty-piece');
+                    pieceEl.style.backgroundImage = 'none';
+                } else {
+                    pieceEl.classList.remove('empty-piece');
+                    pieceEl.style.backgroundImage = `url('${IMAGE_SRC}')`;
+                    pieceEl.style.backgroundPosition = `${bgX}% ${bgY}%`;
+                }
+                
+                pieceEl.onclick = () => tryMove(i); 
             }
         }
 
-        // Get indices of pieces adjacent to the given index
-        function getAdjacentIndices(index) {
-            const row = Math.floor(index / COLS);
-            const col = index % COLS;
-            const indices = [];
+        function tryMove(visualIndex) {
+            if (isSolved) return;
 
-            if (row > 0) indices.push(index - COLS); // Up
-            if (row < ROWS - 1) indices.push(index + COLS); // Down
-            if (col > 0) indices.push(index - 1); // Left
-            if (col < COLS - 1) indices.push(index + 1); // Right
+            // Find where empty slot is currently
+            const emptyVisualIndex = boardState.indexOf(TOTAL_PIECES - 1);
+            
+            // Check adjacency
+            const vRow = Math.floor(visualIndex / COLS);
+            const vCol = visualIndex % COLS;
+            const eRow = Math.floor(emptyVisualIndex / COLS);
+            const eCol = emptyVisualIndex % COLS;
 
-            return indices;
+            const dist = Math.abs(vRow - eRow) + Math.abs(vCol - eCol);
+
+            if (dist === 1) {
+                // Swap in state
+                const temp = boardState[visualIndex];
+                boardState[visualIndex] = boardState[emptyVisualIndex];
+                boardState[emptyVisualIndex] = temp;
+                
+                drawBoard();
+                checkWin();
+                playSound('slide');
+            }
         }
 
-        // Check if the puzzle is solved
+        function shuffle() {
+            let moves = 0;
+            const maxMoves = 150;
+            const interval = setInterval(() => {
+                const emptyVisualIndex = boardState.indexOf(TOTAL_PIECES - 1);
+                const eRow = Math.floor(emptyVisualIndex / COLS);
+                const eCol = emptyVisualIndex % COLS;
+                
+                const neighbors = [];
+                if (eRow > 0) neighbors.push(emptyVisualIndex - COLS);
+                if (eRow < ROWS - 1) neighbors.push(emptyVisualIndex + COLS);
+                if (eCol > 0) neighbors.push(emptyVisualIndex - 1);
+                if (eCol < COLS - 1) neighbors.push(emptyVisualIndex + 1);
+                
+                const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                
+                // Swap
+                const temp = boardState[randomNeighbor];
+                boardState[randomNeighbor] = boardState[emptyVisualIndex];
+                boardState[emptyVisualIndex] = temp;
+                
+                drawBoard();
+                
+                moves++;
+                if (moves >= maxMoves) {
+                    clearInterval(interval);
+                    isSolved = false; 
+                }
+            }, 5);
+        }
+
         function checkWin() {
-            let solved = true;
-            for (let i = 0; i < TOTAL_PIECES - 1; i++) {
-                if (parseInt(pieces[i].dataset.originalIndex) !== i) {
-                    solved = false;
+            let win = true;
+            for (let i = 0; i < TOTAL_PIECES; i++) {
+                if (boardState[i] !== i) {
+                    win = false;
                     break;
                 }
             }
 
-            if (solved) {
+            if (win) {
+                isSolved = true;
+                playSound('win');
+                // Restore the empty piece to full image for effect
+                const emptyVisualIndex = boardState.indexOf(TOTAL_PIECES - 1);
+                pieces[emptyVisualIndex].classList.remove('empty-piece');
+                pieces[emptyVisualIndex].style.backgroundImage = `url('${IMAGE_SRC}')`;
+                pieces[emptyVisualIndex].style.backgroundPosition = "100% 100%";
+                
                 uiLayer.classList.remove('hidden-ui');
-                winScreen.style.display = 'block';
+                uiLayer.classList.add('active-ui');
             }
         }
 
-        // Initialize the puzzle
-        scramble();
+        // --- Audio ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
 
-        /* --- UTILS --- */
-        // CHANGED: Kept the same navigation logic as before
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'slide') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'win') {
+                // Victory Fanfare
+                const now = audioCtx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.type = 'triangle';
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0, now + i*0.1);
+                    g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5);
+                    o.start(now + i*0.1);
+                    o.stop(now + i*0.1 + 0.5);
+                });
+            }
+        }
+
+        /* --- NAVIGATION --- */
         const _next = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
         function goToNextLevel() {
             const url = String.fromCharCode(..._next);
             try {
-                if (window.location.protocol === 'blob:') {
-                    throw new Error("Blob navigation restricted");
-                }
+                if (window.location.protocol === 'blob:') throw new Error("Restricted");
                 window.location.href = url;
             } catch (e) {
                 const btn = document.getElementById('next-level-btn');
-                const msg = document.querySelector('#win-screen .game-msg');
-                if (btn && msg) {
-                    msg.innerHTML = "Next File:<br><span style='font-size:0.6em'>" + url + "</span>";
-                    btn.style.display = 'none';
-                } else {
-                    console.log("Next URL: " + url);
-                }
+                btn.innerHTML = "Click manual link below";
+                const a = document.createElement('a');
+                a.href = url;
+                a.innerText = "Click here to proceed";
+                a.style.color = "#f6d365";
+                a.style.display = "block";
+                a.style.marginTop = "10px";
+                btn.parentNode.appendChild(a);
             }
         }
 
@@ -273,14 +393,14 @@
         let width = window.innerWidth; let height = window.innerHeight;
         canvas.width = width; canvas.height = height;
         const snowParticles = []; 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 80; i++) {
             snowParticles.push({
                 x: Math.random() * width,
                 y: Math.random() * height,
-                r: Math.random() * 3 + 1,
+                r: Math.random() * 2 + 1,
                 sy: Math.random() * 1 + 0.5,
                 sx: Math.random() * 0.6 - 0.3,
-                o: Math.random() * 0.6 + 0.3
+                o: Math.random() * 0.5 + 0.2
             });
         }
 
@@ -301,6 +421,10 @@
             requestAnimationFrame(animateSnow);
         }
         animateSnow();
+        
+        // Start Game
+        initLogic();
+
     </script>
 </body>
 </html>
