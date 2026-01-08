@@ -58,6 +58,7 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
             margin-bottom: 20px;
             display: block;
+            cursor: pointer; /* Indicates interactivity */
         }
 
         /* Input Area */
@@ -164,6 +165,7 @@
     
     <div class="container">
         <h1>Puzzle Seven: The Nose Knows</h1>
+        <p class="instructions">Give the yeti a high five if you need a hint.</p>
        
         <div id="game-container">
             <!-- Yeti Image -->
@@ -276,16 +278,30 @@
         // --- Audio ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
+        let soundEnabled = false;
 
-        // Resume audio context on first user interaction (browsers block autoplay)
-        document.body.addEventListener('click', () => {
+        // Enable sound on Yeti interaction
+        puzzleImage.addEventListener('click', () => {
+            soundEnabled = true;
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-        }, { once: true });
+        });
+        
+        // Ensure touch works responsively on mobile
+        puzzleImage.addEventListener('touchstart', () => {
+            soundEnabled = true;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }, {passive: true});
 
         function playTone(duration) {
-            if (audioCtx.state === 'suspended') return;
+            // Check if sound has been enabled by user interaction
+            if (!soundEnabled) return;
+            
+            // Resume context if needed
+            if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
 
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
@@ -308,7 +324,7 @@
         }
 
         function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
             
             if (type === 'slide') { // Error sound
                 const osc = audioCtx.createOscillator();
