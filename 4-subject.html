@@ -67,7 +67,7 @@
 
         .hidden-ui { opacity: 0; pointer-events: none; }
         
-        #start-btn, #next-level-btn {
+        #start-btn, #next-level-btn, #restart-btn {
             padding: 15px 40px; font-size: 1.2rem; 
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
             border: none; border-radius: 50px; 
@@ -76,7 +76,7 @@
             transition: transform 0.2s;
             margin-top: 10px;
         }
-        #start-btn:hover, #next-level-btn:hover { transform: scale(1.05); }
+        #start-btn:hover, #next-level-btn:hover, #restart-btn:hover { transform: scale(1.05); }
 
         .game-msg {
             font-family: 'Cinzel', serif;
@@ -114,7 +114,7 @@
                 
                 <div id="game-over-screen" style="display:none;">
                     <div class="game-msg" style="color: #ff6b6b; text-shadow: 0 0 10px red;">Ouch!</div>
-                    <button onclick="resetGame()" id="start-btn">Try Again</button>
+                    <button onclick="resetGame()" id="restart-btn">Try Again</button>
                 </div>
 
                 <div id="win-screen" style="display:none;">
@@ -124,10 +124,8 @@
             </div>
         </div>
 
-        <!-- The Long Space -->
         <div style="height: 1000px;"></div>
 
-        <!-- The Hidden Clue -->
         <div class="hidden-clue">4. subject</div>
     </div>
 
@@ -159,7 +157,6 @@
                 osc.type = 'sawtooth'; // Sawtooth gives the raspy bark texture
                 
                 // Pitch envelope: A bark drops in pitch
-                // CHANGED: Increased pitch frequencies by another 50% (480->720, 120->180)
                 osc.frequency.setValueAtTime(720, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.16);
                 
@@ -193,7 +190,7 @@
             }
         }
 
-        // NEW: Realistic Explosion Synthesizer
+        // Realistic Explosion Synthesizer
         function playExplosion() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const t = audioCtx.currentTime;
@@ -261,7 +258,6 @@
         let isPlaying = false;
         let isGameOver = false;
         let frames = 0;
-        // CHANGED: Increased win distance by 50% (was 7500)
         const WIN_DISTANCE = 11250;
 
         // Willow (simplified graphics)
@@ -418,7 +414,7 @@
                 gCtx.fillStyle = '#263238';
                 gCtx.beginPath(); gCtx.moveTo(x, 350); gCtx.lineTo(x+50, 200); gCtx.lineTo(x+100, 350); gCtx.fill();
                 
-                // ADDED: Snow caps on mountains
+                // Snow caps on mountains
                 gCtx.fillStyle = '#eceff1';
                 gCtx.beginPath();
                 gCtx.moveTo(x+25, 275);
@@ -438,7 +434,7 @@
                 gCtx.fillStyle = '#1b5e20';
                 gCtx.beginPath(); gCtx.moveTo(x, 350); gCtx.lineTo(x+30, 220); gCtx.lineTo(x+60, 350); gCtx.fill();
                 
-                // ADDED: Snow on Tree
+                // Snow on Tree
                 gCtx.fillStyle = '#fff';
                 gCtx.beginPath(); 
                 gCtx.moveTo(x+30, 220); 
@@ -455,7 +451,7 @@
                 gCtx.fillStyle = '#8d6e63';
                 gCtx.beginPath(); gCtx.moveTo(x+70, 290); gCtx.lineTo(x+110, 250); gCtx.lineTo(x+150, 290); gCtx.fill();
                 
-                // ADDED: Snow on Roof
+                // Snow on Roof
                 gCtx.fillStyle = '#ffffff';
                 gCtx.beginPath();
                 gCtx.moveTo(x+70, 290);
@@ -526,7 +522,6 @@
             gCtx.fillStyle = '#f6d365';
             gCtx.fillRect(20, 20, Math.min(200, (distance/WIN_DISTANCE)*200), 10);
 
-            // CHANGED: Obstacles are now even closer
             // Min gap 490 is barely more than jump length (approx 480px at speed 12)
             // Variance reduced to keeps the density high
             const minGap = 490; 
@@ -755,7 +750,7 @@
                     setTimeout(() => {
                         // Launch widely around finish line
                         const launchX = finishX + (Math.random() - 0.5) * 700; 
-                        // CHANGED: Reduced velocity to keep them on screen (was -11 to -16)
+                        // Reduced velocity to keep them on screen (was -11 to -16)
                         const vy = -7.5 - Math.random() * 3.5; 
                         rockets.push(createRocket(launchX, GAME_HEIGHT, 0, vy, s.type));
                     }, s.delay + i * 150);
@@ -766,7 +761,6 @@
             let repeats = 0;
             const burstInterval = setInterval(() => {
                 const launchX = finishX + (Math.random() - 0.5) * 800;
-                // CHANGED: Reduced velocity here as well
                 rockets.push(createRocket(launchX, GAME_HEIGHT, 0, -8 - Math.random() * 4, pick(['sphere', 'willow', 'glitter'])));
                 repeats++;
                 if (repeats > 30) clearInterval(burstInterval);
@@ -842,7 +836,6 @@
         }
 
         function explodeRocket(r) {
-            // CHANGED: Use new realistic sound
             try { playExplosion(); } catch(e){}
             
             const particleCount = r.type === 'willow' ? 100 : 70;
@@ -902,25 +895,32 @@
             if(e.keyCode == 32) { e.preventDefault(); jump(); }
         }
         document.getElementById('game-container').addEventListener('mousedown', jump);
-        document.getElementById('game-container').addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
+        
+        // FIXED: Modified touch handler to allow buttons to be clicked
+        document.getElementById('game-container').addEventListener('touchstart', (e) => { 
+            // If the user tapped a button (Start, Try Again, Next Level), don't prevent default
+            if(e.target.tagName === 'BUTTON') return;
+            
+            e.preventDefault(); 
+            jump(); 
+        });
+        
         document.getElementById('start-btn').addEventListener('click', resetGame);
 
         const _next = [53, 45, 115, 116, 97, 116, 101, 46, 104, 116, 109, 108];
         function goToNextLevel() {
             const url = String.fromCharCode(..._next);
             try {
-                // Check if we are in a blob environment which often fails relative navigation
                 if (window.location.protocol === 'blob:') {
                     throw new Error("Blob navigation restricted");
                 }
                 window.location.href = url;
             } catch (e) {
-                // Fallback UI instead of alert
                 const btn = document.getElementById('next-level-btn');
                 const msg = document.querySelector('#win-screen .game-msg');
                 if (btn && msg) {
                     msg.innerHTML = "Next File:<br><span style='font-size:0.6em'>" + url + "</span>";
-                    btn.style.display = 'none'; // Hide button since we can't click it
+                    btn.style.display = 'none';
                 } else {
                     console.log("Next URL: " + url);
                 }
