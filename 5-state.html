@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>5. state</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; 
+            width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
+            color: #ffffff; font-family: 'Montserrat', sans-serif;
+            display: flex; 
+            align-items: flex-start;
+            justify-content: center; 
+            text-align: center;
+            padding-top: 50px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        
+        .container { 
+            position: relative; z-index: 10; 
+            padding: 20px;
+            max-width: 800px; width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        p.instructions { margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8; }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            /* CHANGED: Removed fixed height for slide puzzle flexibility */
+            margin: 0 auto;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: transparent; /* CHANGED: Transparent background for puzzle */
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
+        /* CHANGED: Removed gameCanvas and added slide puzzle styles */
+        #puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 6 columns */
+            grid-template-rows: repeat(5, 1fr);    /* 5 rows */
+            gap: 2px;
+            width: 100%;
+            aspect-ratio: 6 / 5; /* Set aspect ratio to match puzzle dimensions */
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .puzzle-piece {
+            background-image: url('image_0.png');
+            background-size: 600% 500%; /* Adjust based on grid size */
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(1.02);
+        }
+
+        .empty-piece {
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: default;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.6);
+            transition: opacity 0.3s;
+            z-index: 20; /* Ensure UI is above pieces */
+        }
+
+        .hidden-ui { opacity: 0; pointer-events: none; }
+        
+        #start-btn, #next-level-btn {
+            padding: 15px 40px; font-size: 1.2rem; 
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
+            border: none; border-radius: 50px; 
+            cursor: pointer; font-weight: bold; 
+            color: #333; text-transform: uppercase; 
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        #start-btn:hover, #next-level-btn:hover { transform: scale(1.05); }
+
+        .game-msg {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #f6d365;
+        }
+
+        /* Hidden text styling */
+        .hidden-clue {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            margin-bottom: 50px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="container">
+        <h1>Puzzle Four: Scrambled Selfie</h1>
+        <p class="instructions">Slide the pieces to restore the original photo. Good luck!</p>
+        
+        <div id="game-container">
+            <div id="puzzle-grid">
+                </div>
+            
+            <div id="ui-layer" class="hidden-ui"> <div id="start-screen" style="display:none;"> <div class="game-msg">Ready?</div>
+                    <button id="start-btn">Start Game</button>
+                </div>
+                
+                <div id="win-screen" style="display:none;">
+                    <div class="game-msg">Puzzle Solved!</div>
+                    <button id="next-level-btn" onclick="goToNextLevel()">Next Puzzle</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="height: 1000px;"></div>
+
+        <div class="hidden-clue">5. state</div>
+    </div>
+
+    <script>
+        /* --- PUZZLE LOGIC --- */
+        const grid = document.getElementById('puzzle-grid');
+        const uiLayer = document.getElementById('ui-layer');
+        const winScreen = document.getElementById('win-screen');
+        const COLS = 6;
+        const ROWS = 5;
+        const TOTAL_PIECES = COLS * ROWS;
+        let pieces = [];
+        let emptyIndex = TOTAL_PIECES - 1;
+
+        // Create puzzle pieces
+        for (let i = 0; i < TOTAL_PIECES; i++) {
+            const piece = document.createElement('div');
+            piece.classList.add('puzzle-piece');
+            
+            if (i === emptyIndex) {
+                piece.classList.add('empty-piece');
+                piece.style.backgroundImage = 'none';
+            } else {
+                const row = Math.floor(i / COLS);
+                const col = i % COLS;
+                const bgX = -col * 100 + '%';
+                const bgY = -row * 100 + '%';
+                piece.style.backgroundPosition = `${bgX} ${bgY}`;
+                piece.dataset.originalIndex = i;
+            }
+
+            piece.dataset.index = i;
+            piece.addEventListener('click', () => movePiece(i));
+            grid.appendChild(piece);
+            pieces.push(piece);
+        }
+
+        // Scramble the puzzle
+        function scramble() {
+            for (let i = 0; i < TOTAL_PIECES * 5; i++) {
+                const adjacentIndices = getAdjacentIndices(emptyIndex);
+                const randomIndex = adjacentIndices[Math.floor(Math.random() * adjacentIndices.length)];
+                movePiece(randomIndex, true); // true for scrambling, no win check
+            }
+        }
+
+        // Move a piece if adjacent to the empty spot
+        function movePiece(index, isScrambling = false) {
+            if (getAdjacentIndices(emptyIndex).includes(index)) {
+                // Swap the piece with the empty spot
+                const clickedPiece = pieces[index];
+                const emptyPiece = pieces[emptyIndex];
+
+                // Swap styles and data-index
+                [clickedPiece.style.backgroundPosition, emptyPiece.style.backgroundPosition] = [emptyPiece.style.backgroundPosition, clickedPiece.style.backgroundPosition];
+                [clickedPiece.dataset.originalIndex, emptyPiece.dataset.originalIndex] = [emptyPiece.dataset.originalIndex, clickedPiece.dataset.originalIndex];
+                
+                emptyPiece.classList.remove('empty-piece');
+                clickedPiece.classList.add('empty-piece');
+                emptyPiece.style.backgroundImage = 'url("image_0.png")';
+                clickedPiece.style.backgroundImage = 'none';
+
+                emptyIndex = index;
+
+                if (!isScrambling) {
+                    checkWin();
+                }
+            }
+        }
+
+        // Get indices of pieces adjacent to the given index
+        function getAdjacentIndices(index) {
+            const row = Math.floor(index / COLS);
+            const col = index % COLS;
+            const indices = [];
+
+            if (row > 0) indices.push(index - COLS); // Up
+            if (row < ROWS - 1) indices.push(index + COLS); // Down
+            if (col > 0) indices.push(index - 1); // Left
+            if (col < COLS - 1) indices.push(index + 1); // Right
+
+            return indices;
+        }
+
+        // Check if the puzzle is solved
+        function checkWin() {
+            let solved = true;
+            for (let i = 0; i < TOTAL_PIECES - 1; i++) {
+                if (parseInt(pieces[i].dataset.originalIndex) !== i) {
+                    solved = false;
+                    break;
+                }
+            }
+
+            if (solved) {
+                uiLayer.classList.remove('hidden-ui');
+                winScreen.style.display = 'block';
+            }
+        }
+
+        // Initialize the puzzle
+        scramble();
+
+        /* --- UTILS --- */
+        // CHANGED: Kept the same navigation logic as before
+        const _next = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
+        function goToNextLevel() {
+            const url = String.fromCharCode(..._next);
+            try {
+                if (window.location.protocol === 'blob:') {
+                    throw new Error("Blob navigation restricted");
+                }
+                window.location.href = url;
+            } catch (e) {
+                const btn = document.getElementById('next-level-btn');
+                const msg = document.querySelector('#win-screen .game-msg');
+                if (btn && msg) {
+                    msg.innerHTML = "Next File:<br><span style='font-size:0.6em'>" + url + "</span>";
+                    btn.style.display = 'none';
+                } else {
+                    console.log("Next URL: " + url);
+                }
+            }
+        }
+
+        /* SNOW ANIMATION */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth; let height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        const snowParticles = []; 
+        for (let i = 0; i < 100; i++) {
+            snowParticles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 3 + 1,
+                sy: Math.random() * 1 + 0.5,
+                sx: Math.random() * 0.6 - 0.3,
+                o: Math.random() * 0.6 + 0.3
+            });
+        }
+
+        function animateSnow() {
+            ctx.clearRect(0,0,width,height);
+            snowParticles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if (p.y > height) p.y = -5;
+                if (p.x > width) p.x = 0;
+                if (p.x < 0) p.x = width;
+                ctx.globalAlpha = p.o;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+    </script>
+</body>
+</html>
