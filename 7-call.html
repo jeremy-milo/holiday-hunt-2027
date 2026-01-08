@@ -245,10 +245,14 @@
                     // Play each symbol in the letter
                     for (let j = 0; j < code.length; j++) {
                         const symbol = code[j];
+                        const duration = symbol === '.' ? DOT : DASH;
                         
+                        // Play Tone
+                        playTone(duration);
+
                         // ON
                         puzzleImage.src = imgOn;
-                        await wait(symbol === '.' ? DOT : DASH);
+                        await wait(duration);
                         
                         // OFF
                         puzzleImage.src = imgOff;
@@ -268,39 +272,40 @@
             }
         }
 
-        // Start the Morse Loop
-        playMorseLoop();
-
-        // --- PUZZLE VALIDATION ---
-        
-        // Obfuscated Answer: "jingle bells"
-        const _k = [106, 105, 110, 103, 108, 101, 32, 98, 101, 108, 108, 115];
-
-        // Decodes array of char codes to string
-        const _d = (arr) => String.fromCharCode(...arr);
-
-        function checkAnswers() {
-            const inputEl = document.getElementById('yeti-msg');
-            const val = inputEl.value.toLowerCase().trim();
-            const correct = _d(_k);
-            
-            // Allow exact match
-            if (val === correct) {
-                playSound('win');
-                uiLayer.classList.remove('hidden-ui');
-                uiLayer.classList.add('active-ui');
-            } else {
-                // Incorrect - Shake animation
-                playSound('slide'); 
-                inputEl.classList.remove('shake');
-                void inputEl.offsetWidth; // trigger reflow
-                inputEl.classList.add('shake');
-            }
-        }
 
         // --- Audio ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
+
+        // Resume audio context on first user interaction (browsers block autoplay)
+        document.body.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }, { once: true });
+
+        function playTone(duration) {
+            if (audioCtx.state === 'suspended') return;
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime); // 600Hz tone
+            
+            // Envelope to avoid clicking sounds
+            const now = audioCtx.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.1, now + 0.05);
+            gainNode.gain.setValueAtTime(0.1, now + (duration/1000) - 0.05);
+            gainNode.gain.linearRampToValueAtTime(0, now + (duration/1000));
+
+            osc.start(now);
+            osc.stop(now + (duration/1000) + 0.1);
+        }
 
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -338,6 +343,36 @@
                     o.start(now + i*0.1);
                     o.stop(now + i*0.1 + 0.5);
                 });
+            }
+        }
+
+        // Start the Morse Loop
+        playMorseLoop();
+
+        // --- PUZZLE VALIDATION ---
+        
+        // Obfuscated Answer: "jingle bells"
+        const _k = [106, 105, 110, 103, 108, 101, 32, 98, 101, 108, 108, 115];
+
+        // Decodes array of char codes to string
+        const _d = (arr) => String.fromCharCode(...arr);
+
+        function checkAnswers() {
+            const inputEl = document.getElementById('yeti-msg');
+            const val = inputEl.value.toLowerCase().trim();
+            const correct = _d(_k);
+            
+            // Allow exact match
+            if (val === correct) {
+                playSound('win');
+                uiLayer.classList.remove('hidden-ui');
+                uiLayer.classList.add('active-ui');
+            } else {
+                // Incorrect - Shake animation
+                playSound('slide'); 
+                inputEl.classList.remove('shake');
+                void inputEl.offsetWidth; // trigger reflow
+                inputEl.classList.add('shake');
             }
         }
 
