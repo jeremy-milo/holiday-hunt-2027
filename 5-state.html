@@ -39,16 +39,17 @@
         #game-container {
             position: relative;
             width: 100%;
-            /* Wider max-width for landscape orientation */
             max-width: 700px; 
             /* Fixed aspect ratio for landscape photo (4:3) */
             aspect-ratio: 4 / 3;
             max-height: 75vh;
             margin: 0 auto;
-            border: 4px solid #f6d365;
+            
+            /* CHANGED: Use box-shadow for border so it doesn't mess up the aspect ratio/dimensions */
+            box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
+            
             border-radius: 10px;
             background: rgba(0,0,0,0.3);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
             overflow: hidden;
         }
 
@@ -58,21 +59,24 @@
             grid-template-rows: repeat(5, 1fr);
             width: 100%;
             height: 100%;
-            gap: 1px;
+            /* CHANGED: Removed gap to prevent image cropping */
+            gap: 0; 
             background-color: #000;
         }
 
         .puzzle-piece {
-            /* Image set via JS */
-            background-size: 500% 500%; /* 5 columns = 500% size */
+            background-size: 500% 500%; 
             cursor: pointer;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+            transition: transform 0.2s ease-in-out;
             position: relative;
+            
+            /* CHANGED: Added inner shadow to separate pieces visually without using gap space */
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
         }
 
         .puzzle-piece:hover {
             z-index: 2;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.5);
             transform: scale(0.98);
         }
 
