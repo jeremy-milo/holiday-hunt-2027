@@ -1,1 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Puzzle Nine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; 
+            width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
+            color: #ffffff; font-family: 'Montserrat', sans-serif;
+            display: flex; 
+            align-items: flex-start;
+            justify-content: center; 
+            text-align: center;
+            padding-top: 30px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        
+        .container { 
+            position: relative; z-index: 10; 
+            padding: 20px;
+            max-width: 800px; width: 100%; 
+            box-sizing: border-box; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        p.instructions { margin-bottom: 20px; font-size: 1rem; opacity: 0.9; line-height: 1.5; max-width: 600px; }
+
+        /* GAME BOARD STYLES */
+        .game-status {
+            font-size: 1.2rem;
+            color: #f6d365;
+            margin-bottom: 15px;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+
+        .grid-wrapper {
+            display: grid;
+            /* 11 columns: 1 header col + 10 game cols */
+            grid-template-columns: 30px repeat(10, 1fr); 
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1/1; /* Keep it square */
+        }
+
+        .grid-cell {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Headers (Row Letters / Col Numbers) */
+        .header-cell {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Cell States */
+        .swirl {
+            /* Peppermint Swirl CSS */
+            background: repeating-conic-gradient(from 0deg, #fff 0deg 20deg, #d32f2f 20deg 40deg);
+            border-radius: 50%;
+            width: 80%; height: 80%;
+            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .miss {
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 1.2rem;
+            animation: shake 0.3s;
+        }
+        .miss::after { content: "X"; }
+
+        /* INPUT AREA */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            text-transform: uppercase;
+            width: 100px;
+            text-align: center;
+        }
+
+        button.action-btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #222;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button.action-btn:active { transform: scale(0.95); }
+        button.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .feedback-msg {
+            height: 20px;
+            font-size: 0.9rem;
+            color: #ff9;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Win/Lose Modal */
+        #ui-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.95);
+            z-index: 50;
+            display: none; /* Hidden by default */
+        }
+        
+        .game-msg {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #f6d365;
+        }
+
+        .hidden-clue {
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            margin-top: 100px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+        .hidden-clue:hover { color: rgba(255, 255, 255, 0.5); }
+
+        /* Animations */
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } 100% { transform: translateX(0); } }
+
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="container">
+        <h1>Puzzle Nine: Candy Cane Quest</h1>
+        <p class="instructions">Find all 3 hidden candy canes before you use up your peppermint swirl guesses.</p>
+       
+        <div class="game-status" id="status-display">25 peppermint swirls remaining</div>
+
+        <div class="grid-wrapper" id="game-grid">
+            </div>
+
+        <div class="input-area">
+            <input type="text" id="guess-input" placeholder="e.g. C7" maxlength="3" autocomplete="off">
+            <button class="action-btn" id="fire-btn" onclick="handleGuess()">GUESS</button>
+        </div>
+        <div class="feedback-msg" id="feedback"></div>
+
+        <div id="ui-layer">
+            <div class="game-msg" id="end-title"></div>
+            <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
+            <button class="action-btn" id="end-btn" onclick="">Proceed</button>
+        </div>
+
+        <div style="height: 100px;"></div>
+        <div class="hidden-clue">9. cancel</div>
+    </div>
+
+    <script>
+        /* --- SNOW ANIMATION --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth; let height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        const snowParticles = []; 
+        for (let i = 0; i < 80; i++) {
+            snowParticles.push({
+                x: Math.random() * width, y: Math.random() * height,
+                r: Math.random() * 2 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.5 + 0.2
+            });
+        }
+        function animateSnow() {
+            ctx.clearRect(0,0,width,height);
+            snowParticles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width;
+                ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = "#fff"; ctx.fill();
+            });
+            ctx.globalAlpha = 1; requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+
+        /* --- GAME LOGIC --- */
+        const GRID_SIZE = 10;
+        const NUM_SHIPS = 3;
+        const SHIP_LENGTH = 4;
+        const MAX_GUESSES = 25;
+        
+        let grid = []; // 0 = empty, 1 = ship
+        let guesses = []; // Set of strings "row,col"
+        let hits = 0;
+        let guessesLeft = MAX_GUESSES;
+        let gameActive = true;
+
+        // Initialize
+        function initGame() {
+            grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+            guesses = [];
+            hits = 0;
+            guessesLeft = MAX_GUESSES;
+            gameActive = true;
+            
+            document.getElementById('status-display').innerText = `${guessesLeft} peppermint swirls remaining`;
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('ui-layer').style.display = 'none';
+            document.getElementById('guess-input').value = "";
+            document.getElementById('guess-input').disabled = false;
+            document.getElementById('fire-btn').disabled = false;
+
+            placeShips();
+            renderGrid();
+        }
+
+        function placeShips() {
+            let placed = 0;
+            while (placed < NUM_SHIPS) {
+                let orientation = Math.random() < 0.5 ? 'H' : 'V';
+                let r, c;
+                let valid = true;
+
+                if (orientation === 'H') {
+                    r = Math.floor(Math.random() * GRID_SIZE);
+                    c = Math.floor(Math.random() * (GRID_SIZE - SHIP_LENGTH + 1));
+                    // Check overlap
+                    for (let i = 0; i < SHIP_LENGTH; i++) if (grid[r][c+i] === 1) valid = false;
+                    if (valid) {
+                        for (let i = 0; i < SHIP_LENGTH; i++) grid[r][c+i] = 1;
+                        placed++;
+                    }
+                } else {
+                    r = Math.floor(Math.random() * (GRID_SIZE - SHIP_LENGTH + 1));
+                    c = Math.floor(Math.random() * GRID_SIZE);
+                    // Check overlap
+                    for (let i = 0; i < SHIP_LENGTH; i++) if (grid[r+i][c] === 1) valid = false;
+                    if (valid) {
+                        for (let i = 0; i < SHIP_LENGTH; i++) grid[r+i][c] = 1;
+                        placed++;
+                    }
+                }
+            }
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('game-grid');
+            container.innerHTML = '';
+
+            // Header Row (Corner + Numbers 1-10)
+            let corner = document.createElement('div');
+            corner.className = 'grid-cell header-cell';
+            container.appendChild(corner);
+            for (let c = 1; c <= GRID_SIZE; c++) {
+                let h = document.createElement('div');
+                h.className = 'grid-cell header-cell';
+                h.innerText = c;
+                container.appendChild(h);
+            }
+
+            // Game Rows
+            const rowLabels = "ABCDEFGHIJ";
+            for (let r = 0; r < GRID_SIZE; r++) {
+                // Row Label
+                let lbl = document.createElement('div');
+                lbl.className = 'grid-cell header-cell';
+                lbl.innerText = rowLabels[r];
+                container.appendChild(lbl);
+
+                // Grid Cells
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.id = `cell-${r}-${c}`;
+                    container.appendChild(cell);
+                }
+            }
+        }
+
+        function handleGuess() {
+            if (!gameActive) return;
+            
+            const inputEl = document.getElementById('guess-input');
+            const feedbackEl = document.getElementById('feedback');
+            const statusEl = document.getElementById('status-display');
+            
+            let val = inputEl.value.trim().toUpperCase();
+            
+            // Validate Format (e.g., A1 to J10)
+            const regex = /^([A-J])([1-9]|10)$/;
+            const match = val.match(regex);
+
+            if (!match) {
+                feedbackEl.innerText = "Invalid coordinate. Try A1 - J10.";
+                return;
+            }
+
+            const rChar = match[1];
+            const cNum = parseInt(match[2]);
+
+            // Convert to indices
+            const r = rChar.charCodeAt(0) - 65; // A=0, B=1...
+            const c = cNum - 1; // 1=0, 2=1...
+
+            // Check Duplicate
+            const key = `${r},${c}`;
+            if (guesses.includes(key)) {
+                feedbackEl.innerText = "You already guessed that spot!";
+                return;
+            }
+
+            // Process Guess
+            guesses.push(key);
+            guessesLeft--;
+            statusEl.innerText = `${guessesLeft} peppermint swirls remaining`;
+            inputEl.value = "";
+            inputEl.focus();
+
+            const cell = document.getElementById(`cell-${r}-${c}`);
+
+            if (grid[r][c] === 1) {
+                // HIT
+                let swirl = document.createElement('div');
+                swirl.className = 'swirl';
+                cell.appendChild(swirl);
+                feedbackEl.innerText = "Tasty! Found a piece of candy cane.";
+                feedbackEl.style.color = "#8f8";
+                hits++;
+                checkWin();
+            } else {
+                // MISS
+                cell.classList.add('miss');
+                feedbackEl.innerText = "Nothing here but snow.";
+                feedbackEl.style.color = "#ff9";
+                checkLoss();
+            }
+        }
+
+        function checkWin() {
+            const totalTarget = NUM_SHIPS * SHIP_LENGTH; // 12
+            if (hits === totalTarget) {
+                gameActive = false;
+                showEndScreen(true);
+            }
+        }
+
+        function checkLoss() {
+            if (guessesLeft <= 0 && hits < (NUM_SHIPS * SHIP_LENGTH)) {
+                gameActive = false;
+                showEndScreen(false);
+            }
+        }
+
+        function showEndScreen(won) {
+            const layer = document.getElementById('ui-layer');
+            const title = document.getElementById('end-title');
+            const sub = document.getElementById('end-subtitle');
+            const btn = document.getElementById('end-btn');
+
+            layer.style.display = 'flex';
+
+            if (won) {
+                title.innerText = "Sweet Victory!";
+                sub.innerText = "You found all the candy canes.";
+                btn.innerText = "Next Puzzle";
+                btn.onclick = goToNextLevel;
+            } else {
+                title.innerText = "Out of Swirls";
+                sub.innerText = "The candy canes remain hidden.";
+                btn.innerText = "Try Again";
+                btn.onclick = initGame;
+            }
+        }
+
+        function goToNextLevel() {
+             window.location.href = "10-property.html";
+        }
+
+        // Allow Enter key
+        document.getElementById('guess-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') handleGuess();
+        });
+
+        // Start
+        initGame();
+
+    </script>
+</body>
+</html>
 
