@@ -270,10 +270,8 @@
             let globalIdx = 0;
             
             // Range Configuration:
-            // Original maxKeys was 28 (0..27).
-            // User requested: Remove 5 from left (Start at 5).
-            // Add 5 to right (Extend to 33).
-            const minKey = 5;  // F3
+            // UPDATED: minKey changed from 5 (F3) to 4 (E3) so the keyboard starts on E.
+            const minKey = 4;  // E3
             const maxKey = 33; // A5 (Exclusive limit is >32)
             
             for (let oct = 0; oct < numOctaves; oct++) {
@@ -440,8 +438,8 @@
                     // Does this note start a new sequence?
                     const relative = noteIndex % 12;
                     if (relative === 4) {
-                         matchIndex = 1;
-                         detectedOctaveOffset = noteIndex - 4;
+                          matchIndex = 1;
+                          detectedOctaveOffset = noteIndex - 4;
                     } else {
                         matchIndex = 0;
                         detectedOctaveOffset = -1;
