@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poodle Run! 🐩</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #87CEEB;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        
+        #startScreen, #winScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 20;
+        }
+        
+        #winScreen {
+            display: none;
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        button {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(to bottom, #8B4513, #654321);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        #progressContainer {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 10px;
+            transition: width 0.1s;
+        }
+        
+        #progressLabel {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div id="score">Distance: 0m</div>
+        </div>
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+            <div id="progressLabel">0% to Finish Line</div>
+        </div>
+        <div id="startScreen">
+            <h1>🐩 Poodle Run!</h1>
+            <p class="subtitle">Help the poodle reach the finish line!</p>
+            <button id="startBtn">Start Game</button>
+            <p class="instructions">Press SPACE or tap to jump</p>
+        </div>
+        <div id="winScreen">
+            <h1>🎉 You Win! 🎉</h1>
+            <p class="subtitle" id="finalScore">Distance: 0m</p>
+            <button id="restartBtn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 900;
+        canvas.height = 500;
+
+        // Audio Context for sound effects
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Sound Effects
+        function playFootstep() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.frequency.value = 100 + Math.random() * 50;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialDecayTo = 0.01;
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function playBark() {
+            if (!audioCtx) return;
+            
+            // Create a cute bark sound
+            const oscillator1 = audioCtx.createOscillator();
+            const oscillator2 = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator1.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator1.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+            oscillator1.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.2);
+            oscillator1.type = 'square';
+            
+            oscillator2.frequency.setValueAtTime(500, audioCtx.currentTime);
+            oscillator2.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.1);
+            oscillator2.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.2);
+            oscillator2.type = 'sawtooth';
+            
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            
+            oscillator1.start(audioCtx.currentTime);
+            oscillator2.start(audioCtx.currentTime);
+            oscillator1.stop(audioCtx.currentTime + 0.25);
+            oscillator2.stop(audioCtx.currentTime + 0.25);
+        }
+
+        function playFirework() {
+            if (!audioCtx) return;
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200 + Math.random() * 400, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.5);
+            
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(3000, audioCtx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // Game State
+        let gameState = 'start';
+        let distance = 0;
+        const finishDistance = 2000;
+        let gameSpeed = 6;
+
+        // Poodle (Player)
+        const poodle = {
+            x: 100,
+            y: 350,
+            width: 60,
+            height: 60,
+            velocityY: 0,
+            isJumping: false,
+            groundY: 350,
+            animFrame: 0,
+            animTimer: 0,
+            footstepTimer: 0
+        };
+
+        // Obstacles
+        let obstacles = [];
+        let obstacleTimer = 0;
+
+        // Parallax Backgrounds
+        let mountains = [];
+        let houses = [];
+        let trees = [];
+        let ground = [];
+
+        // Fireworks
+        let fireworks = [];
+        let particles = [];
+
+        // Initialize backgrounds
+        function initBackgrounds() {
+            mountains = [];
+            houses = [];
+            trees = [];
+            ground = [];
+
+            // Mountains (far background)
+            for (let i = 0; i < 4; i++) {
+                mountains.push({
+                    x: i * 350,
+                    width: 400,
+                    height: 200 + Math.random() * 100
+                });
+            }
+
+            // Houses and Trees (mid background)
+            for (let i = 0; i < 8; i++) {
+                if (Math.random() > 0.5) {
+                    houses.push({
+                        x: i * 200 + Math.random() * 50,
+                        width: 80 + Math.random() * 40,
+                        height: 70 + Math.random() * 30,
+                        color: ['#8B4513', '#A0522D', '#CD853F', '#DEB887'][Math.floor(Math.random() * 4)]
+                    });
+                }
+                trees.push({
+                    x: i * 150 + Math.random() * 100,
+                    height: 80 + Math.random() * 60
+                });
+            }
+
+            // Ground segments
+            for (let i = 0; i < 20; i++) {
+                ground.push({
+                    x: i * 60,
+                    hasGrass: Math.random() > 0.3
+                });
+            }
+        }
+
+        // Draw Functions
+        function drawSky() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.7);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.5, '#B0E0E6');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.7);
+        }
+
+        function drawMountains() {
+            mountains.forEach(m => {
+                // Mountain body
+                ctx.fillStyle = '#6B8E9F';
+                ctx.beginPath();
+                ctx.moveTo(m.x, canvas.height * 0.7);
+                ctx.lineTo(m.x + m.width / 2, canvas.height * 0.7 - m.height);
+                ctx.lineTo(m.x + m.width, canvas.height * 0.7);
+                ctx.closePath();
+                ctx.fill();
+
+                // Snow cap
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.moveTo(m.x + m.width / 2, canvas.height * 0.7 - m.height);
+                ctx.lineTo(m.x + m.width / 2 - 40, canvas.height * 0.7 - m.height + 50);
+                ctx.lineTo(m.x + m.width / 2 + 40, canvas.height * 0.7 - m.height + 50);
+                ctx.closePath();
+                ctx.fill();
+            });
+        }
+
+        function drawHouses() {
+            houses.forEach(h => {
+                // House body
+                ctx.fillStyle = h.color;
+                ctx.fillRect(h.x, canvas.height * 0.7 - h.height, h.width, h.height);
+
+                // Roof
+                ctx.fillStyle = '#4A4A4A';
+                ctx.beginPath();
+                ctx.moveTo(h.x - 10, canvas.height * 0.7 - h.height);
+                ctx.lineTo(h.x + h.width / 2, canvas.height * 0.7 - h.height - 40);
+                ctx.lineTo(h.x + h.width + 10, canvas.height * 0.7 - h.height);
+                ctx.closePath();
+                ctx.fill();
+
+                // Snow on roof
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.moveTo(h.x - 5, canvas.height * 0.7 - h.height);
+                ctx.lineTo(h.x + h.width / 2, canvas.height * 0.7 - h.height - 35);
+                ctx.lineTo(h.x + h.width + 5, canvas.height * 0.7 - h.height);
+                ctx.lineTo(h.x + h.width / 2, canvas.height * 0.7 - h.height - 25);
+                ctx.closePath();
+                ctx.fill();
+
+                // Window
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(h.x + h.width / 2 - 10, canvas.height * 0.7 - h.height + 20, 20, 20);
+
+                // Door
+                ctx.fillStyle = '#654321';
+                ctx.fillRect(h.x + h.width / 2 - 8, canvas.height * 0.7 - 30, 16, 30);
+            });
+        }
+
+        function drawTrees() {
+            trees.forEach(t => {
+                // Trunk
+                ctx.fillStyle = '#4A3728';
+                ctx.fillRect(t.x - 8, canvas.height * 0.7 - 20, 16, 40);
+
+                // Tree layers (pine tree style)
+                for (let i = 0; i < 3; i++) {
+                    ctx.fillStyle = '#2E5A3A';
+                    ctx.beginPath();
+                    ctx.moveTo(t.x, canvas.height * 0.7 - 20 - t.height + i * 25);
+                    ctx.lineTo(t.x - 30 + i * 5, canvas.height * 0.7 - 20 - t.height + 40 + i * 25);
+                    ctx.lineTo(t.x + 30 - i * 5, canvas.height * 0.7 - 20 - t.height + 40 + i * 25);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Snow on branches
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.moveTo(t.x, canvas.height * 0.7 - 20 - t.height + i * 25);
+                    ctx.lineTo(t.x - 20 + i * 5, canvas.height * 0.7 - 20 - t.height + 20 + i * 25);
+                    ctx.lineTo(t.x + 20 - i * 5, canvas.height * 0.7 - 20 - t.height + 20 + i * 25);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+        }
+
+        function drawGround() {
+            // Snow ground base
+            ctx.fillStyle = '#F0F8FF';
+            ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+
+            // Ground details
+            ctx.fillStyle = '#E8E8E8';
+            ground.forEach(g => {
+                if (g.hasGrass) {
+                    ctx.beginPath();
+                    ctx.arc(g.x + 30, canvas.height * 0.7 + 10, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Running path
+            ctx.fillStyle = '#D2B48C';
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 60);
+            ctx.fillStyle = '#C4A86B';
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
+        }
+
+        function drawPoodle() {
+            const p = poodle;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+
+            // Animation bounce
+            const bounce = p.isJumping ? 0 : Math.sin(p.animFrame * 0.3) * 3;
+
+            // Legs
+            const legOffset = p.isJumping ? 10 : Math.sin(p.animFrame * 0.5) * 10;
+            ctx.fillStyle = '#8B6914';
+            
+            // Back legs
+            ctx.save();
+            ctx.translate(10, 45 + bounce);
+            ctx.rotate(Math.sin(p.animFrame * 0.5) * 0.3);
+            ctx.fillRect(-4, 0, 8, 20);
+            // Paw poof
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(0, 22, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(20, 45 + bounce);
+            ctx.rotate(-Math.sin(p.animFrame * 0.5) * 0.3);
+            ctx.fillStyle = '#8B6914';
+            ctx.fillRect(-4, 0, 8, 20);
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(0, 22, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Front legs
+            ctx.save();
+            ctx.translate(45, 45 + bounce);
+            ctx.rotate(-Math.sin(p.animFrame * 0.5) * 0.3);
+            ctx.fillStyle = '#8B6914';
+            ctx.fillRect(-4, 0, 8, 20);
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(0, 22, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(55, 45 + bounce);
+            ctx.rotate(Math.sin(p.animFrame * 0.5) * 0.3);
+            ctx.fillStyle = '#8B6914';
+            ctx.fillRect(-4, 0, 8, 20);
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(0, 22, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Tail (poofy)
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(-5, 20 + bounce, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            ctx.fillStyle = '#8B6914';
+            ctx.beginPath();
+            ctx.ellipse(30, 35 + bounce, 30, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body poof (poodle style)
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(15, 25 + bounce, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(35, 30 + bounce, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Neck
+            ctx.fillStyle = '#8B6914';
+            ctx.fillRect(45, 10 + bounce, 15, 25);
+
+            // Head
+            ctx.fillStyle = '#8B6914';
+            ctx.beginPath();
+            ctx.arc(58, 5 + bounce, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head poof (poodle topknot)
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(58, -8 + bounce, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(50, -5 + bounce, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(66, -5 + bounce, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ears (floppy poodle ears)
+            ctx.fillStyle = '#7A5A10';
+            ctx.beginPath();
+            ctx.ellipse(42, 8 + bounce, 8, 15, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(40, 18 + bounce, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#7A5A10';
+            ctx.beginPath();
+            ctx.ellipse(72, 8 + bounce, 8, 15, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.arc(74, 18 + bounce, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Snout
+            ctx.fillStyle = '#A0784B';
+            ctx.beginPath();
+            ctx.ellipse(72, 8 + bounce, 10, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nose
+            ctx.fillStyle = '#2A2A2A';
+            ctx.beginPath();
+            ctx.arc(80, 6 + bounce, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#2A2A2A';
+            ctx.beginPath();
+            ctx.arc(52, 2 + bounce, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(64, 2 + bounce, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eye shine
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(53, 1 + bounce, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(65, 1 + bounce, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Tongue (when jumping)
+            if (p.isJumping) {
+                ctx.fillStyle = '#FF69B4';
+                ctx.beginPath();
+                ctx.ellipse(78, 14 + bounce, 4, 6, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obs => {
+                if (obs.type === 'log') {
+                    // Log
+                    ctx.fillStyle = '#5D4037';
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, obs.height / 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Log rings
+                    ctx.strokeStyle = '#3E2723';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 4, obs.height / 4, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 8, obs.height / 8, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                } else if (obs.type === 'stump') {
+                    // Stump
+                    ctx.fillStyle = '#6D4C41';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    
+                    // Top
+                    ctx.fillStyle = '#8D6E63';
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y, obs.width / 2, 10, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Rings on top
+                    ctx.strokeStyle = '#5D4037';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y, obs.width / 4, 5, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                } else if (obs.type === 'pit') {
+                    // Pit (hole in ground)
+                    ctx.fillStyle = '#2A1810';
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y + 10, obs.width / 2, 20, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Pit edge
+                    ctx.strokeStyle = '#4A3020';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + obs.width / 2, obs.y + 10, obs.width / 2 + 2, 22, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function drawFinishLine() {
+            if (distance > finishDistance - 500) {
+                const finishX = canvas.width - (distance - (finishDistance - 500)) * (canvas.width / 500);
+                
+                if (finishX > 0 && finishX < canvas.width + 50) {
+                    // Finish line poles
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(finishX - 5, canvas.height - 200, 10, 160);
+                    ctx.fillRect(finishX + 95, canvas.height - 200, 10, 160);
+                    
+                    // Checkered banner
+                    const squareSize = 15;
+                    for (let row = 0; row < 3; row++) {
+                        for (let col = 0; col < 7; col++) {
+                            ctx.fillStyle = (row + col) % 2 === 0 ? '#000000' : '#FFFFFF';
+                            ctx.fillRect(finishX + col * squareSize, canvas.height - 200 + row * squareSize, squareSize, squareSize);
+                        }
+                    }
+                    
+                    // "FINISH" text
+                    ctx.fillStyle = '#FF0000';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillText('FINISH', finishX + 15, canvas.height - 160);
+                }
+            }
+        }
+
+        function drawFireworks() {
+            // Draw firework trails
+            fireworks.forEach(fw => {
+                ctx.beginPath();
+                ctx.arc(fw.x, fw.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = fw.color;
+                ctx.fill();
+                
+                // Trail
+                ctx.beginPath();
+                ctx.moveTo(fw.x, fw.y);
+                ctx.lineTo(fw.x, fw.y + 20);
+                ctx.strokeStyle = fw.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${p.alpha})`;
+                ctx.fill();
+            });
+        }
+
+        // Update Functions
+        function updatePoodle() {
+            // Gravity
+            if (poodle.isJumping) {
+                poodle.velocityY += 0.8;
+                poodle.y += poodle.velocityY;
+
+                if (poodle.y >= poodle.groundY) {
+                    poodle.y = poodle.groundY;
+                    poodle.isJumping = false;
+                    poodle.velocityY = 0;
+                }
+            }
+
+            // Animation
+            poodle.animTimer++;
+            if (poodle.animTimer > 3) {
+                poodle.animTimer = 0;
+                poodle.animFrame++;
+            }
+
+            // Footsteps
+            if (!poodle.isJumping) {
+                poodle.footstepTimer++;
+                if (poodle.footstepTimer > 15) {
+                    poodle.footstepTimer = 0;
+                    playFootstep();
+                }
+            }
+        }
+
+        function updateObstacles() {
+            // Move obstacles
+            obstacles.forEach(obs => {
+                obs.x -= gameSpeed;
+            });
+
+            // Remove off-screen obstacles
+            obstacles = obstacles.filter(obs => obs.x + obs.width > -50);
+
+            // Spawn new obstacles
+            obstacleTimer++;
+            if (obstacleTimer > 80 + Math.random() * 60 && distance < finishDistance - 200) {
+                obstacleTimer = 0;
+                
+                const types = ['log', 'stump', 'pit'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                let obstacle = {
+                    type: type,
+                    x: canvas.width + 50
+                };
+
+                if (type === 'log') {
+                    obstacle.width = 50;
+                    obstacle.height = 40;
+                    obstacle.y = canvas.height - 80;
+                } else if (type === 'stump') {
+                    obstacle.width = 40;
+                    obstacle.height = 50;
+                    obstacle.y = canvas.height - 90;
+                } else if (type === 'pit') {
+                    obstacle.width = 80;
+                    obstacle.height = 30;
+                    obstacle.y = canvas.height - 50;
+                }
+
+                obstacles.push(obstacle);
+            }
+        }
+
+        function updateBackgrounds() {
+            // Mountains (slowest)
+            mountains.forEach(m => {
+                m.x -= gameSpeed * 0.2;
+                if (m.x + m.width < 0) {
+                    m.x = Math.max(...mountains.map(mt => mt.x)) + 350;
+                    m.height = 200 + Math.random() * 100;
+                }
+            });
+
+            // Houses
+            houses.forEach(h => {
+                h.x -= gameSpeed * 0.5;
+                if (h.x + h.width < 0) {
+                    h.x = Math.max(...houses.map(hs => hs.x)) + 200 + Math.random() * 100;
+                }
+            });
+
+            // Trees
+            trees.forEach(t => {
+                t.x -= gameSpeed * 0.5;
+                if (t.x + 30 < 0) {
+                    t.x = Math.max(...trees.map(tr => tr.x)) + 150 + Math.random() * 100;
+                    t.height = 80 + Math.random() * 60;
+                }
+            });
+
+            // Ground
+            ground.forEach(g => {
+                g.x -= gameSpeed;
+                if (g.x + 60 < 0) {
+                    g.x = Math.max(...ground.map(gr => gr.x)) + 60;
+                    g.hasGrass = Math.random() > 0.3;
+                }
+            });
+        }
+
+        function updateFireworks() {
+            // Update firework rockets
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].y += fireworks[i].velocityY;
+                fireworks[i].velocityY += 0.1;
+
+                if (fireworks[i].velocityY > 0) {
+                    // Explode
+                    createExplosion(fireworks[i].x, fireworks[i].y, fireworks[i].color);
+                    playFirework();
+                    fireworks.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].vy += 0.05;
+                particles[i].alpha -= 0.015;
+                particles[i].size *= 0.98;
+
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function createExplosion(x, y, color) {
+            const colors = [
+                {r: 255, g: 0, b: 0},
+                {r: 0, g: 255, b: 0},
+                {r: 0, g: 0, b: 255},
+                {r: 255, g: 255, b: 0},
+                {r: 255, g: 0, b: 255},
+                {r: 0, g: 255, b: 255},
+                {r: 255, g: 165, b: 0},
+                {r: 255, g: 192, b: 203}
+            ];
+
+            for (let i = 0; i < 50; i++) {
+                const angle = (Math.PI * 2 / 50) * i;
+                const speed = 2 + Math.random() * 4;
+                const col = colors[Math.floor(Math.random() * colors.length)];
+                
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 3 + Math.random() * 3,
+                    r: col.r,
+                    g: col.g,
+                    b: col.b,
+                    alpha: 1
+                });
+            }
+        }
+
+        function launchFirework() {
+            const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#FF69B4'];
+            fireworks.push({
+                x: Math.random() * canvas.width,
+                y: canvas.height,
+                velocityY: -12 - Math.random() * 5,
+                color: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
+
+        function checkCollision() {
+            const poodleBox = {
+                x: poodle.x + 15,
+                y: poodle.y + 10,
+                width: poodle.width - 20,
+                height: poodle.height + 10
+            };
+
+            for (let obs of obstacles) {
+                let obsBox;
+                
+                if (obs.type === 'pit') {
+                    obsBox = {
+                        x: obs.x + 15,
+                        y: obs.y - 10,
+                        width: obs.width - 30,
+                        height: obs.height + 20
+                    };
+                } else {
+                    obsBox = {
