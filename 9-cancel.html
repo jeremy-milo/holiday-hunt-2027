@@ -8,34 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        body, html {
-            margin: 0; padding: 0; 
-            width: 100%; min-height: 100vh;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
-            color: #ffffff; font-family: 'Montserrat', sans-serif;
-            display: flex; 
-            align-items: flex-start;
-            justify-content: center; 
-            text-align: center;
-            padding-top: 30px;
-            box-sizing: border-box;
-            overflow-x: hidden;
-        }
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        
-        .container { 
-            position: relative; z-index: 10; 
-            padding: 20px;
-            max-width: 800px; width: 100%; 
-            box-sizing: border-box; 
-            display: flex; flex-direction: column; align-items: center;
-        }
-
-        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-        p.instructions { margin-bottom: 20px; font-size: 1rem; opacity: 0.9; line-height: 1.5; max-width: 600px; }
-
         /* GAME BOARD STYLES */
         .game-status {
             font-size: 1.2rem;
@@ -47,8 +22,7 @@
 
         .grid-wrapper {
             display: grid;
-            position: relative; /* REQUIRED for absolute positioning of overlays within grid */
-            /* 10 columns and 10 rows explicitly defined */
+            position: relative;
             grid-template-columns: repeat(10, 1fr); 
             grid-template-rows: repeat(10, 1fr);
             gap: 2px;
@@ -58,7 +32,7 @@
             margin-bottom: 20px;
             width: 100%;
             max-width: 450px;
-            aspect-ratio: 1/1; /* Keep entire board square */
+            aspect-ratio: 1/1;
         }
 
         .grid-cell {
@@ -73,136 +47,59 @@
             cursor: pointer;
             width: 100%;
             height: 100%;
-            aspect-ratio: 1/1; /* Lock cell shape */
+            aspect-ratio: 1/1; 
         }
         
-        .grid-cell:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+        .grid-cell:hover { background: rgba(255, 255, 255, 0.2); }
 
-        /* Continuous Overlay for Candy Canes */
         .cane-overlay {
-            position: absolute; /* Allows it to sit on top without disturbing grid flow */
-            pointer-events: none; /* Let clicks pass through */
+            position: absolute;
+            pointer-events: none;
             z-index: 20;
             display: flex;
             align-items: center;
             justify-content: center;
-            
-            /* Animation */
             animation: revealCane 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             opacity: 0;
             transform-origin: center;
         }
 
         .cane-svg {
-            width: 100%;
-            height: 100%;
-            display: block;
+            width: 100%; height: 100%; display: block;
             filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
         }
 
-        /* Note: Original .candy-cane-segment and individual cell .cane-svg styles removed */
-
-        /* Cell States */
         .swirl {
-            /* Peppermint Swirl CSS */
             background: repeating-conic-gradient(from 0deg, #fff 0deg 20deg, #d32f2f 20deg 40deg);
-            border-radius: 50%;
-            width: 80%; height: 80%;
+            border-radius: 50%; width: 80%; height: 80%;
             box-shadow: 0 0 5px rgba(255,255,255,0.5);
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .candy-cane-segment {
-            width: 90%; height: 90%;
-            background: repeating-linear-gradient(
-                45deg,
-                #d32f2f,
-                #d32f2f 8px,
-                #ffffff 8px,
-                #ffffff 16px
-            );
-            border: 2px solid #fff;
-            border-radius: 4px;
-            box-shadow: 0 0 10px rgba(255,255,255,0.8);
-            transform: scale(0); /* Start hidden for animation */
-            animation: revealCane 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-        }
-
         .miss {
-            color: #ff4444;
-            font-weight: bold;
-            font-size: 1.2rem;
-            animation: shake 0.3s;
+            color: #ff4444; font-weight: bold; font-size: 1.2rem; animation: shake 0.3s;
         }
         .miss::after { content: "X"; }
 
-        /* INPUT AREA REMOVED */
+        .feedback-msg {
+            height: 20px; font-size: 0.9rem; color: #ff9; margin-top: 5px; font-style: italic;
+        }
 
+        /* Standardize button in this file context */
         button.action-btn {
-            padding: 10px 20px;
-            font-size: 1rem;
-            border-radius: 5px;
-            border: none;
+            padding: 10px 20px; font-size: 1rem; border-radius: 5px; border: none;
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            color: #222;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.1s;
+            color: #222; font-weight: bold; cursor: pointer; transition: transform 0.1s;
         }
         button.action-btn:active { transform: scale(0.95); }
-        button.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .feedback-msg {
-            height: 20px;
-            font-size: 0.9rem;
-            color: #ff9;
-            margin-top: 5px;
-            font-style: italic;
-        }
-
-        /* Win/Lose Modal */
-        #ui-layer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.95);
-            z-index: 50;
-            display: none; /* Hidden by default */
-        }
-        
-        .game-msg {
-            font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
-            color: #fff;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px #f6d365;
-        }
-
-        .hidden-clue {
-            color: rgba(255, 255, 255, 0.1);
-            font-size: 0.9rem;
-            margin-top: 100px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            transition: color 0.3s;
-        }
-        .hidden-clue:hover { color: rgba(255, 255, 255, 0.5); }
 
         /* Animations */
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } 100% { transform: translateX(0); } }
-        @keyframes revealCane { 
-            0% { transform: scale(0.5); opacity: 0; } 
-            100% { transform: scale(1); opacity: 1; } 
-        }
-
+        @keyframes revealCane { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
-    <!-- Hidden SVG Pattern Definition -->
     <svg width="0" height="0" style="position: absolute;">
       <defs>
         <pattern id="candyStripes" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)">
@@ -220,23 +117,21 @@
        
         <div class="game-status" id="status-display">35 guesses remaining</div>
 
-        <div class="grid-wrapper" id="game-grid">
-            </div>
+        <div class="grid-wrapper" id="game-grid"></div>
 
         <div class="feedback-msg" id="feedback"></div>
 
-        <div id="ui-layer">
+        <div id="ui-layer" class="ui-layer hidden-ui">
             <div class="game-msg" id="end-title"></div>
             <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
             <button class="action-btn" id="end-btn" onclick="">Proceed</button>
         </div>
 
-        <div style="height: 100px;"></div>
+        <div class="spacer-medium"></div>
         <div class="hidden-clue">9. cancel</div>
     </div>
 
     <script>
-        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth; let height = window.innerHeight;
@@ -260,252 +155,102 @@
         }
         animateSnow();
 
-        /* --- GAME LOGIC --- */
-        const GRID_SIZE = 10;
-        const NUM_SHIPS = 3;
-        const SHIP_LENGTH = 4;
-        const MAX_GUESSES = 35;
-        
-        let grid = []; // 0 = empty, 1 = ship
-        let ships = []; // Store ship objects { coords: [{r,c}], hits: 0 }
-        let guesses = []; // Set of strings "row,col"
-        let hits = 0;
-        let guessesLeft = MAX_GUESSES;
-        let gameActive = true;
+        const GRID_SIZE = 10; const NUM_SHIPS = 3; const SHIP_LENGTH = 4; const MAX_GUESSES = 35;
+        let grid = []; let ships = []; let guesses = []; let hits = 0; let guessesLeft = MAX_GUESSES; let gameActive = true;
 
-        // Initialize
         function initGame() {
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
-            ships = [];
-            guesses = [];
-            hits = 0;
-            guessesLeft = MAX_GUESSES;
-            gameActive = true;
-            
+            ships = []; guesses = []; hits = 0; guessesLeft = MAX_GUESSES; gameActive = true;
             document.getElementById('status-display').innerText = `${guessesLeft} guesses remaining`;
             document.getElementById('feedback').innerText = "Tap a square to search!";
-            document.getElementById('ui-layer').style.display = 'none';
-
-            placeShips();
-            renderGrid();
+            const ui = document.getElementById('ui-layer');
+            ui.classList.add('hidden-ui'); ui.classList.remove('active-ui');
+            placeShips(); renderGrid();
         }
 
         function placeShips() {
-            ships = [];
-            let placed = 0;
+            ships = []; let placed = 0;
             while (placed < NUM_SHIPS) {
                 let orientation = Math.random() < 0.5 ? 'H' : 'V';
-                let r, c;
-                let valid = true;
-                let currentCoords = [];
-
+                let r, c; let valid = true; let currentCoords = [];
                 if (orientation === 'H') {
-                    r = Math.floor(Math.random() * GRID_SIZE);
-                    c = Math.floor(Math.random() * (GRID_SIZE - SHIP_LENGTH + 1));
-                    // Check overlap
-                    for (let i = 0; i < SHIP_LENGTH; i++) {
-                        if (grid[r][c+i] === 1) valid = false;
-                        currentCoords.push({r: r, c: c+i});
-                    }
+                    r = Math.floor(Math.random() * GRID_SIZE); c = Math.floor(Math.random() * (GRID_SIZE - SHIP_LENGTH + 1));
+                    for (let i = 0; i < SHIP_LENGTH; i++) { if (grid[r][c+i] === 1) valid = false; currentCoords.push({r: r, c: c+i}); }
                 } else {
-                    r = Math.floor(Math.random() * (GRID_SIZE - SHIP_LENGTH + 1));
-                    c = Math.floor(Math.random() * GRID_SIZE);
-                    // Check overlap
-                    for (let i = 0; i < SHIP_LENGTH; i++) {
-                        if (grid[r+i][c] === 1) valid = false;
-                        currentCoords.push({r: r+i, c: c});
-                    }
+                    r = Math.floor(Math.random() * (GRID_SIZE - SHIP_LENGTH + 1)); c = Math.floor(Math.random() * GRID_SIZE);
+                    for (let i = 0; i < SHIP_LENGTH; i++) { if (grid[r+i][c] === 1) valid = false; currentCoords.push({r: r+i, c: c}); }
                 }
-
-                if (valid) {
-                    currentCoords.forEach(coord => grid[coord.r][coord.c] = 1);
-                    ships.push({ coords: currentCoords, hits: 0 });
-                    placed++;
-                }
+                if (valid) { currentCoords.forEach(coord => grid[coord.r][coord.c] = 1); ships.push({ coords: currentCoords, hits: 0 }); placed++; }
             }
         }
 
         function renderGrid() {
-            const container = document.getElementById('game-grid');
-            container.innerHTML = '';
-
-            // Simple 10x10 Grid
+            const container = document.getElementById('game-grid'); container.innerHTML = '';
             for (let r = 0; r < GRID_SIZE; r++) {
                 for (let c = 0; c < GRID_SIZE; c++) {
-                    let cell = document.createElement('div');
-                    cell.className = 'grid-cell';
-                    cell.id = `cell-${r}-${c}`;
-                    cell.onclick = () => handleCellClick(r, c);
-                    container.appendChild(cell);
+                    let cell = document.createElement('div'); cell.className = 'grid-cell'; cell.id = `cell-${r}-${c}`;
+                    cell.onclick = () => handleCellClick(r, c); container.appendChild(cell);
                 }
             }
         }
 
         function handleCellClick(r, c) {
             if (!gameActive) return;
-            
-            const feedbackEl = document.getElementById('feedback');
-            const statusEl = document.getElementById('status-display');
-            
-            // Check Duplicate
-            const key = `${r},${c}`;
-            if (guesses.includes(key)) return;
-
-            // Process Guess
-            guesses.push(key);
-            guessesLeft--;
-            statusEl.innerText = `${guessesLeft} guesses remaining`;
-
-            const cell = document.getElementById(`cell-${r}-${c}`);
-            cell.style.cursor = 'default'; // Remove pointer
+            const feedbackEl = document.getElementById('feedback'); const statusEl = document.getElementById('status-display');
+            const key = `${r},${c}`; if (guesses.includes(key)) return;
+            guesses.push(key); guessesLeft--; statusEl.innerText = `${guessesLeft} guesses remaining`;
+            const cell = document.getElementById(`cell-${r}-${c}`); cell.style.cursor = 'default';
 
             if (grid[r][c] === 1) {
-                // HIT
-                let swirl = document.createElement('div');
-                swirl.className = 'swirl';
-                cell.appendChild(swirl);
-                
-                hits++;
-
-                // Find and update the specific ship
+                let swirl = document.createElement('div'); swirl.className = 'swirl'; cell.appendChild(swirl); hits++;
                 let ship = ships.find(s => s.coords.some(coord => coord.r === r && coord.c === c));
                 if (ship) {
                     ship.hits++;
                     if (ship.hits === SHIP_LENGTH) {
-                        setTimeout(() => revealCandyCane(ship), 300); // Small delay for effect
-                        feedbackEl.innerText = "DELICIOUS! You found a whole Candy Cane!";
-                        feedbackEl.style.color = "#fff";
-                        feedbackEl.style.textShadow = "0 0 10px #f00";
-                    } else {
-                        feedbackEl.innerText = "Tasty! Found a piece of candy cane.";
-                        feedbackEl.style.color = "#8f8";
-                        feedbackEl.style.textShadow = "none";
-                    }
+                        setTimeout(() => revealCandyCane(ship), 300); feedbackEl.innerText = "DELICIOUS! You found a whole Candy Cane!"; feedbackEl.style.color = "#fff"; feedbackEl.style.textShadow = "0 0 10px #f00";
+                    } else { feedbackEl.innerText = "Tasty! Found a piece of candy cane."; feedbackEl.style.color = "#8f8"; feedbackEl.style.textShadow = "none"; }
                 }
-
                 checkWin();
             } else {
-                // MISS
-                cell.classList.add('miss');
-                feedbackEl.innerText = "Nothing here but snow.";
-                feedbackEl.style.color = "#ff9";
-                feedbackEl.style.textShadow = "none";
-                checkLoss();
+                cell.classList.add('miss'); feedbackEl.innerText = "Nothing here but snow."; feedbackEl.style.color = "#ff9"; feedbackEl.style.textShadow = "none"; checkLoss();
             }
         }
 
         function revealCandyCane(ship) {
-            // 1. Clear swirls from the grid cells
-            ship.coords.forEach(coord => {
-                let cell = document.getElementById(`cell-${coord.r}-${coord.c}`);
-                cell.innerHTML = ''; 
-            });
-
-            // 2. Sort coords to ensure we identify the top-left start correctly
-            // This prevents issues if coords were stored out of order
+            ship.coords.forEach(coord => { let cell = document.getElementById(`cell-${coord.r}-${coord.c}`); cell.innerHTML = ''; });
             ship.coords.sort((a, b) => a.r - b.r || a.c - b.c);
-
-            // 3. Determine Orientation and Bounds
-            let isHorizontal = false;
-            if (ship.coords.length > 1 && ship.coords[0].r === ship.coords[1].r) {
-                isHorizontal = true;
-            }
-
-            const r = ship.coords[0].r;
-            const c = ship.coords[0].c;
-
-            // 4. Create Overlay Element
-            const container = document.getElementById('game-grid');
-            const overlay = document.createElement('div');
-            overlay.className = 'cane-overlay';
-
-            // 4. Position using CSS Grid
-            // Note: Grid lines are 1-based. 
-            // We use 'span' to cover gaps perfectly.
-            if (isHorizontal) {
-                overlay.style.gridRow = `${r + 1} / span 1`;
-                overlay.style.gridColumn = `${c + 1} / span ${SHIP_LENGTH}`;
-            } else {
-                overlay.style.gridRow = `${r + 1} / span ${SHIP_LENGTH}`;
-                overlay.style.gridColumn = `${c + 1} / span 1`;
-            }
-
-            // 5. Generate SVG
-            const svgNS = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNS, "svg");
-            svg.classList.add("cane-svg");
-
+            let isHorizontal = false; if (ship.coords.length > 1 && ship.coords[0].r === ship.coords[1].r) isHorizontal = true;
+            const r = ship.coords[0].r; const c = ship.coords[0].c;
+            const container = document.getElementById('game-grid'); const overlay = document.createElement('div'); overlay.className = 'cane-overlay';
+            if (isHorizontal) { overlay.style.gridRow = `${r + 1} / span 1`; overlay.style.gridColumn = `${c + 1} / span ${SHIP_LENGTH}`; } 
+            else { overlay.style.gridRow = `${r + 1} / span ${SHIP_LENGTH}`; overlay.style.gridColumn = `${c + 1} / span 1`; }
+            const svgNS = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(svgNS, "svg"); svg.classList.add("cane-svg");
             const path = document.createElementNS(svgNS, "path");
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke", "url(#candyStripes)");
-            path.setAttribute("stroke-width", "35");
-            path.setAttribute("stroke-linecap", "round");
-            path.setAttribute("stroke-linejoin", "round");
-
+            path.setAttribute("fill", "none"); path.setAttribute("stroke", "url(#candyStripes)"); path.setAttribute("stroke-width", "35"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
             let d = "";
-            if (isHorizontal) {
-                // ViewBox: Wide and short (approx 400x100)
-                // Draw hook on Left, Stem to Right
-                svg.setAttribute("viewBox", "0 0 400 100");
-                // Start Right (400,50) -> Left (50,50) -> Hook Down (50,85)
-                d = "M380,50 L50,50 A17.5,17.5 0 0,0 50,85";
-            } else {
-                // ViewBox: Tall and narrow (approx 100x400)
-                // Draw hook on Top, Stem to Bottom
-                svg.setAttribute("viewBox", "0 0 100 400");
-                // Start Bottom (50,400) -> Top (50,50) -> Hook Left (15,50)
-                d = "M50,380 L50,50 A17.5,17.5 0 0,0 15,50";
-            }
-
-            path.setAttribute("d", d);
-            svg.appendChild(path);
-            overlay.appendChild(svg);
-            container.appendChild(overlay);
+            if (isHorizontal) { svg.setAttribute("viewBox", "0 0 400 100"); d = "M380,50 L50,50 A17.5,17.5 0 0,0 50,85"; } 
+            else { svg.setAttribute("viewBox", "0 0 100 400"); d = "M50,380 L50,50 A17.5,17.5 0 0,0 15,50"; }
+            path.setAttribute("d", d); svg.appendChild(path); overlay.appendChild(svg); container.appendChild(overlay);
         }
 
         function checkWin() {
-            const totalTarget = NUM_SHIPS * SHIP_LENGTH; // 12
-            if (hits === totalTarget) {
-                gameActive = false;
-                showEndScreen(true);
-            }
+            const totalTarget = NUM_SHIPS * SHIP_LENGTH;
+            if (hits === totalTarget) { gameActive = false; showEndScreen(true); }
         }
 
         function checkLoss() {
-            if (guessesLeft <= 0 && hits < (NUM_SHIPS * SHIP_LENGTH)) {
-                gameActive = false;
-                showEndScreen(false);
-            }
+            if (guessesLeft <= 0 && hits < (NUM_SHIPS * SHIP_LENGTH)) { gameActive = false; showEndScreen(false); }
         }
 
         function showEndScreen(won) {
-            const layer = document.getElementById('ui-layer');
-            const title = document.getElementById('end-title');
-            const sub = document.getElementById('end-subtitle');
-            const btn = document.getElementById('end-btn');
-
-            layer.style.display = 'flex';
-
-            if (won) {
-                title.innerText = "Sweet Victory!";
-                sub.innerText = "You found all the candy canes.";
-                btn.innerText = "Next Puzzle";
-                btn.onclick = goToNextLevel;
-            } else {
-                title.innerText = "Out of Swirls";
-                sub.innerText = "The candy canes remain hidden.";
-                btn.innerText = "Try Again";
-                btn.onclick = initGame;
-            }
+            const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
+            layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
+            if (won) { title.innerText = "Sweet Victory!"; sub.innerText = "You found all the candy canes."; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
+            else { title.innerText = "Out of Swirls"; sub.innerText = "The candy canes remain hidden."; btn.innerText = "Try Again"; btn.onclick = initGame; }
         }
 
-        function goToNextLevel() {
-             window.location.href = "10-property.html";
-        }
-
-        // Start
+        function goToNextLevel() { window.location.href = "10-property.html"; }
         initGame();
-
     </script>
 </body>
 </html>
