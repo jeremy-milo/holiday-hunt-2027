@@ -44,14 +44,14 @@
         /* --- PUZZLE AREA --- */
         #puzzle-stage {
             position: relative;
-            width: 90vw;
-            max-width: 600px;
-            height: 90vw;
+            width: 95vw;
+            max-width: 800px; /* Rectangular width */
+            height: 60vh;     /* Rectangular height */
             max-height: 600px;
             background: rgba(0, 0, 0, 0.3);
             border: 2px solid #64ffda;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            border-radius: 50%; /* Spirograph feel */
+            border-radius: 20px; /* Rounded rectangle instead of circle */
             overflow: hidden;
             touch-action: none; /* Prevents scrolling while dragging */
             margin-bottom: 20px;
@@ -64,6 +64,11 @@
             cursor: grab;
             user-select: none;
             -webkit-user-drag: none;
+            /* Ensure images fit nicely in the rectangle */
+            max-width: 85%;
+            max-height: 85%;
+            width: auto;
+            height: auto;
         }
 
         .puzzle-layer:active {
@@ -306,8 +311,9 @@
         }
 
         function randomizeLayer(layerObj) {
-            // Random position offset from center (-100 to 100 px)
-            layerObj.x = (Math.random() * 200) - 100;
+            // Random position offset from center
+            // Increased X range for wider rectangular stage
+            layerObj.x = (Math.random() * 300) - 150;
             layerObj.y = (Math.random() * 200) - 100;
             
             // Random Rotation
