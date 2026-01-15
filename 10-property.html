@@ -13,22 +13,24 @@
         body, html {
             margin: 0; padding: 0; 
             width: 100%; min-height: 100vh;
-            background: radial-gradient(circle at bottom, #0f2027 0%, #203a43 50%, #2c5364 100%) fixed;
+            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
             color: #ffffff; font-family: 'Montserrat', sans-serif;
             display: flex; 
             flex-direction: column;
             align-items: center; 
             overflow-x: hidden;
             user-select: none;
+            padding-top: 30px;
         }
+
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 
         h1 { 
             font-family: 'Cinzel', serif; 
             font-size: 2rem; 
-            margin-top: 30px; 
             margin-bottom: 10px; 
-            text-shadow: 0 0 10px rgba(100, 255, 218, 0.5); 
-            color: #64ffda;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            z-index: 10;
         }
         
         p.instructions { 
@@ -39,19 +41,21 @@
             padding: 0 20px;
             text-align: center;
             line-height: 1.5;
+            z-index: 10;
         }
 
         /* --- PUZZLE AREA --- */
         #puzzle-stage {
             position: relative;
+            z-index: 10;
             width: 95vw;
             max-width: 800px;
             height: 60vh;
             max-height: 600px;
             background: rgba(0, 0, 0, 0.3);
-            border: 2px solid #64ffda;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            border-radius: 20px;
+            /* Original Gold Border Style */
+            box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
+            border-radius: 10px;
             overflow: hidden;
             touch-action: none;
             margin-bottom: 20px;
@@ -90,10 +94,12 @@
 
         /* --- CONTROLS --- */
         #controls-area {
+            position: relative;
+            z-index: 10;
             background: rgba(0,0,0,0.6);
             padding: 20px;
             border-radius: 15px;
-            border: 1px solid rgba(100, 255, 218, 0.2);
+            border: 1px solid rgba(246, 211, 101, 0.2);
             width: 90%;
             max-width: 500px;
             display: flex;
@@ -113,7 +119,7 @@
             width: 80px;
             font-size: 0.9rem;
             text-align: left;
-            color: #64ffda;
+            color: #f6d365;
             font-weight: 600;
         }
 
@@ -129,9 +135,10 @@
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 18px; height: 18px;
-            background: #64ffda;
+            background: #f6d365;
             border-radius: 50%;
             cursor: pointer;
+            box-shadow: 0 0 5px rgba(246, 211, 101, 0.8);
         }
 
         /* Layer Selector */
@@ -145,8 +152,8 @@
         .toggle-btn {
             padding: 8px 20px;
             background: transparent;
-            border: 2px solid #64ffda;
-            color: #64ffda;
+            border: 2px solid #f6d365;
+            color: #f6d365;
             border-radius: 20px;
             cursor: pointer;
             font-family: 'Montserrat', sans-serif;
@@ -155,13 +162,15 @@
         }
 
         .toggle-btn.active {
-            background: #64ffda;
-            color: #0f2027;
-            box-shadow: 0 0 15px rgba(100, 255, 218, 0.4);
+            background: #f6d365;
+            color: #1b2735;
+            box-shadow: 0 0 15px rgba(246, 211, 101, 0.4);
         }
 
         /* --- ANSWER INPUT --- */
         #answer-area {
+            position: relative;
+            z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -172,7 +181,7 @@
         .answer-input {
             width: 250px;
             background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(100, 255, 218, 0.3);
+            border: 2px solid rgba(246, 211, 101, 0.3);
             border-radius: 8px;
             padding: 12px;
             color: #fff;
@@ -180,36 +189,40 @@
             font-size: 1.1rem;
             text-align: center;
             margin-bottom: 15px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
 
         .answer-input:focus {
             outline: none;
-            border-color: #64ffda;
+            border-color: #f6d365;
+            box-shadow: 0 0 10px rgba(246, 211, 101, 0.3);
+            background: rgba(0, 0, 0, 0.8);
         }
 
         .submit-btn {
             padding: 12px 30px;
             font-size: 1rem;
-            background: linear-gradient(135deg, #64ffda 0%, #4facfe 100%);
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             border: none; border-radius: 50px;
             cursor: pointer; font-weight: bold;
-            color: #000; text-transform: uppercase;
-            box-shadow: 0 0 20px rgba(100, 255, 218, 0.4);
+            color: #333; text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6);
             transition: transform 0.2s;
         }
 
         .submit-btn:hover { transform: scale(1.05); }
 
         .hidden-clue {
+            position: relative;
+            z-index: 10;
             margin-top: auto;
-            color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.2);
             font-size: 0.8rem;
             font-family: monospace;
             padding-bottom: 20px;
             cursor: default;
         }
-        .hidden-clue:hover { color: rgba(255,255,255,0.3); }
+        .hidden-clue:hover { color: rgba(255,255,255,0.8); }
 
         /* WIN MODAL */
         #win-modal {
@@ -226,16 +239,18 @@
         .win-text {
             font-family: 'Cinzel', serif;
             font-size: 2.5rem;
-            color: #64ffda;
+            color: #f6d365;
             margin-bottom: 30px;
-            text-shadow: 0 0 20px #64ffda;
+            text-shadow: 0 0 20px #f6d365;
+            text-align: center;
         }
 
     </style>
 </head>
 <body>
+    <canvas id="snow-canvas"></canvas>
 
-    <h1>The Spirograph</h1>
+    <h1>Puzzle Ten: Spirographic</h1>
     <p class="instructions">
         The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
     </p>
@@ -243,9 +258,9 @@
     <!-- Puzzle Stage -->
     <div id="puzzle-stage">
         <!-- Letters (Bottom Layer) -->
-        <img src="letters.png" id="layer-letters" class="puzzle-layer" alt="Code file">
+        <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
         <!-- Spiral (Top Layer - Translucent) -->
-        <img src="spiral.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
+        <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
     </div>
 
     <!-- Controls -->
@@ -285,7 +300,6 @@
 
     <script>
         // --- CONFIGURATION ---
-        // Added offsets to decouple slider position from visual result
         const layers = {
             letters: { 
                 el: document.getElementById('layer-letters'), 
@@ -328,24 +342,17 @@
             layerObj.y = (Math.random() * 200) - 100;
             
             // 2. Random Control Offsets
-            // This ensures that the slider value (e.g., "50") produces a random visual result
-            // Meaning: "0" on the slider is NOT "Upright" visually.
             layerObj.rotOffset = Math.floor(Math.random() * 360);
-            
-            // Scale offset: e.g. 0.8 to 1.2
-            // This means 1.0 on slider might actually be 0.8 or 1.2 visual scale
             layerObj.scaleOffset = 0.8 + (Math.random() * 0.4); 
 
             // 3. Random Initial Slider Values
             layerObj.rot = Math.floor(Math.random() * 360);
-            layerObj.scale = 0.5 + (Math.random() * 1.5); // Random start size
+            layerObj.scale = 0.5 + (Math.random() * 1.5); 
         }
 
         // --- CORE LOGIC ---
         function selectLayer(id) {
             activeLayerId = id;
-            
-            // UI Updates
             if(id === 'letters') {
                 btnLetters.classList.add('active');
                 btnSpiral.classList.remove('active');
@@ -353,7 +360,6 @@
                 btnSpiral.classList.add('active');
                 btnLetters.classList.remove('active');
             }
-
             updateInputs();
         }
 
@@ -365,14 +371,8 @@
 
         function applyTransforms(id) {
             const l = layers[id];
-            
-            // Calculate Visual Rotation: Slider Value + Invisible Offset
             const visualRot = (l.rot + l.rotOffset) % 360;
-            
-            // Calculate Visual Scale: Slider Value * Invisible Offset
             const visualScale = l.scale * l.scaleOffset;
-
-            // Apply
             l.el.style.transform = `translate(calc(-50% + ${l.x}px), calc(-50% + ${l.y}px)) rotate(${visualRot}deg) scale(${visualScale})`;
         }
 
@@ -387,7 +387,7 @@
             applyTransforms(activeLayerId);
         });
 
-        // --- DRAG LOGIC (Mouse & Touch) ---
+        // --- DRAG LOGIC ---
         let isDragging = false;
         let startX, startY;
         let initialLayerX, initialLayerY;
@@ -406,15 +406,11 @@
             if (e.target.classList.contains('puzzle-layer')) {
                 e.preventDefault(); 
                 isDragging = true;
-                
                 draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
-                
-                // Auto-select controls for dragged layer
                 selectLayer(draggedLayerId);
 
                 const clientX = e.clientX || e.touches[0].clientX;
                 const clientY = e.clientY || e.touches[0].clientY;
-
                 startX = clientX;
                 startY = clientY;
                 
@@ -426,16 +422,13 @@
         function drag(e) {
             if (!isDragging) return;
             e.preventDefault(); 
-
             const clientX = e.clientX || e.touches[0].clientX;
             const clientY = e.clientY || e.touches[0].clientY;
-
             const dx = clientX - startX;
             const dy = clientY - startY;
 
             layers[draggedLayerId].x = initialLayerX + dx;
             layers[draggedLayerId].y = initialLayerY + dy;
-
             applyTransforms(draggedLayerId);
         }
 
@@ -444,16 +437,12 @@
             draggedLayerId = null;
         }
 
-
         // --- ANSWER VALIDATION ---
-        
-        // Obfuscated: "Happy New Year"
         const _k = [72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114];
         
         function checkAnswer() {
             const input = document.getElementById('player-guess');
             const val = input.value.trim(); 
-            
             let keyStr = "";
             for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
 
@@ -467,12 +456,11 @@
                     { transform: 'translateX(10px)' },
                     { transform: 'translateX(0)' }
                 ], { duration: 400 });
-                setTimeout(() => input.style.borderColor = "rgba(100, 255, 218, 0.3)", 1000);
+                setTimeout(() => input.style.borderColor = "#f6d365", 1000);
             }
         }
 
         // --- NAVIGATION ---
-        // Obfuscated: "11-case.html"
         const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108];
 
         function goNext() {
@@ -488,6 +476,50 @@
                 a.click();
             }
         }
+
+        /* --- SNOW ANIMATION --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth; let height = window.innerHeight;
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const snowParticles = []; 
+        for (let i = 0; i < 80; i++) {
+            snowParticles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 2 + 1,
+                sy: Math.random() * 1 + 0.5,
+                sx: Math.random() * 0.6 - 0.3,
+                o: Math.random() * 0.5 + 0.2
+            });
+        }
+
+        function animateSnow() {
+            ctx.clearRect(0,0,width,height);
+            snowParticles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if (p.y > height) p.y = -5;
+                if (p.x > width) p.x = 0;
+                if (p.x < 0) p.x = width;
+                ctx.globalAlpha = p.o;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
 
         // Start
         init();
