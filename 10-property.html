@@ -77,14 +77,14 @@
 
         #layer-letters {
             z-index: 5;
-            /* Filters to make it pop against dark bg */
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+            /* Brightened for better contrast with the exclusion blend mode */
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)) brightness(1.2);
         }
 
         #layer-spiral {
             z-index: 10;
-            opacity: 0.65; /* Translucent as requested */
-            mix-blend-mode: screen; /* Helps overlapping readability */
+            opacity: 0.9; /* Increased opacity so the design is distinct */
+            mix-blend-mode: exclusion; /* Inverts colors on overlap, making the design highly visible */
             pointer-events: auto;
         }
 
@@ -237,8 +237,7 @@
 
     <h1>The Spirograph</h1>
     <p class="instructions">
-        The mechanism is misaligned. Use the controls to rotate, resize, and move the spiral until it perfectly aligns with the letters below.
-        <br><small>(Drag to move. Select a layer to rotate/scale.)</small>
+        The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message become clear.
     </p>
 
     <!-- Puzzle Stage -->
