@@ -8,14 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
-    <!-- LINK TO NEW STYLE SHEET -->
     <link rel="stylesheet" href="puzzle-style.css">
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
-        <!-- Replaced specific styles with shared class "puzzle-box" -->
         <div class="puzzle-box">
             <h1>Puzzle One: Math Facts</h1>
             <p class="question">Add the ages of Emma, Owen and Lainey. What do you get?</p>
@@ -31,9 +29,7 @@
             </div>
         </div>
 
-        <!-- Replaced inline style with shared class -->
         <div class="spacer-large"></div>
-
         <div class="hidden-clue">1. capital</div>
     </div>
 
@@ -48,7 +44,6 @@
             const correct = _decode(_a);
             
             if(input === correct) {
-                // Show modal instead of immediate redirect
                 const ui = document.getElementById('ui-layer');
                 ui.classList.remove('hidden-ui');
                 ui.classList.add('active-ui');
@@ -67,7 +62,6 @@
             if (event.key === "Enter") checkAnswer();
         });
 
-        /* --- SHARED SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth; let height = window.innerHeight;
