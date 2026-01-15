@@ -45,15 +45,15 @@
         #puzzle-stage {
             position: relative;
             width: 95vw;
-            max-width: 800px; /* Rectangular width */
-            height: 60vh;     /* Rectangular height */
+            max-width: 800px;
+            height: 60vh;
             max-height: 600px;
             background: rgba(0, 0, 0, 0.3);
             border: 2px solid #64ffda;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            border-radius: 20px; /* Rounded rectangle instead of circle */
+            border-radius: 20px;
             overflow: hidden;
-            touch-action: none; /* Prevents scrolling while dragging */
+            touch-action: none;
             margin-bottom: 20px;
         }
 
@@ -64,7 +64,6 @@
             cursor: grab;
             user-select: none;
             -webkit-user-drag: none;
-            /* Ensure images fit nicely in the rectangle */
             max-width: 85%;
             max-height: 85%;
             width: auto;
@@ -77,14 +76,15 @@
 
         #layer-letters {
             z-index: 5;
-            /* Brightened for better contrast with the exclusion blend mode */
+            /* Enhanced brightness for the exclusion blend to work against */
             filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)) brightness(1.2);
         }
 
         #layer-spiral {
             z-index: 10;
-            opacity: 0.9; /* Increased opacity so the design is distinct */
-            mix-blend-mode: exclusion; /* Inverts colors on overlap, making the design highly visible */
+            opacity: 0.9;
+            /* Exclusion blend mode makes overlapping pixels invert, creating high contrast alignment */
+            mix-blend-mode: exclusion;
             pointer-events: auto;
         }
 
@@ -237,32 +237,34 @@
 
     <h1>The Spirograph</h1>
     <p class="instructions">
-        The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message become clear.
+        The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
     </p>
 
     <!-- Puzzle Stage -->
     <div id="puzzle-stage">
         <!-- Letters (Bottom Layer) -->
-        <img src="letters.png" id="layer-letters" class="puzzle-layer" alt="Code">
+        <img src="letters.png" id="layer-letters" class="puzzle-layer" alt="Code file">
         <!-- Spiral (Top Layer - Translucent) -->
-        <img src="spiral.png" id="layer-spiral" class="puzzle-layer" alt="Key">
+        <img src="spiral.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
     </div>
 
     <!-- Controls -->
     <div id="controls-area">
         <div class="layer-toggles">
-            <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code</button>
-            <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key</button>
+            <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
+            <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key file</button>
         </div>
 
         <div class="control-group">
             <span class="control-label">Rotation</span>
+            <!-- Max 360, but wraps visually -->
             <input type="range" id="input-rotation" min="0" max="360" value="0">
         </div>
 
         <div class="control-group">
             <span class="control-label">Size</span>
-            <input type="range" id="input-scale" min="0.5" max="2.0" step="0.01" value="1">
+            <!-- Extended range to handle scale offsets -->
+            <input type="range" id="input-scale" min="0.2" max="3.0" step="0.01" value="1">
         </div>
     </div>
 
@@ -283,9 +285,20 @@
 
     <script>
         // --- CONFIGURATION ---
+        // Added offsets to decouple slider position from visual result
         const layers = {
-            letters: { el: document.getElementById('layer-letters'), x: 0, y: 0, rot: 0, scale: 1 },
-            spiral: { el: document.getElementById('layer-spiral'), x: 0, y: 0, rot: 0, scale: 1 }
+            letters: { 
+                el: document.getElementById('layer-letters'), 
+                x: 0, y: 0, 
+                rot: 0, scale: 1, 
+                rotOffset: 0, scaleOffset: 1 
+            },
+            spiral: { 
+                el: document.getElementById('layer-spiral'), 
+                x: 0, y: 0, 
+                rot: 0, scale: 1, 
+                rotOffset: 0, scaleOffset: 1 
+            }
         };
         
         let activeLayerId = 'spiral'; // Default active layer
@@ -299,7 +312,7 @@
 
         // --- INITIALIZATION ---
         function init() {
-            // Randomize Positions
+            // Randomize Positions & Offsets
             randomizeLayer(layers.letters);
             randomizeLayer(layers.spiral);
             
@@ -310,16 +323,22 @@
         }
 
         function randomizeLayer(layerObj) {
-            // Random position offset from center
-            // Increased X range for wider rectangular stage
+            // 1. Random Physical Position (XY)
             layerObj.x = (Math.random() * 300) - 150;
             layerObj.y = (Math.random() * 200) - 100;
             
-            // Random Rotation
-            layerObj.rot = Math.floor(Math.random() * 360);
+            // 2. Random Control Offsets
+            // This ensures that the slider value (e.g., "50") produces a random visual result
+            // Meaning: "0" on the slider is NOT "Upright" visually.
+            layerObj.rotOffset = Math.floor(Math.random() * 360);
             
-            // Random Scale (0.6 to 1.4)
-            layerObj.scale = 0.6 + (Math.random() * 0.8);
+            // Scale offset: e.g. 0.8 to 1.2
+            // This means 1.0 on slider might actually be 0.8 or 1.2 visual scale
+            layerObj.scaleOffset = 0.8 + (Math.random() * 0.4); 
+
+            // 3. Random Initial Slider Values
+            layerObj.rot = Math.floor(Math.random() * 360);
+            layerObj.scale = 0.5 + (Math.random() * 1.5); // Random start size
         }
 
         // --- CORE LOGIC ---
@@ -346,9 +365,15 @@
 
         function applyTransforms(id) {
             const l = layers[id];
-            // translate(-50%, -50%) is needed because CSS centers them, 
-            // then we apply our dragged offset (l.x, l.y), then rotate/scale
-            l.el.style.transform = `translate(calc(-50% + ${l.x}px), calc(-50% + ${l.y}px)) rotate(${l.rot}deg) scale(${l.scale})`;
+            
+            // Calculate Visual Rotation: Slider Value + Invisible Offset
+            const visualRot = (l.rot + l.rotOffset) % 360;
+            
+            // Calculate Visual Scale: Slider Value * Invisible Offset
+            const visualScale = l.scale * l.scaleOffset;
+
+            // Apply
+            l.el.style.transform = `translate(calc(-50% + ${l.x}px), calc(-50% + ${l.y}px)) rotate(${visualRot}deg) scale(${visualScale})`;
         }
 
         // --- SLIDER EVENTS ---
@@ -368,7 +393,6 @@
         let initialLayerX, initialLayerY;
         let draggedLayerId = null;
 
-        // Add listeners to stage to catch drags on either image
         stage.addEventListener('mousedown', startDrag);
         stage.addEventListener('touchstart', startDrag, {passive: false});
 
@@ -379,15 +403,13 @@
         document.addEventListener('touchend', endDrag);
 
         function startDrag(e) {
-            // Determine which layer was clicked/touched
             if (e.target.classList.contains('puzzle-layer')) {
-                e.preventDefault(); // Prevent text selection
+                e.preventDefault(); 
                 isDragging = true;
                 
-                // Identify layer based on ID
                 draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
                 
-                // Auto-select the layer we are dragging for rotation/scale controls
+                // Auto-select controls for dragged layer
                 selectLayer(draggedLayerId);
 
                 const clientX = e.clientX || e.touches[0].clientX;
@@ -403,7 +425,7 @@
 
         function drag(e) {
             if (!isDragging) return;
-            e.preventDefault(); // Prevent scrolling on mobile
+            e.preventDefault(); 
 
             const clientX = e.clientX || e.touches[0].clientX;
             const clientY = e.clientY || e.touches[0].clientY;
@@ -426,21 +448,18 @@
         // --- ANSWER VALIDATION ---
         
         // Obfuscated: "Happy New Year"
-        // ASCII: 72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114
         const _k = [72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114];
         
         function checkAnswer() {
             const input = document.getElementById('player-guess');
-            const val = input.value.trim(); // Case insensitive check
+            const val = input.value.trim(); 
             
-            // Build key string
             let keyStr = "";
             for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
 
             if (val.toLowerCase() === keyStr.toLowerCase()) {
                 document.getElementById('win-modal').classList.add('visible');
             } else {
-                // Shake effect for wrong answer
                 input.style.borderColor = "#ff4444";
                 input.animate([
                     { transform: 'translateX(0)' },
@@ -454,14 +473,11 @@
 
         // --- NAVIGATION ---
         // Obfuscated: "11-case.html"
-        // ASCII: 49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108
         const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108];
 
         function goNext() {
             let nextUrl = "";
             for(let i=0; i<_n.length; i++) nextUrl += String.fromCharCode(_n[i]);
-            
-            // Fallback for iframe restrictions
             try {
                 window.location.href = nextUrl;
             } catch(e) {
