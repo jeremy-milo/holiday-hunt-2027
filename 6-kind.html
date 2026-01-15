@@ -8,51 +8,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        body, html {
-            margin: 0; padding: 0; 
-            width: 100%; min-height: 100vh;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
-            color: #ffffff; font-family: 'Montserrat', sans-serif;
-            display: flex; 
-            align-items: flex-start;
-            justify-content: center; 
-            text-align: center;
-            padding-top: 50px;
-            box-sizing: border-box;
-            overflow-x: hidden;
-            user-select: none;
-        }
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        
-        .container { 
-            position: relative; z-index: 10; 
-            padding: 20px;
-            max-width: 800px; width: 100%; 
-            box-sizing: border-box; 
-        }
-
-        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-        p.instructions { margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8; }
-        
+        /* Specific Styles for Image & Input Grid */
         #game-container {
-            position: relative;
-            width: 100%;
             max-width: 600px; 
-            margin: 0 auto;
-            border-radius: 10px;
             padding: 20px;
-            background: rgba(0,0,0,0.3);
-            /* Silver Theme Border */
-            box-shadow: 0 0 0 4px #cfdef3, 0 0 30px rgba(207, 222, 243, 0.2);
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-sizing: border-box;
         }
 
-        /* Image Display */
         #puzzle-image {
             width: 100%;
             max-width: 100%; 
@@ -65,7 +32,6 @@
             display: block;
         }
 
-        /* Input Grid */
         #input-area {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -78,80 +44,6 @@
             #input-area { grid-template-columns: 1fr; }
             #game-container { padding: 10px; }
         }
-
-        .answer-input {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(207, 222, 243, 0.3); /* Silver border */
-            border-radius: 8px;
-            padding: 12px;
-            color: #fff;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-            width: 100%;
-        }
-
-        .answer-input:focus {
-            outline: none;
-            border-color: #cfdef3;
-            box-shadow: 0 0 10px rgba(207, 222, 243, 0.3);
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .shake { animation: shake 0.5s; border-color: #ff4444 !important; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
-
-        #ui-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.9);
-            transition: opacity 0.5s;
-            z-index: 20;
-            border-radius: 10px;
-        }
-        
-        .hidden-ui { opacity: 0; pointer-events: none; }
-        .active-ui { opacity: 1 !important; pointer-events: auto !important; }
-        
-        /* Silver Button Theme */
-        .btn-style {
-            padding: 15px 40px; font-size: 1.1rem; 
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); 
-            border: none; border-radius: 50px; 
-            cursor: pointer; font-weight: bold; 
-            color: #1b2735; text-transform: uppercase; 
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 15px rgba(207, 222, 243, 0.3);
-            display: inline-block;
-        }
-        .btn-style:hover { 
-            transform: scale(1.05); 
-            box-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
-        }
-
-        .game-msg {
-            font-family: 'Cinzel', serif;
-            font-size: 2rem;
-            color: #cfdef3; /* Silver Text */
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .hidden-clue {
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 1rem;
-            margin-bottom: 50px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            transition: color 0.3s;
-        }
-        .hidden-clue:hover { color: rgba(255, 255, 255, 0.8); }
     </style>
 </head>
 <body>
@@ -161,7 +53,7 @@
         <h1>Puzzle 6: Spot the Differences</h1>
         <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?</p>
         
-        <div id="game-container">
+        <div id="game-container" class="game-frame">
             <img src="selfie.jpg" id="puzzle-image" alt="Selfie">
 
             <div id="input-area">
@@ -175,7 +67,7 @@
 
             <button class="btn-style" onclick="checkAnswers()">Verify Answers</button>
 
-            <div id="ui-layer" class="hidden-ui">
+            <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
                     <div class="game-msg">Sharp Eyes!</div>
                     <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Puzzle</button>
@@ -183,8 +75,7 @@
             </div>
         </div>
 
-        <div style="height: 600px;"></div>
-
+        <div class="spacer-medium"></div>
         <div class="hidden-clue">6. kind</div>
     </div>
 
