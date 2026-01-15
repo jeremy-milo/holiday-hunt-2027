@@ -8,36 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        body, html {
-            margin: 0; padding: 0; 
-            width: 100%; min-height: 100vh;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
-            color: #ffffff; font-family: 'Montserrat', sans-serif;
-            display: flex; 
-            align-items: flex-start;
-            justify-content: center; 
-            text-align: center;
-            padding-top: 50px;
-            box-sizing: border-box;
-            overflow-x: hidden;
-            user-select: none;
-        }
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        
-        .container { 
-            position: relative; z-index: 10; 
-            padding: 20px;
-            max-width: 900px; width: 100%; 
-            box-sizing: border-box; 
-        }
-
-        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-        p.instructions { margin-bottom: 30px; font-size: 1rem; opacity: 0.9; line-height: 1.5; }
-        
         #game-container {
-            position: relative;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -84,39 +58,6 @@
         }
         .black-key:active, .black-key.active { background: #111; transform: translateY(2px); }
 
-        #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.9);
-            transition: opacity 0.5s; z-index: 50; opacity: 0; pointer-events: none;
-        }
-        .active-ui { opacity: 1 !important; pointer-events: auto !important; }
-        
-        /* Silver Button */
-        .btn-style {
-            padding: 15px 40px; font-size: 1.1rem; 
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); 
-            border: none; border-radius: 50px; 
-            cursor: pointer; font-weight: bold; 
-            color: #1b2735; text-transform: uppercase; 
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 15px rgba(207, 222, 243, 0.3);
-            margin-top: 20px;
-        }
-        .btn-style:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(207, 222, 243, 0.5); }
-
-        .game-msg {
-            font-family: 'Cinzel', serif; font-size: 2.5rem; color: #cfdef3;
-            margin-bottom: 10px; text-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
-        }
-
-        .hidden-clue {
-            color: rgba(255, 255, 255, 0.1); font-size: 0.9rem; margin-top: 100px;
-            font-family: 'Courier New', monospace; letter-spacing: 2px; transition: color 0.3s;
-        }
-        .hidden-clue:hover { color: rgba(255, 255, 255, 0.5); }
-        
         /* Frosty Blue/Silver Hint Animation */
         @keyframes pulse-hint {
             0% { box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 0 0 rgba(207, 222, 243, 0.7); border-color: #cfdef3; }
@@ -139,7 +80,7 @@
             </div>
         </div>
 
-        <div id="ui-layer">
+        <div id="ui-layer" class="ui-layer hidden-ui">
             <div class="game-msg">Bravo!</div>
             <p style="color: #ddd; margin-bottom: 20px;">A festive melody indeed.</p>
             <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Puzzle</button>
@@ -208,7 +149,11 @@
                 }
             }
         }
-        function winGame() { const ui = document.getElementById('ui-layer'); ui.classList.add('active-ui'); }
+        function winGame() { 
+            const ui = document.getElementById('ui-layer'); 
+            ui.classList.remove('hidden-ui');
+            ui.classList.add('active-ui'); 
+        }
         const _dest = [57, 45, 99, 97, 110, 99, 101, 108, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._dest); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
