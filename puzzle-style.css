@@ -1,0 +1,233 @@
+/* --- GLOBAL RESET & BODY --- */
+body, html {
+    margin: 0; 
+    padding: 0; 
+    width: 100%; 
+    min-height: 100vh;
+    background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
+    color: #ffffff; 
+    font-family: 'Montserrat', sans-serif;
+    display: flex; 
+    align-items: flex-start;
+    justify-content: center; 
+    text-align: center;
+    padding-top: 50px;
+    box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* User Selection (Game vs Text) */
+.no-select { user-select: none; }
+
+/* --- BACKGROUND ANIMATION --- */
+#snow-canvas { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 1; 
+    pointer-events: none; 
+}
+
+/* --- MAIN LAYOUT --- */
+.container { 
+    position: relative; 
+    z-index: 10; 
+    padding: 20px;
+    max-width: 800px; 
+    width: 100%; 
+    box-sizing: border-box; 
+}
+
+/* Spacer for scrolling past bottom */
+.spacer-large { height: 1000px; }
+.spacer-medium { height: 600px; }
+
+/* --- TYPOGRAPHY --- */
+h1 { 
+    font-family: 'Cinzel', serif; 
+    font-size: 2.5rem; 
+    margin-bottom: 20px; 
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); 
+}
+
+.question { 
+    font-size: 1.5rem; 
+    margin-bottom: 30px; 
+    font-weight: 600; 
+}
+
+.instructions { 
+    margin-bottom: 20px; 
+    font-size: 0.9rem; 
+    opacity: 0.8; 
+}
+
+/* Responsive Font Sizes */
+@media (max-width: 600px) { 
+    h1 { font-size: 2rem; } 
+    .question { font-size: 1.2rem; } 
+}
+
+/* --- COMPONENT: BUTTONS --- */
+/* Unified button style for all pages */
+button, .btn-style {
+    padding: 15px 40px; 
+    font-size: 1.2rem; 
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
+    border: none; 
+    border-radius: 50px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    color: #333; 
+    text-transform: uppercase; 
+    transition: transform 0.2s;
+    font-family: 'Montserrat', sans-serif; /* Ensure font inheritance */
+    margin-top: 10px;
+    display: inline-block;
+    box-shadow: 0 0 20px rgba(246, 211, 101, 0.4);
+}
+
+button:hover, .btn-style:hover { 
+    transform: scale(1.05); 
+}
+
+/* --- COMPONENT: INPUTS --- */
+input[type="text"], .answer-input {
+    width: 100%; 
+    max-width: 300px; 
+    padding: 15px; 
+    font-size: 1.2rem; 
+    border-radius: 5px; 
+    border: none; 
+    outline: none; 
+    margin-bottom: 20px; 
+    text-align: center; 
+    box-sizing: border-box;
+}
+
+/* Standard White Input (Files 1, 2, 3) */
+input[type="text"] {
+    background: rgba(255, 255, 255, 0.9); 
+    color: #333; 
+}
+
+/* Darker Game Input (File 6) */
+.answer-input {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(246, 211, 101, 0.3);
+    color: #fff;
+    margin-bottom: 0; /* Reset for grid layouts */
+}
+.answer-input:focus {
+    border-color: #f6d365;
+    box-shadow: 0 0 10px rgba(246, 211, 101, 0.3);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* --- COMPONENT: PUZZLE BOX (Files 1, 2, 3) --- */
+.puzzle-box { 
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(5px); 
+    padding: 40px; 
+    border-radius: 15px; 
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+}
+
+/* --- COMPONENT: GAME CONTAINERS (Files 4, 5, 6) --- */
+.game-frame {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.3);
+    box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* UI Overlays (Win/Loss screens) */
+.ui-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.85);
+    transition: opacity 0.3s;
+    z-index: 20;
+}
+.hidden-ui { opacity: 0; pointer-events: none; }
+.active-ui { opacity: 1 !important; pointer-events: auto !important; }
+
+.game-msg {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    color: #fff;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px #f6d365;
+    text-align: center;
+}
+
+/* --- UTILITIES --- */
+.error-msg { 
+    color: #ff6b6b; 
+    margin-top: 15px; 
+    display: none; 
+    font-weight: bold; 
+}
+
+.hidden-clue {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 1rem;
+    margin-bottom: 50px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    transition: color 0.3s;
+}
+.hidden-clue:hover { color: rgba(255, 255, 255, 0.8); }
+
+.shake {
+    animation: shake 0.5s; 
+    border-color: #ff4444 !important;
+}
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+/* --- SPECIFIC PUZZLE OVERRIDES --- */
+
+/* Puzzle 3: Video */
+.video-container {
+    position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: 20px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.3);
+}
+.video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+/* Puzzle 5: Grid */
+#puzzle-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    width: 100%; height: 100%; gap: 0; background-color: #000;
+}
+.puzzle-piece {
+    background-size: 500% 500%; cursor: pointer; transition: transform 0.2s ease-in-out;
+    position: relative; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+.puzzle-piece:hover { z-index: 2; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.5); transform: scale(0.98); }
+.empty-piece { background: rgba(255, 255, 255, 0.9) !important; cursor: default; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+.empty-piece:hover { transform: none; }
+
+/* Puzzle 6: Spot Diff Layout */
+#input-area-p6 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 20px; padding: 0 20px; box-sizing: border-box;
+}
+@media (max-width: 600px) { #input-area-p6 { grid-template-columns: 1fr; } }
+#puzzle-image {
+    width: 100%; max-width: 100%; height: auto; max-height: 50vh; object-fit: contain;
+    border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.5); margin-bottom: 20px; display: block;
+}
