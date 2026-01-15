@@ -8,132 +8,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        body, html {
-            margin: 0; padding: 0; 
-            width: 100%; min-height: 100vh;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
-            color: #ffffff; font-family: 'Montserrat', sans-serif;
-            display: flex; 
-            align-items: flex-start;
-            justify-content: center; 
-            text-align: center;
-            padding-top: 50px;
-            box-sizing: border-box;
-            overflow-x: hidden;
-            user-select: none;
-        }
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        
-        .container { 
-            position: relative; z-index: 10; 
-            padding: 20px;
-            max-width: 800px; width: 100%; 
-            box-sizing: border-box; 
-        }
-
-        h1 { font-family: 'Cinzel', serif; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-        p.instructions { margin-bottom: 20px; font-size: 0.9rem; opacity: 0.8; }
-        
+        /* Specific override to maintain aspect ratio logic for this puzzle */
         #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 700px; 
             aspect-ratio: 4 / 3;
             max-height: 75vh;
-            margin: 0 auto;
-            
-            /* Silver Border */
-            box-shadow: 0 0 0 4px #cfdef3, 0 0 30px rgba(207, 222, 243, 0.2);
-            
-            border-radius: 10px;
-            background: rgba(0,0,0,0.3);
-            overflow: hidden;
+            max-width: 700px; 
         }
-
-        #puzzle-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            width: 100%;
-            height: 100%;
-            gap: 0; 
-            background-color: #000;
-        }
-
-        .puzzle-piece {
-            background-size: 500% 500%; 
-            cursor: pointer;
-            transition: transform 0.2s ease-in-out;
-            position: relative;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-        }
-
-        .puzzle-piece:hover {
-            z-index: 2;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.5);
-            transform: scale(0.98);
-        }
-
-        .empty-piece {
-            background: rgba(255, 255, 255, 0.9) !important;
-            cursor: default;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
-        .empty-piece:hover {
-            transform: none;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.85);
-            transition: opacity 0.5s;
-            z-index: 20;
-        }
-        
-        .hidden-ui { opacity: 0; pointer-events: none; }
-        .active-ui { opacity: 1 !important; pointer-events: auto !important; }
-        
-        .btn-style {
-            padding: 15px 40px; font-size: 1.1rem; 
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); 
-            border: none; border-radius: 50px; 
-            cursor: pointer; font-weight: bold; 
-            color: #1b2735; text-transform: uppercase; 
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 20px;
-            box-shadow: 0 0 15px rgba(207, 222, 243, 0.3);
-            display: inline-block;
-        }
-        .btn-style:hover { 
-            transform: scale(1.05); 
-            box-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
-        }
-
-        .game-msg {
-            font-family: 'Cinzel', serif;
-            font-size: 2rem;
-            color: #cfdef3;
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .hidden-clue {
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 1rem;
-            margin-bottom: 50px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            transition: color 0.3s;
-        }
-        .hidden-clue:hover { color: rgba(255, 255, 255, 0.8); }
     </style>
 </head>
 <body>
@@ -143,10 +26,10 @@
         <h1>Puzzle 5: Scrambled Selfie</h1>
         <p class="instructions">Tap the pieces adjacent to the empty slot to slide them.<br>Rearrange the grid to complete the photo.</p>
         
-        <div id="game-container">
+        <div id="game-container" class="game-frame">
             <div id="puzzle-grid"></div>
 
-            <div id="ui-layer" class="hidden-ui">
+            <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
                     <div class="game-msg">Picture Perfect!</div>
                     <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Level</button>
@@ -154,8 +37,7 @@
             </div>
         </div>
 
-        <div style="height: 600px;"></div>
-
+        <div class="spacer-medium"></div>
         <div class="hidden-clue">5. state</div>
     </div>
 
