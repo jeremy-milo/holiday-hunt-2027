@@ -1,1 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Puzzle Ten: Spirograph</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; 
+            width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at bottom, #0f2027 0%, #203a43 50%, #2c5364 100%) fixed;
+            color: #ffffff; font-family: 'Montserrat', sans-serif;
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            overflow-x: hidden;
+            user-select: none;
+        }
 
+        h1 { 
+            font-family: 'Cinzel', serif; 
+            font-size: 2rem; 
+            margin-top: 30px; 
+            margin-bottom: 10px; 
+            text-shadow: 0 0 10px rgba(100, 255, 218, 0.5); 
+            color: #64ffda;
+        }
+        
+        p.instructions { 
+            margin-bottom: 20px; 
+            font-size: 0.9rem; 
+            opacity: 0.8; 
+            max-width: 600px;
+            padding: 0 20px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* --- PUZZLE AREA --- */
+        #puzzle-stage {
+            position: relative;
+            width: 90vw;
+            max-width: 600px;
+            height: 90vw;
+            max-height: 600px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #64ffda;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            border-radius: 50%; /* Spirograph feel */
+            overflow: hidden;
+            touch-action: none; /* Prevents scrolling while dragging */
+            margin-bottom: 20px;
+        }
+
+        .puzzle-layer {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform-origin: center center;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .puzzle-layer:active {
+            cursor: grabbing;
+        }
+
+        #layer-letters {
+            z-index: 5;
+            /* Filters to make it pop against dark bg */
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+
+        #layer-spiral {
+            z-index: 10;
+            opacity: 0.65; /* Translucent as requested */
+            mix-blend-mode: screen; /* Helps overlapping readability */
+            pointer-events: auto;
+        }
+
+        /* --- CONTROLS --- */
+        #controls-area {
+            background: rgba(0,0,0,0.6);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .control-label {
+            width: 80px;
+            font-size: 0.9rem;
+            text-align: left;
+            color: #64ffda;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            flex-grow: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            background: #64ffda;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Layer Selector */
+        .layer-toggles {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 2px solid #64ffda;
+            color: #64ffda;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: #64ffda;
+            color: #0f2027;
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.4);
+        }
+
+        /* --- ANSWER INPUT --- */
+        #answer-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .answer-input {
+            width: 250px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(100, 255, 218, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #64ffda;
+        }
+
+        .submit-btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #64ffda 0%, #4facfe 100%);
+            border: none; border-radius: 50px;
+            cursor: pointer; font-weight: bold;
+            color: #000; text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .submit-btn:hover { transform: scale(1.05); }
+
+        .hidden-clue {
+            margin-top: auto;
+            color: rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            font-family: monospace;
+            padding-bottom: 20px;
+            cursor: default;
+        }
+        .hidden-clue:hover { color: rgba(255,255,255,0.3); }
+
+        /* WIN MODAL */
+        #win-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        #win-modal.visible { opacity: 1; pointer-events: auto; }
+        
+        .win-text {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #64ffda;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #64ffda;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>The Spirograph</h1>
+    <p class="instructions">
+        The mechanism is misaligned. Use the controls to rotate, resize, and move the spiral until it perfectly aligns with the letters below.
+        <br><small>(Drag to move. Select a layer to rotate/scale.)</small>
+    </p>
+
+    <!-- Puzzle Stage -->
+    <div id="puzzle-stage">
+        <!-- Letters (Bottom Layer) -->
+        <img src="letters.png" id="layer-letters" class="puzzle-layer" alt="Code">
+        <!-- Spiral (Top Layer - Translucent) -->
+        <img src="spiral.png" id="layer-spiral" class="puzzle-layer" alt="Key">
+    </div>
+
+    <!-- Controls -->
+    <div id="controls-area">
+        <div class="layer-toggles">
+            <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code</button>
+            <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key</button>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Rotation</span>
+            <input type="range" id="input-rotation" min="0" max="360" value="0">
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Size</span>
+            <input type="range" id="input-scale" min="0.5" max="2.0" step="0.01" value="1">
+        </div>
+    </div>
+
+    <!-- Answer Input -->
+    <div id="answer-area">
+        <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
+        <button class="submit-btn" onclick="checkAnswer()">Unlock</button>
+    </div>
+
+    <div style="height: 50px;"></div>
+    <div class="hidden-clue">10. property</div>
+
+    <!-- Win Modal -->
+    <div id="win-modal">
+        <div class="win-text">Alignment Complete</div>
+        <button class="submit-btn" id="next-btn" onclick="goNext()">Proceed</button>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const layers = {
+            letters: { el: document.getElementById('layer-letters'), x: 0, y: 0, rot: 0, scale: 1 },
+            spiral: { el: document.getElementById('layer-spiral'), x: 0, y: 0, rot: 0, scale: 1 }
+        };
+        
+        let activeLayerId = 'spiral'; // Default active layer
+        const stage = document.getElementById('puzzle-stage');
+        
+        // Inputs
+        const rangeRot = document.getElementById('input-rotation');
+        const rangeScale = document.getElementById('input-scale');
+        const btnLetters = document.getElementById('btn-letters');
+        const btnSpiral = document.getElementById('btn-spiral');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Randomize Positions
+            randomizeLayer(layers.letters);
+            randomizeLayer(layers.spiral);
+            
+            // Set initial inputs based on default active layer
+            updateInputs();
+            applyTransforms('letters');
+            applyTransforms('spiral');
+        }
+
+        function randomizeLayer(layerObj) {
+            // Random position offset from center (-100 to 100 px)
+            layerObj.x = (Math.random() * 200) - 100;
+            layerObj.y = (Math.random() * 200) - 100;
+            
+            // Random Rotation
+            layerObj.rot = Math.floor(Math.random() * 360);
+            
+            // Random Scale (0.6 to 1.4)
+            layerObj.scale = 0.6 + (Math.random() * 0.8);
+        }
+
+        // --- CORE LOGIC ---
+        function selectLayer(id) {
+            activeLayerId = id;
+            
+            // UI Updates
+            if(id === 'letters') {
+                btnLetters.classList.add('active');
+                btnSpiral.classList.remove('active');
+            } else {
+                btnSpiral.classList.add('active');
+                btnLetters.classList.remove('active');
+            }
+
+            updateInputs();
+        }
+
+        function updateInputs() {
+            const l = layers[activeLayerId];
+            rangeRot.value = l.rot;
+            rangeScale.value = l.scale;
+        }
+
+        function applyTransforms(id) {
+            const l = layers[id];
+            // translate(-50%, -50%) is needed because CSS centers them, 
+            // then we apply our dragged offset (l.x, l.y), then rotate/scale
+            l.el.style.transform = `translate(calc(-50% + ${l.x}px), calc(-50% + ${l.y}px)) rotate(${l.rot}deg) scale(${l.scale})`;
+        }
+
+        // --- SLIDER EVENTS ---
+        rangeRot.addEventListener('input', (e) => {
+            layers[activeLayerId].rot = parseInt(e.target.value);
+            applyTransforms(activeLayerId);
+        });
+
+        rangeScale.addEventListener('input', (e) => {
+            layers[activeLayerId].scale = parseFloat(e.target.value);
+            applyTransforms(activeLayerId);
+        });
+
+        // --- DRAG LOGIC (Mouse & Touch) ---
+        let isDragging = false;
+        let startX, startY;
+        let initialLayerX, initialLayerY;
+        let draggedLayerId = null;
+
+        // Add listeners to stage to catch drags on either image
+        stage.addEventListener('mousedown', startDrag);
+        stage.addEventListener('touchstart', startDrag, {passive: false});
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            // Determine which layer was clicked/touched
+            if (e.target.classList.contains('puzzle-layer')) {
+                e.preventDefault(); // Prevent text selection
+                isDragging = true;
+                
+                // Identify layer based on ID
+                draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
+                
+                // Auto-select the layer we are dragging for rotation/scale controls
+                selectLayer(draggedLayerId);
+
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                startX = clientX;
+                startY = clientY;
+                
+                initialLayerX = layers[draggedLayerId].x;
+                initialLayerY = layers[draggedLayerId].y;
+            }
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault(); // Prevent scrolling on mobile
+
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            layers[draggedLayerId].x = initialLayerX + dx;
+            layers[draggedLayerId].y = initialLayerY + dy;
+
+            applyTransforms(draggedLayerId);
+        }
+
+        function endDrag() {
+            isDragging = false;
+            draggedLayerId = null;
+        }
+
+
+        // --- ANSWER VALIDATION ---
+        
+        // Obfuscated: "Happy New Year"
+        // ASCII: 72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114
+        const _k = [72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114];
+        
+        function checkAnswer() {
+            const input = document.getElementById('player-guess');
+            const val = input.value.trim(); // Case insensitive check
+            
+            // Build key string
+            let keyStr = "";
+            for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
+
+            if (val.toLowerCase() === keyStr.toLowerCase()) {
+                document.getElementById('win-modal').classList.add('visible');
+            } else {
+                // Shake effect for wrong answer
+                input.style.borderColor = "#ff4444";
+                input.animate([
+                    { transform: 'translateX(0)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(0)' }
+                ], { duration: 400 });
+                setTimeout(() => input.style.borderColor = "rgba(100, 255, 218, 0.3)", 1000);
+            }
+        }
+
+        // --- NAVIGATION ---
+        // Obfuscated: "11-case.html"
+        // ASCII: 49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108
+        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108];
+
+        function goNext() {
+            let nextUrl = "";
+            for(let i=0; i<_n.length; i++) nextUrl += String.fromCharCode(_n[i]);
+            
+            // Fallback for iframe restrictions
+            try {
+                window.location.href = nextUrl;
+            } catch(e) {
+                const btn = document.getElementById('next-btn');
+                btn.innerText = "Redirecting...";
+                const a = document.createElement('a');
+                a.href = nextUrl;
+                a.click();
+            }
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
