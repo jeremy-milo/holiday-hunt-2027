@@ -8,43 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        body, html {
-            margin: 0; padding: 0; 
-            width: 100%; min-height: 100vh;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%) fixed;
-            color: #ffffff; font-family: 'Montserrat', sans-serif;
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            overflow-x: hidden;
-            user-select: none;
-            padding-top: 30px;
-        }
+        /* Specific Styles for Spirograph Game */
+        body { flex-direction: column; align-items: center; } /* Override default body flex */
 
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-
-        h1 { 
-            font-family: 'Cinzel', serif; 
-            font-size: 2rem; 
-            margin-bottom: 10px; 
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-            z-index: 10;
-        }
-        
-        p.instructions { 
-            margin-bottom: 20px; 
-            font-size: 0.9rem; 
-            opacity: 0.8; 
-            max-width: 600px;
-            padding: 0 20px;
-            text-align: center;
-            line-height: 1.5;
-            z-index: 10;
-        }
-
-        /* --- PUZZLE AREA --- */
         #puzzle-stage {
             position: relative;
             z-index: 10;
@@ -74,23 +43,10 @@
             height: auto;
         }
 
-        .puzzle-layer:active {
-            cursor: grabbing;
-        }
+        .puzzle-layer:active { cursor: grabbing; }
 
-        #layer-letters {
-            z-index: 5;
-            /* Enhanced brightness for the exclusion blend to work against */
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)) brightness(1.2);
-        }
-
-        #layer-spiral {
-            z-index: 10;
-            opacity: 0.9;
-            /* Exclusion blend mode makes overlapping pixels invert, creating high contrast alignment */
-            mix-blend-mode: exclusion;
-            pointer-events: auto;
-        }
+        #layer-letters { z-index: 5; filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)) brightness(1.2); }
+        #layer-spiral { z-index: 10; opacity: 0.9; mix-blend-mode: exclusion; pointer-events: auto; }
 
         /* --- CONTROLS --- */
         #controls-area {
@@ -108,422 +64,177 @@
             margin-bottom: 30px;
         }
 
-        .control-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .control-label {
-            width: 80px;
-            font-size: 0.9rem;
-            text-align: left;
-            color: #f6d365;
-            font-weight: 600;
-        }
+        .control-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .control-label { width: 80px; font-size: 0.9rem; text-align: left; color: #f6d365; font-weight: 600; }
 
         input[type="range"] {
-            flex-grow: 1;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
+            flex-grow: 1; height: 6px; background: rgba(255,255,255,0.2);
+            border-radius: 3px; outline: none; -webkit-appearance: none;
         }
-        
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px; height: 18px;
-            background: #f6d365;
-            border-radius: 50%;
-            cursor: pointer;
+            -webkit-appearance: none; width: 18px; height: 18px;
+            background: #f6d365; border-radius: 50%; cursor: pointer;
             box-shadow: 0 0 5px rgba(246, 211, 101, 0.8);
         }
 
         /* Layer Selector */
-        .layer-toggles {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 10px;
-        }
-
+        .layer-toggles { display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; }
         .toggle-btn {
-            padding: 8px 20px;
-            background: transparent;
-            border: 2px solid #f6d365;
-            color: #f6d365;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            transition: all 0.3s;
+            padding: 8px 20px; background: transparent; border: 2px solid #f6d365;
+            color: #f6d365; border-radius: 20px; cursor: pointer;
+            font-family: 'Montserrat', sans-serif; font-weight: 600; transition: all 0.3s;
         }
-
-        .toggle-btn.active {
-            background: #f6d365;
-            color: #1b2735;
-            box-shadow: 0 0 15px rgba(246, 211, 101, 0.4);
-        }
+        .toggle-btn.active { background: #f6d365; color: #1b2735; box-shadow: 0 0 15px rgba(246, 211, 101, 0.4); }
 
         /* --- ANSWER INPUT --- */
         #answer-area {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 40px;
+            position: relative; z-index: 10; display: flex;
+            flex-direction: column; align-items: center; width: 100%; margin-bottom: 40px;
         }
-
-        .answer-input {
-            width: 250px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(246, 211, 101, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            color: #fff;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .answer-input:focus {
-            outline: none;
-            border-color: #f6d365;
-            box-shadow: 0 0 10px rgba(246, 211, 101, 0.3);
-            background: rgba(0, 0, 0, 0.8);
-        }
-
+        
         .submit-btn {
-            padding: 12px 30px;
-            font-size: 1rem;
+            padding: 12px 30px; font-size: 1rem;
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            border: none; border-radius: 50px;
-            cursor: pointer; font-weight: bold;
+            border: none; border-radius: 50px; cursor: pointer; font-weight: bold;
             color: #333; text-transform: uppercase;
-            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6);
-            transition: transform 0.2s;
+            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6); transition: transform 0.2s;
         }
-
         .submit-btn:hover { transform: scale(1.05); }
 
-        .hidden-clue {
-            position: relative;
-            z-index: 10;
-            margin-top: auto;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 0.8rem;
-            font-family: monospace;
-            padding-bottom: 20px;
-            cursor: default;
-        }
-        .hidden-clue:hover { color: rgba(255,255,255,0.8); }
-
-        /* WIN MODAL */
-        #win-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.5s;
-        }
-        #win-modal.visible { opacity: 1; pointer-events: auto; }
-        
         .win-text {
-            font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
-            color: #f6d365;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px #f6d365;
-            text-align: center;
+            font-family: 'Cinzel', serif; font-size: 2.5rem; color: #f6d365;
+            margin-bottom: 30px; text-shadow: 0 0 20px #f6d365; text-align: center;
         }
-
     </style>
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
 
-    <h1>Puzzle 10: Spirographic</h1>
-    <p class="instructions">
-        The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
-    </p>
+    <div class="container" style="display:flex; flex-direction:column; align-items:center;">
+        <h1>Puzzle 10: Spirographic</h1>
+        <p class="instructions">
+            The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
+        </p>
 
-    <!-- Puzzle Stage -->
-    <div id="puzzle-stage">
-        <!-- Letters (Bottom Layer) -->
-        <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
-        <!-- Spiral (Top Layer - Translucent) -->
-        <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
-    </div>
-
-    <!-- Controls -->
-    <div id="controls-area">
-        <div class="layer-toggles">
-            <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
-            <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key file</button>
+        <!-- Puzzle Stage -->
+        <div id="puzzle-stage">
+            <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
+            <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
         </div>
 
-        <div class="control-group">
-            <span class="control-label">Rotation</span>
-            <!-- Max 360, but wraps visually -->
-            <input type="range" id="input-rotation" min="0" max="360" value="0">
+        <!-- Controls -->
+        <div id="controls-area">
+            <div class="layer-toggles">
+                <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
+                <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key file</button>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Rotation</span>
+                <input type="range" id="input-rotation" min="0" max="360" value="0">
+            </div>
+            <div class="control-group">
+                <span class="control-label">Size</span>
+                <input type="range" id="input-scale" min="0.2" max="3.0" step="0.01" value="1">
+            </div>
         </div>
 
-        <div class="control-group">
-            <span class="control-label">Size</span>
-            <!-- Extended range to handle scale offsets -->
-            <input type="range" id="input-scale" min="0.2" max="3.0" step="0.01" value="1">
+        <!-- Answer Input -->
+        <div id="answer-area">
+            <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
+            <button class="submit-btn" onclick="checkAnswer()">Unlock</button>
         </div>
-    </div>
 
-    <!-- Answer Input -->
-    <div id="answer-area">
-        <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
-        <button class="submit-btn" onclick="checkAnswer()">Unlock</button>
+        <div style="height: 400px;"></div>
+        <div class="hidden-clue">10. property</div>
     </div>
-
-    <div style="height: 400px;"></div>
-    <div class="hidden-clue">10. property</div>
 
     <!-- Win Modal -->
-    <div id="win-modal">
+    <div id="win-modal" class="ui-layer hidden-ui">
         <div class="win-text">Alignment Complete</div>
         <button class="submit-btn" id="next-btn" onclick="goNext()">Proceed</button>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const layers = {
-            letters: { 
-                el: document.getElementById('layer-letters'), 
-                x: 0, y: 0, 
-                rot: 0, scale: 1, 
-                rotOffset: 0, scaleOffset: 1 
-            },
-            spiral: { 
-                el: document.getElementById('layer-spiral'), 
-                x: 0, y: 0, 
-                rot: 0, scale: 1, 
-                rotOffset: 0, scaleOffset: 1 
-            }
+            letters: { el: document.getElementById('layer-letters'), x: 0, y: 0, rot: 0, scale: 1, rotOffset: 0, scaleOffset: 1 },
+            spiral: { el: document.getElementById('layer-spiral'), x: 0, y: 0, rot: 0, scale: 1, rotOffset: 0, scaleOffset: 1 }
         };
-        
-        let activeLayerId = 'spiral'; // Default active layer
-        const stage = document.getElementById('puzzle-stage');
-        
-        // Inputs
-        const rangeRot = document.getElementById('input-rotation');
-        const rangeScale = document.getElementById('input-scale');
-        const btnLetters = document.getElementById('btn-letters');
-        const btnSpiral = document.getElementById('btn-spiral');
+        let activeLayerId = 'spiral'; const stage = document.getElementById('puzzle-stage');
+        const rangeRot = document.getElementById('input-rotation'); const rangeScale = document.getElementById('input-scale');
+        const btnLetters = document.getElementById('btn-letters'); const btnSpiral = document.getElementById('btn-spiral');
 
-        // --- INITIALIZATION ---
         function init() {
-            // Randomize Positions & Offsets
-            randomizeLayer(layers.letters);
-            randomizeLayer(layers.spiral);
-            
-            // Set initial inputs based on default active layer
-            updateInputs();
-            applyTransforms('letters');
-            applyTransforms('spiral');
+            randomizeLayer(layers.letters); randomizeLayer(layers.spiral);
+            updateInputs(); applyTransforms('letters'); applyTransforms('spiral');
         }
-
         function randomizeLayer(layerObj) {
-            // 1. Random Physical Position (XY)
-            layerObj.x = (Math.random() * 300) - 150;
-            layerObj.y = (Math.random() * 200) - 100;
-            
-            // 2. Random Control Offsets
-            layerObj.rotOffset = Math.floor(Math.random() * 360);
-            layerObj.scaleOffset = 0.8 + (Math.random() * 0.4); 
-
-            // 3. Random Initial Slider Values
-            layerObj.rot = Math.floor(Math.random() * 360);
-            layerObj.scale = 0.5 + (Math.random() * 1.5); 
+            layerObj.x = (Math.random() * 300) - 150; layerObj.y = (Math.random() * 200) - 100;
+            layerObj.rotOffset = Math.floor(Math.random() * 360); layerObj.scaleOffset = 0.8 + (Math.random() * 0.4); 
+            layerObj.rot = Math.floor(Math.random() * 360); layerObj.scale = 0.5 + (Math.random() * 1.5); 
         }
-
-        // --- CORE LOGIC ---
         function selectLayer(id) {
             activeLayerId = id;
-            if(id === 'letters') {
-                btnLetters.classList.add('active');
-                btnSpiral.classList.remove('active');
-            } else {
-                btnSpiral.classList.add('active');
-                btnLetters.classList.remove('active');
-            }
+            if(id === 'letters') { btnLetters.classList.add('active'); btnSpiral.classList.remove('active'); } 
+            else { btnSpiral.classList.add('active'); btnLetters.classList.remove('active'); }
             updateInputs();
         }
-
-        function updateInputs() {
-            const l = layers[activeLayerId];
-            rangeRot.value = l.rot;
-            rangeScale.value = l.scale;
-        }
-
+        function updateInputs() { const l = layers[activeLayerId]; rangeRot.value = l.rot; rangeScale.value = l.scale; }
         function applyTransforms(id) {
-            const l = layers[id];
-            const visualRot = (l.rot + l.rotOffset) % 360;
-            const visualScale = l.scale * l.scaleOffset;
+            const l = layers[id]; const visualRot = (l.rot + l.rotOffset) % 360; const visualScale = l.scale * l.scaleOffset;
             l.el.style.transform = `translate(calc(-50% + ${l.x}px), calc(-50% + ${l.y}px)) rotate(${visualRot}deg) scale(${visualScale})`;
         }
+        rangeRot.addEventListener('input', (e) => { layers[activeLayerId].rot = parseInt(e.target.value); applyTransforms(activeLayerId); });
+        rangeScale.addEventListener('input', (e) => { layers[activeLayerId].scale = parseFloat(e.target.value); applyTransforms(activeLayerId); });
 
-        // --- SLIDER EVENTS ---
-        rangeRot.addEventListener('input', (e) => {
-            layers[activeLayerId].rot = parseInt(e.target.value);
-            applyTransforms(activeLayerId);
-        });
-
-        rangeScale.addEventListener('input', (e) => {
-            layers[activeLayerId].scale = parseFloat(e.target.value);
-            applyTransforms(activeLayerId);
-        });
-
-        // --- DRAG LOGIC ---
-        let isDragging = false;
-        let startX, startY;
-        let initialLayerX, initialLayerY;
-        let draggedLayerId = null;
-
-        stage.addEventListener('mousedown', startDrag);
-        stage.addEventListener('touchstart', startDrag, {passive: false});
-
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag, {passive: false});
-
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchend', endDrag);
+        let isDragging = false; let startX, startY; let initialLayerX, initialLayerY; let draggedLayerId = null;
+        stage.addEventListener('mousedown', startDrag); stage.addEventListener('touchstart', startDrag, {passive: false});
+        document.addEventListener('mousemove', drag); document.addEventListener('touchmove', drag, {passive: false});
+        document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag);
 
         function startDrag(e) {
             if (e.target.classList.contains('puzzle-layer')) {
-                e.preventDefault(); 
-                isDragging = true;
+                e.preventDefault(); isDragging = true;
                 draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
                 selectLayer(draggedLayerId);
-
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.clientY || e.touches[0].clientY;
-                startX = clientX;
-                startY = clientY;
-                
-                initialLayerX = layers[draggedLayerId].x;
-                initialLayerY = layers[draggedLayerId].y;
+                const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
+                startX = clientX; startY = clientY;
+                initialLayerX = layers[draggedLayerId].x; initialLayerY = layers[draggedLayerId].y;
             }
         }
-
         function drag(e) {
-            if (!isDragging) return;
-            e.preventDefault(); 
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-
-            layers[draggedLayerId].x = initialLayerX + dx;
-            layers[draggedLayerId].y = initialLayerY + dy;
+            if (!isDragging) return; e.preventDefault(); 
+            const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
+            const dx = clientX - startX; const dy = clientY - startY;
+            layers[draggedLayerId].x = initialLayerX + dx; layers[draggedLayerId].y = initialLayerY + dy;
             applyTransforms(draggedLayerId);
         }
+        function endDrag() { isDragging = false; draggedLayerId = null; }
 
-        function endDrag() {
-            isDragging = false;
-            draggedLayerId = null;
-        }
-
-        // --- ANSWER VALIDATION ---
         const _k = [72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114];
-        
         function checkAnswer() {
-            const input = document.getElementById('player-guess');
-            const val = input.value.trim(); 
-            let keyStr = "";
-            for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
-
-            if (val.toLowerCase() === keyStr.toLowerCase()) {
-                document.getElementById('win-modal').classList.add('visible');
+            const input = document.getElementById('player-guess'); const val = input.value.trim(); 
+            let keyStr = ""; for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
+            if (val.toLowerCase() === keyStr.toLowerCase()) { 
+                const ui = document.getElementById('win-modal'); ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
             } else {
                 input.style.borderColor = "#ff4444";
-                input.animate([
-                    { transform: 'translateX(0)' },
-                    { transform: 'translateX(-10px)' },
-                    { transform: 'translateX(10px)' },
-                    { transform: 'translateX(0)' }
-                ], { duration: 400 });
+                input.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(0)' }], { duration: 400 });
                 setTimeout(() => input.style.borderColor = "#f6d365", 1000);
             }
         }
-
-        // --- NAVIGATION ---
         const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108];
-
         function goNext() {
-            let nextUrl = "";
-            for(let i=0; i<_n.length; i++) nextUrl += String.fromCharCode(_n[i]);
-            try {
-                window.location.href = nextUrl;
-            } catch(e) {
-                const btn = document.getElementById('next-btn');
-                btn.innerText = "Redirecting...";
-                const a = document.createElement('a');
-                a.href = nextUrl;
-                a.click();
-            }
+            let nextUrl = ""; for(let i=0; i<_n.length; i++) nextUrl += String.fromCharCode(_n[i]);
+            try { window.location.href = nextUrl; } catch(e) { const btn = document.getElementById('next-btn'); btn.innerText = "Redirecting..."; const a = document.createElement('a'); a.href = nextUrl; a.click(); }
         }
-
-        /* --- SNOW ANIMATION --- */
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
+        const canvas = document.getElementById("snow-canvas"); const ctx = canvas.getContext("2d");
         let width = window.innerWidth; let height = window.innerHeight;
-        
-        function resizeCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        const snowParticles = []; 
-        for (let i = 0; i < 80; i++) {
-            snowParticles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                r: Math.random() * 2 + 1,
-                sy: Math.random() * 1 + 0.5,
-                sx: Math.random() * 0.6 - 0.3,
-                o: Math.random() * 0.5 + 0.2
-            });
-        }
-
-        function animateSnow() {
-            ctx.clearRect(0,0,width,height);
-            snowParticles.forEach(p => {
-                p.y += p.sy; p.x += p.sx;
-                if (p.y > height) p.y = -5;
-                if (p.x > width) p.x = 0;
-                if (p.x < 0) p.x = width;
-                ctx.globalAlpha = p.o;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-                ctx.fillStyle = "#fff";
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1;
-            requestAnimationFrame(animateSnow);
-        }
+        function resizeCanvas() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+        const snowParticles = []; for (let i = 0; i < 80; i++) { snowParticles.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.5 + 0.2 }); }
+        function animateSnow() { ctx.clearRect(0,0,width,height); snowParticles.forEach(p => { p.y += p.sy; p.x += p.sx; if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width; ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); }); ctx.globalAlpha = 1; requestAnimationFrame(animateSnow); }
         animateSnow();
-
-        // Start
         init();
-
     </script>
 </body>
 </html>
