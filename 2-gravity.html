@@ -34,9 +34,7 @@
     </div>
 
     <script>
-        /* --- PUZZLE CONFIG --- */
-        const _a = [87, 105, 108, 108, 111, 119]; // Answer: Willow
-        // Obfuscated filename for Puzzle 3
+        const _a = [87, 105, 108, 108, 111, 119]; 
         const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108]; 
 
         function _decode(arr) { return String.fromCharCode(...arr); }
@@ -59,15 +57,12 @@
         function proceed() {
             const url = _decode(_n);
             try {
-                // Attempt standard navigation
                 if (window.location.protocol === 'blob:') throw new Error("Restricted");
                 window.location.href = url;
             } catch (e) {
-                // Fallback for restricted environments
                 const btn = document.getElementById('next-level-btn');
                 btn.innerHTML = "Opening...";
                 
-                // Create a direct link fallback
                 const a = document.createElement('a');
                 a.href = url;
                 a.innerText = "Click here to proceed";
@@ -85,7 +80,6 @@
             if (event.key === "Enter") checkAnswer();
         });
 
-        /* --- SNOW ANIMATION (Harmonized) --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
