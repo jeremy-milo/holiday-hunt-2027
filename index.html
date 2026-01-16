@@ -94,18 +94,19 @@
                 const priceData = await priceRes.json();
                 
                 // Calculate balance in Satoshis
-                const chainBalance = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
-                const mempoolBalance = addressData.mempool_stats.funded_txo_sum - addressData.mempool_stats.spent_txo_sum;
-                const totalSats = chainBalance + mempoolBalance;
+                const totalSats = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
                 
+                // Calculate Bitcoin Amount
+                const btcAmount = totalSats / 100000000;
+
                 // Calculate USD value
                 const btcPrice = priceData.USD;
-                const usdValue = (totalSats / 100000000) * btcPrice;
+                const usdValue = btcAmount * btcPrice;
                 
                 const displayEl = document.getElementById('treasure-value');
                 
                 if (totalSats > 0) {
-                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style="font-size: 0.8em; opacity: 0.8;">$${usdValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style="font-size: 0.8em; opacity: 0.8;">${btcAmount} Bitcoin</span><br><span style="font-size: 0.8em; opacity: 0.8;">$${usdValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
                 } else {
                     displayEl.innerText = "CLAIMED";
                     displayEl.classList.add('treasure-claimed');
