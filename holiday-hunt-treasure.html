@@ -8,75 +8,117 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            background: radial-gradient(circle at bottom, #1b2735 0%, #090a0f 100%);
-            color: #ffffff; font-family: 'Montserrat', sans-serif;
-            display: flex; align-items: center; justify-content: center; text-align: center;
-        }
-        #snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        .container { position: relative; z-index: 10; padding: 20px; max-width: 800px; width: 100%; }
-        h1 { font-family: 'Cinzel', serif; font-size: 3rem; margin-bottom: 30px; color: #f6d365; text-shadow: 0 0 15px rgba(246, 211, 101, 0.5); }
-        .content-box { 
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); padding: 40px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2); 
-            display: flex; flex-direction: column; align-items: center;
-        }
+        /* Specific overrides for long-form text content */
         .text-block {
-            font-size: 1.1rem; opacity: 0.95; margin-bottom: 20px; line-height: 1.6; max-width: 650px; text-align: left; width: 100%;
+            font-size: 1.1rem; 
+            opacity: 0.95; 
+            margin-bottom: 20px; 
+            line-height: 1.6; 
+            text-align: left; 
+            width: 100%;
         }
+        
         .highlight-link {
-            color: #f6d365; text-decoration: underline; transition: color 0.3s;
+            color: #f6d365; 
+            text-decoration: underline; 
+            transition: color 0.3s;
+            font-weight: bold;
         }
+        
         .highlight-link:hover {
             color: #fda085;
         }
 
+        /* Override global centering for this specific text-heavy page */
+        .puzzle-box {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+        }
+
         @media (max-width: 600px) {
-            h1 { font-size: 2rem; }
             .text-block { font-size: 1rem; }
-            .content-box { padding: 20px; }
         }
     </style>
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
+    
     <div class="container">
-        <div class="content-box">
-            <h1>Congratulations, you have solved all twelve puzzles!</h1>
-            
-            <p class="text-block">But we hope you didn't think claiming the treasure would be that easy.  We have one final challenge for you!  Hidden in each of the twelve puzzle pages is a secret word. First you must gather all twelve secret words, being careful to keep them in their exact order.</p>
+        <!-- Replaced .content-box with standard .puzzle-box -->
+        <div class="puzzle-box">
+            <h1>Congratulations!</h1>
+            <p class="subtitle" style="margin-bottom: 30px;">You have solved all twelve puzzles!  But we hope you didn't think claiming the treasure would be that easy.  We have one final challenge for you!  Hidden in each of the twelve puzzle pages is a secret word. First you must gather all twelve secret words, being careful to keep them in their exact order.</p>
                 
-            <p class="text-block">These are the twelve "seed words" that protect the Bitcoin wallet where the treasure has been stashed away.</p>
+            <p class="text-block">These are the twelve "seed words" that protect the Bitcoin wallet where the treasure has been stashed away.  Once you have the twelve seed words, download a Bitcoin wallet app (like <a href="https://bluewallet.io/" class="highlight-link">BlueWallet</a>). Tap "Add a wallet", choose the standard Bitcoin wallet type, then tap "Import wallet", not the "Create" button!  Now type the twelve seed words in their correct order into the box, and then tap "Import".</p>
             
-            <p class="text-block">Once you have the twelve seed words, download a Bitcoin wallet app (like <a href="https://bluewallet.io/">BlueWallet</a>). Tap "Add a wallet", choose the standard Bitcoin wallet type, then tap "Import wallet".  (Not the "Create" button!)  Now type the twelve seed words in their correct order into the box, and then tap "Import".  When the app discovers the treasure wallet, tap "Import".</p>
+            <p class="text-block">At this point, you've unlocked the treasure chest but you haven't actually taken the treasure into your posession.  You still need to send the treasure to a new Bitcoin wallet that only you control. If you don't act fast, someone else might snatch it first!</p>
+                
+            <p class="text-block">So open or create a different Bitcoin wallet (not the treasure wallet), get the receiving address, and send everything from the treasure wallet to your own wallet's receiving address.  Now at long last, the treasure is yours!!!</p>
             
-            <p class="text-block">At this point, you've unlocked the treasure chest but you haven't taken the treasure into your posession.  You still need to send the treasure to a new Bitcoin wallet that only you control. If you don't act fast, someone else might snatch it first!  So open or create a different Bitcoin wallet (not the treasure wallet), get the receiving address, and send everything from the treasure wallet to your own wallet.  Now the treasure is yours!</p>
-            
-            <p class="text-block">If you successfully claim the treasure (or even if you don't!), please <a href="mailto:jeremymilo@gmail.com?subject=Milo%20Fam%20Holiday%20Hunt" class="highlight-link">drop us a note</a> to tell us what you think about our treasure hunt, or just to say hi!</p>
+            <p class="text-block">PS: If you successfully claim the treasure (or even if you don't!) please <a href="mailto:jeremymilo@gmail.com?subject=Milo%20Fam%20Holiday%20Hunt" class="highlight-link">drop us a note</a> to tell us what you think about our treasure hunt.  Thanks for playing!</p>
         </div>
     </div>
 
     <script>
-        /* --- SNOW ANIMATION --- */
+        /* --- SNOW ANIMATION (Harmonized) --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight;
-        canvas.width = width; canvas.height = height;
-        const particles = []; 
-        for(let i=0; i<100; i++) particles.push({x: Math.random()*width, y: Math.random()*height, r: Math.random()*3+1, sy: Math.random()*1+0.5, sx: Math.random()*0.5-0.25, o: Math.random()*0.5+0.3});
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
         function animate() {
-            ctx.clearRect(0,0,width,height);
+            ctx.clearRect(0, 0, width, height);
             particles.forEach(p => {
-                p.y += p.sy; p.x += p.sx;
-                if(p.y > height) p.y=0; if(p.x > width) p.x=0; if(p.x < 0) p.x=width;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = `rgba(255,255,255,${p.o})`; ctx.fill();
+                p.update();
+                p.draw();
             });
             requestAnimationFrame(animate);
         }
         animate();
-        window.addEventListener('resize', () => { width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height; });
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
     </script>
 </body>
 </html>
