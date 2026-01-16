@@ -111,6 +111,20 @@
             font-size: 1rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold;
         }
 
+        /* Improved UI Layer */
+        .ui-layer .game-msg {
+            margin-bottom: 30px; /* More space between text and button */
+            display: block;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        #death-msg {
+            white-space: pre-wrap; /* Allows line breaks if needed */
+            line-height: 1.4;
+        }
+
     </style>
 </head>
 <body>
@@ -120,13 +134,13 @@
         <div class="puzzle-box">
             <h1>Puzzle 11: Snack Time for Yeti</h1>
             <p class="instructions">
-                Navigate the 5x5 labrynth of ice caves to feed the hungry Yeti.  But he's shy, so you'll need to toss the snack into the correct room.  You just have three tries!<br>
+                Navigate the 5x5 labyrinth of ice caves to feed the hungry Yeti.  But he's shy, so you'll need to toss a snack into the correct room before running out!  Avoid the rooms with bats and slush puddles.<br>
                 <strong>Draft</strong> = Slush Puddle nearby. <strong>Wings</strong> = Bats nearby. <strong>Rumble</strong> = Hungry Yeti nearby.<br>
             </p>
             
             <div id="game-ui">
                 <div class="room-display" id="room-indicator">Cave Entrance</div>
-                <div class="snack-counter" id="snack-display">Snacks remaining: 3</div>
+                <div class="snack-counter" id="snack-display">Snacks: 3</div>
                 
                 <div class="status-log" id="game-log">
                     <div class="log-entry">You enter the frozen caverns...</div>
@@ -154,12 +168,12 @@
 
             <!-- Success/Fail Modals -->
             <div id="ui-layer" class="ui-layer hidden-ui">
-                <div id="win-screen" style="display:none;">
+                <div id="win-screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%;">
                     <div class="game-msg">Friend Made!</div>
                     <p style="margin-bottom: 20px; font-size: 1.1rem;">The Yeti loves the snack.</p>
                     <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed</button>
                 </div>
-                <div id="lose-screen" style="display:none;">
+                <div id="lose-screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%;">
                     <div class="game-msg" style="color: #ff6b6b;" id="death-msg">Oh no!</div>
                     <button class="btn-style" onclick="initGame()">Try Again</button>
                 </div>
