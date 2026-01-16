@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* Specific overrides for long-form text content */
         .text-block {
             font-size: 1.1rem; 
             opacity: 0.95; 
@@ -32,7 +31,6 @@
             color: #fda085;
         }
 
-        /* Override global centering for this specific text-heavy page */
         .puzzle-box {
             display: flex; 
             flex-direction: column; 
@@ -48,7 +46,6 @@
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
-        <!-- Replaced .content-box with standard .puzzle-box -->
         <div class="puzzle-box">
             <h1>Congratulations!</h1>
             
@@ -67,7 +64,7 @@
     </div>
 
     <script>
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
