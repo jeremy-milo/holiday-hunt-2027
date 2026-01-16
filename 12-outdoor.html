@@ -42,17 +42,6 @@
             position: relative;
         }
 
-        .cipher-char::after {
-            content: attr(data-num);
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.7rem;
-            color: rgba(255, 255, 255, 0.5);
-            text-shadow: none;
-        }
-
         .hint-box {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
@@ -82,37 +71,37 @@
                 Where the crunch and the milk in a breakfast are found.<br>
                 Though they look like a donut, they’re crunchy and thin,<br>
                 Focus hard on the parts if you’re looking to win.<br>
-                Count the letters with care to make use of the key,<br>
+                Just count letters with care to discover the key,<br>
                 And the path to the finish gets easy to see!
             </p>
             
             <div class="cipher-container">
-                <!-- THE -->
+                <!-- THE: 13=T, 2=H, 5=E -->
                 <div class="word-group">
-                    <div class="cipher-char" data-num="15">?</div>
-                    <div class="cipher-char" data-num="2">?</div>
-                    <div class="cipher-char" data-num="5">?</div>
+                    <div class="cipher-char">13</div>
+                    <div class="cipher-char">2</div>
+                    <div class="cipher-char">5</div>
                 </div>
                 
-                <!-- HUNT -->
+                <!-- HUNT: 24=H, 26=U, 10=N, 20=T -->
                 <div class="word-group">
-                    <div class="cipher-char" data-num="2">?</div>
-                    <div class="cipher-char" data-num="33">?</div>
-                    <div class="cipher-char" data-num="11">?</div>
-                    <div class="cipher-char" data-num="25">?</div>
+                    <div class="cipher-char">24</div>
+                    <div class="cipher-char">26</div>
+                    <div class="cipher-char">10</div>
+                    <div class="cipher-char">20</div>
                 </div>
 
-                <!-- IS -->
+                <!-- IS: 9=I, 14=S -->
                 <div class="word-group">
-                    <div class="cipher-char" data-num="10">?</div>
-                    <div class="cipher-char" data-num="16">?</div>
+                    <div class="cipher-char">9</div>
+                    <div class="cipher-char">14</div>
                 </div>
 
-                <!-- WON -->
+                <!-- WON: 1=W, 3=O, 18=N -->
                 <div class="word-group">
-                    <div class="cipher-char" data-num="1">?</div>
-                    <div class="cipher-char" data-num="3">?</div>
-                    <div class="cipher-char" data-num="22">?</div>
+                    <div class="cipher-char">1</div>
+                    <div class="cipher-char">3</div>
+                    <div class="cipher-char">18</div>
                 </div>
             </div>
 
@@ -136,12 +125,20 @@
     </div>
 
     <script>
-        /* Key: Whole Grain Oats, Corn Starch, Sugar, Salt, Tripotassium Phosphate
-           15=T, 2=H, 5=E
-           2=H, 33=U, 11=N, 25=T
-           10=I, 16=S
-           1=W, 3=O, 22=N
-           Answer: THE HUNT IS WON
+        /* Key (Letters Only): WHOLE GRAIN OATS CORN STARCH SUGAR SALT TRIPOTASSIUM PHOSPHATE
+           W H O L E G R A I N O  A  T  S  C  O  R  N  S  T  A  R  C  H  S  U  G  A  R  S  A  L  T  T  R  I  P  O  T  A  S  S  I  U  M  P  H  O  S  P  H  A  T  E
+           1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54
+           
+           Target: THE HUNT IS WON
+           T: 13, 20, 33, 34, 39, 53 -> Used 13, 20
+           H: 2, 24, 47, 51 -> Used 2, 24
+           E: 5, 54 -> Used 5
+           U: 26, 44 -> Used 26
+           N: 10, 18 -> Used 10, 18
+           I: 9, 36, 43 -> Used 9
+           S: 14, 19, 25, 30, 41, 42, 49 -> Used 14
+           W: 1 -> Used 1
+           O: 3, 11, 16, 38, 48 -> Used 3
         */
         const _a = [84, 72, 69, 32, 72, 85, 78, 84, 32, 73, 83, 32, 87, 79, 78]; // "THE HUNT IS WON"
         
