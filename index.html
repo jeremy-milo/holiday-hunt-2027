@@ -12,135 +12,15 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* --- LANDING PAGE SPECIFIC STYLES --- */
-        /* These styles are unique to index.html and not found in puzzle-style.css */
-
-        /* Overrides specifically for the big landing page text */
-        h1 {
-            font-size: 3rem;
-            letter-spacing: 2px;
-            line-height: 1.2;
-        }
-
-        p.subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 40px;
-            letter-spacing: 0.5px;
-            line-height: 1.6;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* TREASURE WIDGET STYLES */
-        .treasure-widget {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 15px 25px;
-            margin: 0 auto 40px auto;
-            display: inline-block;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            transition: all 0.5s ease;
-        }
-
-        .treasure-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.7;
-            margin-bottom: 5px;
-        }
-
-        .treasure-value {
-            font-family: 'Cinzel', serif;
-            font-size: 1.4rem;
-            color: #ffffff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-            font-weight: 700;
-            line-height: 1.4;
-        }
-
-        .treasure-claimed {
-            color: #ff6b6b;
-            text-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
-        }
-
-        /* Countdown Timer Styles */
-        #timer {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .time-unit {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            padding: 15px;
-            border-radius: 10px;
-            min-width: 80px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .number {
-            font-size: 2.5rem;
-            font-weight: 600;
-        }
-
-        .label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-
         /* HIDDEN CONTENT (Reveals at Zero Hour) */
         #reveal-content {
             display: none; 
             animation: fadeIn 2s ease;
         }
 
-        .btn-start {
-            margin-top: 30px;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            color: #333;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(253, 160, 133, 0.6);
-            transition: transform 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-start:hover {
-            transform: scale(1.05);
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Mobile Adjustments */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            p.subtitle { font-size: 0.9rem; }
-            .number { font-size: 1.5rem; }
-            .time-unit { min-width: 60px; padding: 10px; }
-            #timer { gap: 10px; }
         }
     </style>
 </head>
@@ -158,7 +38,7 @@
 
         <!-- WAIT MODE -->
         <div id="wait-mode">
-            <h1>The Mil<span id="secret-o">o</span> Fam Holiday Hunt - 2027 Edition</h1>
+            <h1 class="landing-title">The Mil<span id="secret-o">o</span> Fam Holiday Hunt - 2027 Edition</h1>
             <p class="subtitle">Something special is arriving soon! When the countdown reaches zero, get cracking on 12 fun puzzles.  The first ones might seem easy, but they get harder as you get closer to the end.  Be the first to solve all 12 puzzles, then claim the treasure!  Happy holidays, and happy hunting!</p>
             
             <div id="timer">
@@ -183,7 +63,7 @@
 
         <!-- REVEAL MODE -->
         <div id="reveal-content">
-            <h1>Let's goooo!</h1>
+            <h1 class="landing-title">Let's goooo!</h1>
             <p class="subtitle">The treasure hunt is now open.  Good luck, players.</p>
             <!-- BUTTON WILL BE INJECTED HERE BY JAVASCRIPT FOR SECURITY -->
             <div id="button-container"></div>
@@ -254,7 +134,7 @@
             const container = document.getElementById("button-container");
             if (container.innerHTML === "") {
                 const btn = document.createElement("a");
-                btn.className = "btn-start";
+                btn.className = "btn-style"; // Updated to use the shared class
                 btn.innerText = "Begin The Hunt";
                 btn.href = _decode(_0x4f2a); 
                 container.appendChild(btn);
