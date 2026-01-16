@@ -39,11 +39,25 @@
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSuccessSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq;
+                g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5);
+                o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5);
+            });
+        }
+
         function checkAnswer() {
-            const input = document.getElementById('answerInput').value.trim();
-            const correct = _decode(_a);
+            const input = document.getElementById('answerInput').value.trim().toLowerCase();
+            const correct = _decode(_a).toLowerCase();
             
-            if(input.toLowerCase() === correct.toLowerCase()) {
+            if(input === correct) {
+                playSuccessSound();
                 const ui = document.getElementById('ui-layer');
                 ui.classList.remove('hidden-ui');
                 ui.classList.add('active-ui');
@@ -55,85 +69,13 @@
         }
 
         function proceed() {
-            const url = _decode(_n);
-            try {
-                if (window.location.protocol === 'blob:') throw new Error("Restricted");
-                window.location.href = url;
-            } catch (e) {
-                const btn = document.getElementById('next-level-btn');
-                btn.innerHTML = "Opening...";
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.innerText = "Click here to proceed";
-                a.style.color = "#333";
-                a.style.display = "block";
-                a.style.marginTop = "10px";
-                a.style.fontSize = "0.8rem";
-                a.style.textDecoration = "underline";
-                btn.parentNode.appendChild(a);
-                a.click();
-            }
+            window.location.href = _decode(_n);
         }
 
         document.getElementById("answerInput").addEventListener("keyup", function(event) {
             if (event.key === "Enter") checkAnswer();
         });
-
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.radius = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y > height) this.y = 0;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        });
     </script>
+    <script src="snow.js"></script>
 </body>
 </html>
