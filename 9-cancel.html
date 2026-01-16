@@ -221,7 +221,7 @@
             const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
             layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
             if (won) { title.innerText = "Sweet victory!"; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
-            else { title.innerText = "Out of Swirls"; sub.innerText = "The candy canes remain hidden."; btn.innerText = "Try Again"; btn.onclick = initGame; }
+            else { title.innerText = "Out of guesses"; btn.innerText = "Try Again"; btn.onclick = initGame; }
         }
 
         const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
