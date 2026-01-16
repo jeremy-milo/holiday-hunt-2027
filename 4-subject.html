@@ -13,8 +13,11 @@
     <style>
         /* CRITICAL GAME CSS */
         #game-container {
-            max-width: 700px;
-            height: 300px;
+            width: 100%;
+            max-width: 800px;
+            /* Enforce aspect ratio to match canvas dimensions (800x400 = 2/1) */
+            aspect-ratio: 2 / 1; 
+            height: auto;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
             cursor: pointer;
             margin: 0 auto; 
@@ -22,11 +25,12 @@
             overflow: hidden;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            /* Prevents scrolling while tapping on mobile */
-            touch-action: none; 
             -webkit-user-select: none;
             user-select: none;
+            /* Allow generic touch actions, we handle specific gestures in JS */
+            touch-action: manipulation; 
         }
+        
         canvas#gameCanvas {
             width: 100%;
             height: 100%;
@@ -37,8 +41,8 @@
         #game-container .ui-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0); /* Default transparent */
-            pointer-events: none; /* Let clicks pass through to game by default */
+            background: rgba(0,0,0,0); 
+            pointer-events: none; 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -46,15 +50,16 @@
             z-index: 10;
         }
 
-        /* Active screens capture clicks */
         #start-screen, #game-over-screen, #win-screen {
-            pointer-events: auto;
+            pointer-events: auto; /* Re-enable clicks for buttons */
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         #game-over-screen, #win-screen {
@@ -102,21 +107,25 @@
         let animationFrameId;
         const GAME_WIDTH = 800;
         const GAME_HEIGHT = 400;
+        
+        // Explicitly set internal resolution
         gameCanvas.width = GAME_WIDTH;
         gameCanvas.height = GAME_HEIGHT;
         
-        // Audio Context setup
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        // Audio Context lazy initialization
+        let audioCtx;
 
-        function ensureAudio() {
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
         }
 
         function playSound(type) {
-            // Safety check if audio failed to initialize
             if (!audioCtx) return;
             
             const osc = audioCtx.createOscillator();
@@ -124,33 +133,37 @@
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             
+            const t = audioCtx.currentTime;
+
             if (type === 'jump') {
                 osc.type = 'square'; 
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                osc.frequency.setValueAtTime(400, t);
+                osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+                gainNode.gain.setValueAtTime(0, t);
+                gainNode.gain.linearRampToValueAtTime(0.2, t + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+                osc.start(t); osc.stop(t + 0.15);
             } else if (type === 'step') {
                 osc.type = 'triangle'; 
-                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime); 
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(100, t);
+                gainNode.gain.setValueAtTime(0.4, t); 
+                gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+                osc.start(t); osc.stop(t + 0.08);
             } else if (type === 'win') {
                 playNote(523.25, 0, 0.18); playNote(659.25, 0.16, 0.18); 
                 playNote(783.99, 0.32, 0.18); playNote(1046.50, 0.54, 0.6); 
             } else if (type === 'crash') {
                  osc.type = 'square';
-                 osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-                 osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.28);
-                 gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                 gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.28);
-                 osc.start(); osc.stop(audioCtx.currentTime + 0.28);
+                 osc.frequency.setValueAtTime(120, t);
+                 osc.frequency.exponentialRampToValueAtTime(20, t + 0.28);
+                 gainNode.gain.setValueAtTime(0.12, t);
+                 gainNode.gain.linearRampToValueAtTime(0, t + 0.28);
+                 osc.start(t); osc.stop(t + 0.28);
             }
         }
+        
         function playExplosion() {
+            if (!audioCtx) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const t = audioCtx.currentTime;
             const lowOsc = audioCtx.createOscillator();
@@ -160,10 +173,12 @@
             lowOsc.frequency.exponentialRampToValueAtTime(20, t + 0.4);
             lowGain.gain.setValueAtTime(0.8, t); lowGain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
             lowOsc.start(t); lowOsc.stop(t + 0.4);
+            
             const bufferSize = audioCtx.sampleRate * 0.5; 
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; 
+            
             const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
             const noiseFilter = audioCtx.createBiquadFilter(); noiseFilter.type = 'lowpass';
             noiseFilter.frequency.setValueAtTime(800, t); noiseFilter.frequency.linearRampToValueAtTime(0, t + 0.3);
@@ -172,6 +187,7 @@
             noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
             noise.start(t);
         }
+
         function playNote(freq, startTime, duration) {
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.value = freq;
@@ -188,8 +204,7 @@
         let obstacles = []; let bgOffset1 = 0; let bgOffset2 = 0;
 
         function resetGame() {
-            // Ensure audio is ready on user interaction
-            ensureAudio();
+            initAudio(); // Init audio on user gesture
             
             willow.y = 300; willow.dy = 0; obstacles = []; distance = 0; nextSpawnDist = 800;
             gameSpeed = 12; isPlaying = true; isGameOver = false;
@@ -200,7 +215,6 @@
             gameLoop();
         }
 
-        // Draw initial state so the game isn't blank
         function drawInitialState() {
              gCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
              drawEnvironment();
@@ -216,6 +230,7 @@
             else { obs.w = 120; obs.h = 20; obs.type = 'hole'; obs.y = 350; }
             obstacles.push(obs);
         }
+
         function drawWillow() {
             const x = willow.x; const y = willow.y;
             const speedMultiplier = 0.25; const cycle = frames * speedMultiplier;
@@ -244,12 +259,14 @@
             gCtx.fillStyle = 'white'; gCtx.beginPath(); gCtx.arc(headX + 7, headYPos - 5, 1, 0, Math.PI*2); gCtx.fill();
             gCtx.fillStyle = cBase; drawLimb(gCtx, -25, 10, legR, false, cBase); drawLimb(gCtx, 25, 10, armR, true, cBase); gCtx.restore();
         }
+
         function drawLimb(ctx, x, y, angle, isFront, color) {
             ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.fillStyle = color; ctx.beginPath(); ctx.ellipse(0, 8, 6, 12, 0, 0, Math.PI*2); ctx.fill();
             ctx.translate(0, 18); let knee = 0.3; if (isFront) knee = -0.3; if (isFront && angle > 0) knee = -0.8; if (!isFront && angle < 0) knee = 0.8;
             ctx.rotate(knee); ctx.beginPath(); ctx.ellipse(0, 8, 5, 10, 0, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.arc(1, 16, 3.5, 0, Math.PI*2); ctx.fill(); ctx.restore();
         }
+
         function drawEnvironment() {
             const gradient = gCtx.createLinearGradient(0, 0, 0, GAME_HEIGHT); gradient.addColorStop(0, "#1b2735"); gradient.addColorStop(1, "#546e7a");
             gCtx.fillStyle = gradient; gCtx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -266,6 +283,7 @@
             }
             gCtx.fillStyle = '#eceff1'; gCtx.fillRect(0, 350, GAME_WIDTH, 50); gCtx.fillStyle = '#cfd8dc'; gCtx.fillRect(0, 350, GAME_WIDTH, 5);
         }
+
         function getFinishLineX() { return (WIN_DISTANCE - distance) + 200; }
         function drawFinishLine() {
             const finishX = getFinishLineX();
@@ -276,6 +294,7 @@
                 gCtx.fillText("FINISH", finishX + 50, 220); gCtx.textAlign = 'start'; gCtx.textBaseline = 'alphabetic';
             }
         }
+
         function gameLoop() {
             if (!isPlaying && !isGameOver && frames > 0) {
                 gCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT); drawEnvironment(); drawFinishLine(); drawWillow(); animateFireworks(); requestAnimationFrame(gameLoop); return;
@@ -319,6 +338,7 @@
             if (distance > WIN_DISTANCE) { gameWin(); return; }
             animationFrameId = requestAnimationFrame(gameLoop);
         }
+
         function jump() { if (willow.grounded && isPlaying) { willow.dy = willow.jumpPower; willow.grounded = false; playSound('jump'); } }
         function gameOver() { isPlaying = false; isGameOver = true; document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'flex'; }
         function gameWin() { isPlaying = false; playSound('win'); startFireworksShow(); document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('win-screen').style.display = 'flex'; requestAnimationFrame(gameLoop); }
@@ -359,17 +379,28 @@
                 fireParticles.push(p);
             }
         }
+        
         document.body.onkeydown = function(e){ if(e.keyCode == 32) { e.preventDefault(); jump(); } }
         
-        // Interaction Handlers (Touch & Click)
+        // Touch Interaction Fix:
+        // preventDefault() on canvas touch prevents scrolling/zooming while playing.
+        // We explicitly allow clicks on UI buttons.
         const container = document.getElementById('game-container');
-        container.addEventListener('mousedown', jump);
         container.addEventListener('touchstart', (e) => { 
-            // Allow buttons to be clicked, but jump for everything else
+            // If the user touched a button (Start/Restart), do NOT prevent default, 
+            // so the click event can fire normally.
             if(e.target.tagName === 'BUTTON') return; 
+
+            // Otherwise, it's a jump tap.
             e.preventDefault(); 
             jump(); 
         }, {passive: false});
+
+        // Mouse interaction for desktop
+        container.addEventListener('mousedown', (e) => {
+            if(e.target.tagName === 'BUTTON') return;
+            jump();
+        });
 
         document.getElementById('start-btn').addEventListener('click', resetGame);
         
@@ -382,7 +413,6 @@
         function animateSnow() { ctx.clearRect(0,0,width,height); snowParticles.forEach(p => { p.y += p.sy; p.x += p.sx; if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width; ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); }); ctx.globalAlpha = 1; requestAnimationFrame(animateSnow); }
         animateSnow();
         
-        // Render initial game state on load
         drawInitialState();
     </script>
 </body>
