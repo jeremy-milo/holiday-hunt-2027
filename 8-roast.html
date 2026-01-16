@@ -22,7 +22,7 @@
         .piano-wrapper {
             position: relative;
             background: #222;
-            padding: 40px 20px 20px 20px; 
+            padding: 0 20px 20px 20px; 
             border-radius: 10px;
             box-shadow: 0 0 30px rgba(207, 222, 243, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
             border-bottom: 8px solid #111;
@@ -33,19 +33,24 @@
             -webkit-overflow-scrolling: touch; 
         }
         
-        .scroll-hint {
-            position: absolute;
-            top: 10px;
-            left: 0;
+        /* New scroll grip area for mobile usability */
+        .scroll-grip {
             width: 100%;
-            text-align: center;
-            color: rgba(255,255,255,0.3);
-            font-size: 0.7rem;
+            height: 40px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            pointer-events: none;
+            /* Allow touch panning here */
+            touch-action: pan-x; 
         }
-
+        
         .keys-container { display: flex; position: relative; height: 200px; }
 
         .white-key {
@@ -101,7 +106,8 @@
            
             <div id="game-container" class="game-frame" style="background: none; border: none; box-shadow: none;">
                 <div class="piano-wrapper">
-                    <div class="scroll-hint">&larr; Scroll here &rarr;</div>
+                    <!-- Grip area handles scrolling logic via CSS touch-action -->
+                    <div class="scroll-grip">&larr; Swipe Here to Scroll &rarr;</div>
                     <div class="keys-container" id="piano-keys"></div>
                 </div>
             </div>
@@ -120,9 +126,16 @@
 
     <script>
         const pianoContainer = document.getElementById('piano-keys');
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        let audioCtx;
         
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
         function buildPiano() {
             pianoContainer.innerHTML = ''; let globalIdx = 0; const minKey = 4; const maxKey = 33; 
             for (let oct = 0; oct < 3; oct++) {
@@ -132,13 +145,28 @@
                     if (globalIdx >= minKey && globalIdx < maxKey) {
                         const wKey = document.createElement('div'); wKey.className = 'white-key'; wKey.dataset.note = globalIdx;
                         const currentIdx = globalIdx; 
-                        const handlePlay = (e) => { if(e.type==='touchstart') e.preventDefault(); playNote(currentIdx, wKey); };
-                        wKey.addEventListener('mousedown', handlePlay); wKey.addEventListener('touchstart', handlePlay);
+                        
+                        // Prevent default on touchstart to stop scrolling while playing
+                        const handlePlay = (e) => { 
+                            if(e.type==='touchstart') e.preventDefault(); 
+                            playNote(currentIdx, wKey); 
+                        };
+                        
+                        wKey.addEventListener('mousedown', handlePlay); 
+                        wKey.addEventListener('touchstart', handlePlay, {passive: false});
+                        
                         pianoContainer.appendChild(wKey);
                         if (p.b && globalIdx + 1 < maxKey) {
                              const bKey = document.createElement('div'); bKey.className = 'black-key'; bKey.dataset.note = globalIdx + 1;
-                             const bIdx = globalIdx + 1; const handlePlayB = (e) => { e.stopPropagation(); if(e.type==='touchstart') e.preventDefault(); playNote(bIdx, bKey); };
-                             bKey.addEventListener('mousedown', handlePlayB); bKey.addEventListener('touchstart', handlePlayB); wKey.appendChild(bKey);
+                             const bIdx = globalIdx + 1; 
+                             const handlePlayB = (e) => { 
+                                 e.stopPropagation(); 
+                                 if(e.type==='touchstart') e.preventDefault(); 
+                                 playNote(bIdx, bKey); 
+                             };
+                             bKey.addEventListener('mousedown', handlePlayB); 
+                             bKey.addEventListener('touchstart', handlePlayB, {passive: false}); 
+                             wKey.appendChild(bKey);
                         }
                     }
                     if (p.b) globalIdx += 2; else globalIdx += 1;
@@ -153,7 +181,7 @@
 
         const baseSeq = [ 4,4,4, 4,4,4, 4,7,0,2,4 ];
         function playNote(index, element) {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
+            initAudio();
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             const freq = 130.81 * Math.pow(2, index / 12);
             osc.frequency.value = freq; osc.type = 'triangle'; osc.connect(gain); gain.connect(audioCtx.destination);
