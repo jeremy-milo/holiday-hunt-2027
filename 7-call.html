@@ -17,7 +17,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 auto; /* Center within puzzle box */
+            margin: 0 auto; 
         }
 
         #puzzle-image {
@@ -30,6 +30,7 @@
             margin-bottom: 20px;
             display: block;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #input-area {
@@ -39,10 +40,11 @@
             justify-content: center;
         }
 
-        /* Specific input style for this single field */
-        .answer-input {
+        /* Specific input style for this single field override if needed, 
+           otherwise .answer-input from CSS handles base styling */
+        .answer-input-custom {
             width: 80%;
-            font-size: 1.1rem;
+            /* Font size handled by css .answer-input, can override here if needed for specific layout */
         }
     </style>
 </head>
@@ -52,13 +54,13 @@
     <div class="container">
         <div class="puzzle-box">
             <h1>Puzzle 7: The Nose Knows</h1>
-            <p class="instructions">Give the yeti a high five if you need a hint.</p>
+            <p class="instructions">Tap the yeti to help him sing if you need a hint.</p>
            
             <div id="game-container" class="game-frame">
                 <!-- Note: Ensure 'yeti-black.jpg' and 'yeti-red.jpg' exist in your directory -->
                 <img src="yeti-black.jpg" id="puzzle-image" alt="Yeti Puzzle">
                 <div id="input-area">
-                    <input type="text" id="yeti-msg" class="answer-input" placeholder="What is the yeti's favorite song?">
+                    <input type="text" id="yeti-msg" class="answer-input answer-input-custom" placeholder="What is the yeti's favorite song?">
                 </div>
                 <button class="btn-style" onclick="checkAnswers()">Verify Message</button>
 
@@ -118,8 +120,10 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
         let soundEnabled = false;
-        puzzleImage.addEventListener('click', () => { soundEnabled = true; if (audioCtx.state === 'suspended') { audioCtx.resume(); } });
-        puzzleImage.addEventListener('touchstart', () => { soundEnabled = true; if (audioCtx.state === 'suspended') { audioCtx.resume(); } }, {passive: true});
+        
+        const enableAudio = () => { soundEnabled = true; if (audioCtx.state === 'suspended') { audioCtx.resume(); } };
+        puzzleImage.addEventListener('click', enableAudio);
+        puzzleImage.addEventListener('touchstart', enableAudio, {passive: true});
 
         function playTone(duration) {
             if (!soundEnabled) return; if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
@@ -154,13 +158,26 @@
         function checkAnswers() {
             const inputEl = document.getElementById('yeti-msg'); const val = inputEl.value.toLowerCase().trim(); const correct = _d(_k);
             if (val === correct) { playSound('win'); uiLayer.classList.remove('hidden-ui'); uiLayer.classList.add('active-ui'); } 
-            else { playSound('slide'); inputEl.classList.remove('shake'); void inputEl.offsetWidth; inputEl.classList.add('shake'); }
+            else { 
+                playSound('slide'); 
+                inputEl.classList.remove('shake'); 
+                void inputEl.offsetWidth; 
+                inputEl.classList.add('shake'); 
+            }
         }
         
         const _next = [56, 45, 114, 111, 97, 115, 116, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        // Dynamically add shake animation if not in CSS
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+            .shake { animation: shake 0.4s; border-color: #ff6b6b !important; }
+        `;
+        document.head.appendChild(styleSheet);
+
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
