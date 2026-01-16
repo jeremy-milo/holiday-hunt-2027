@@ -12,22 +12,19 @@
     
     <style>
         /* Specific Styles for Spirograph Game */
-        body { flex-direction: column; align-items: center; } /* Override default body flex */
-
         #puzzle-stage {
             position: relative;
             z-index: 10;
-            width: 95vw;
-            max-width: 800px;
-            height: 60vh;
-            max-height: 600px;
+            width: 100%;
+            height: 50vh;
+            max-height: 500px;
             background: rgba(0, 0, 0, 0.3);
             /* Original Gold Border Style */
             box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
             border-radius: 10px;
             overflow: hidden;
             touch-action: none;
-            margin-bottom: 20px;
+            margin: 0 auto 20px auto; /* Explicitly centered */
         }
 
         .puzzle-layer {
@@ -52,20 +49,20 @@
         #controls-area {
             position: relative;
             z-index: 10;
-            background: rgba(0,0,0,0.6);
-            padding: 20px;
-            border-radius: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
             border: 1px solid rgba(246, 211, 101, 0.2);
-            width: 90%;
-            max-width: 500px;
+            width: 100%;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin: 0 auto 30px auto; /* Explicitly centered */
         }
 
         .control-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .control-label { width: 80px; font-size: 0.9rem; text-align: left; color: #f6d365; font-weight: 600; }
+        .control-label { width: 70px; font-size: 0.9rem; text-align: left; color: #f6d365; font-weight: 600; }
 
         input[type="range"] {
             flex-grow: 1; height: 6px; background: rgba(255,255,255,0.2);
@@ -78,28 +75,20 @@
         }
 
         /* Layer Selector */
-        .layer-toggles { display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; }
+        .layer-toggles { display: flex; justify-content: center; gap: 15px; margin-bottom: 5px; }
         .toggle-btn {
-            padding: 8px 20px; background: transparent; border: 2px solid #f6d365;
+            padding: 8px 15px; background: transparent; border: 2px solid #f6d365;
             color: #f6d365; border-radius: 20px; cursor: pointer;
             font-family: 'Montserrat', sans-serif; font-weight: 600; transition: all 0.3s;
+            font-size: 0.9rem;
         }
         .toggle-btn.active { background: #f6d365; color: #1b2735; box-shadow: 0 0 15px rgba(246, 211, 101, 0.4); }
 
         /* --- ANSWER INPUT --- */
         #answer-area {
             position: relative; z-index: 10; display: flex;
-            flex-direction: column; align-items: center; width: 100%; margin-bottom: 40px;
+            flex-direction: column; align-items: center; width: 100%; margin: 0 auto 20px auto;
         }
-        
-        .submit-btn {
-            padding: 12px 30px; font-size: 1rem;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            border: none; border-radius: 50px; cursor: pointer; font-weight: bold;
-            color: #333; text-transform: uppercase;
-            box-shadow: 0 0 20px rgba(246, 211, 101, 0.6); transition: transform 0.2s;
-        }
-        .submit-btn:hover { transform: scale(1.05); }
 
         .win-text {
             font-family: 'Cinzel', serif; font-size: 2.5rem; color: #f6d365;
@@ -110,48 +99,51 @@
 <body>
     <canvas id="snow-canvas"></canvas>
 
-    <div class="container" style="display:flex; flex-direction:column; align-items:center;">
-        <h1>Puzzle 10: Spirographic</h1>
-        <p class="instructions">
-            The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
-        </p>
+    <div class="container">
+        <div class="puzzle-box">
+            <h1>Puzzle 10: Spirographic</h1>
+            <p class="instructions">
+                The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
+            </p>
 
-        <!-- Puzzle Stage -->
-        <div id="puzzle-stage">
-            <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
-            <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
+            <!-- Puzzle Stage -->
+            <div id="puzzle-stage">
+                <!-- Note: Ensure 'code.png' and 'key.png' exist in your directory -->
+                <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
+                <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
+            </div>
+
+            <!-- Controls -->
+            <div id="controls-area">
+                <div class="layer-toggles">
+                    <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
+                    <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key file</button>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">Rotation</span>
+                    <input type="range" id="input-rotation" min="0" max="360" value="0">
+                </div>
+                <div class="control-group">
+                    <span class="control-label">Size</span>
+                    <input type="range" id="input-scale" min="0.2" max="3.0" step="0.01" value="1">
+                </div>
+            </div>
+
+            <!-- Answer Input -->
+            <div id="answer-area">
+                <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
+                <button class="btn-style" onclick="checkAnswer()">Unlock</button>
+            </div>
+            
+            <!-- Win Modal (Initially Hidden) -->
+            <div id="win-modal" class="ui-layer hidden-ui">
+                <div class="win-text">Alignment Complete</div>
+                <button class="btn-style" id="next-btn" onclick="goNext()">Proceed</button>
+            </div>
         </div>
 
-        <!-- Controls -->
-        <div id="controls-area">
-            <div class="layer-toggles">
-                <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
-                <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key file</button>
-            </div>
-            <div class="control-group">
-                <span class="control-label">Rotation</span>
-                <input type="range" id="input-rotation" min="0" max="360" value="0">
-            </div>
-            <div class="control-group">
-                <span class="control-label">Size</span>
-                <input type="range" id="input-scale" min="0.2" max="3.0" step="0.01" value="1">
-            </div>
-        </div>
-
-        <!-- Answer Input -->
-        <div id="answer-area">
-            <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
-            <button class="submit-btn" onclick="checkAnswer()">Unlock</button>
-        </div>
-
-        <div style="height: 400px;"></div>
+        <div class="spacer-medium"></div>
         <div class="hidden-clue">10. property</div>
-    </div>
-
-    <!-- Win Modal -->
-    <div id="win-modal" class="ui-layer hidden-ui">
-        <div class="win-text">Alignment Complete</div>
-        <button class="submit-btn" id="next-btn" onclick="goNext()">Proceed</button>
     </div>
 
     <script>
@@ -227,13 +219,63 @@
             let nextUrl = ""; for(let i=0; i<_n.length; i++) nextUrl += String.fromCharCode(_n[i]);
             try { window.location.href = nextUrl; } catch(e) { const btn = document.getElementById('next-btn'); btn.innerText = "Redirecting..."; const a = document.createElement('a'); a.href = nextUrl; a.click(); }
         }
-        const canvas = document.getElementById("snow-canvas"); const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight;
-        function resizeCanvas() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
-        const snowParticles = []; for (let i = 0; i < 80; i++) { snowParticles.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.5 + 0.2 }); }
-        function animateSnow() { ctx.clearRect(0,0,width,height); snowParticles.forEach(p => { p.y += p.sy; p.x += p.sx; if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width; ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); }); ctx.globalAlpha = 1; requestAnimationFrame(animateSnow); }
-        animateSnow();
+        
+        /* --- SNOW ANIMATION (Harmonized) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
+
         init();
     </script>
 </body>
