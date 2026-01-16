@@ -25,7 +25,7 @@
             <!-- Success Modal -->
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div class="game-msg">Good Dog!</div>
-                <button class="btn-style" onclick="proceed()">Next Puzzle</button>
+                <button id="next-level-btn" class="btn-style" onclick="proceed()">Next Puzzle</button>
             </div>
         </div>
 
@@ -36,7 +36,8 @@
     <script>
         /* --- PUZZLE CONFIG --- */
         const _a = [87, 105, 108, 108, 111, 119]; // Answer: Willow
-        const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108]; // Next: 3-garage.html
+        // Obfuscated filename for Puzzle 3
+        const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108]; 
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
@@ -56,7 +57,28 @@
         }
 
         function proceed() {
-            window.location.href = _decode(_n);
+            const url = _decode(_n);
+            try {
+                // Attempt standard navigation
+                if (window.location.protocol === 'blob:') throw new Error("Restricted");
+                window.location.href = url;
+            } catch (e) {
+                // Fallback for restricted environments
+                const btn = document.getElementById('next-level-btn');
+                btn.innerHTML = "Opening...";
+                
+                // Create a direct link fallback
+                const a = document.createElement('a');
+                a.href = url;
+                a.innerText = "Click here to proceed";
+                a.style.color = "#333";
+                a.style.display = "block";
+                a.style.marginTop = "10px";
+                a.style.fontSize = "0.8rem";
+                a.style.textDecoration = "underline";
+                btn.parentNode.appendChild(a);
+                a.click();
+            }
         }
 
         document.getElementById("answerInput").addEventListener("keyup", function(event) {
