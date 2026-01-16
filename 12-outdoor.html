@@ -1,1 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>12. outdoor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
+    
+    <style>
+        .cipher-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
 
+        .word-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cipher-char {
+            width: 50px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: #f6d365;
+            text-shadow: 0 0 10px rgba(246, 211, 101, 0.3);
+            position: relative;
+        }
+
+        .cipher-char::after {
+            content: attr(data-num);
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-shadow: none;
+        }
+
+        .hint-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border-left: 3px solid #f6d365;
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="container">
+        <div class="puzzle-box">
+            <h1>Puzzle 12: Recipe for Success</h1>
+            
+            <p class="instructions">
+                To find the final answer, you must decode the numbers below. <br>
+                The key is the ingredients list of <strong>Original Cheerios</strong>.
+            </p>
+
+            <div class="hint-box">
+                <strong>Cipher Key:</strong><br>
+                Use the position of letters in the ingredients list (including spaces/punctuation):<br>
+                <em>"Whole Grain Oats, Corn Starch..."</em><br>
+                1=W, 2=H, 3=O, 4=L, 5=E, etc.
+            </div>
+            
+            <div class="cipher-container">
+                <!-- THE -->
+                <div class="word-group">
+                    <div class="cipher-char" data-num="15">?</div>
+                    <div class="cipher-char" data-num="2">?</div>
+                    <div class="cipher-char" data-num="5">?</div>
+                </div>
+                
+                <!-- HUNT -->
+                <div class="word-group">
+                    <div class="cipher-char" data-num="2">?</div>
+                    <div class="cipher-char" data-num="33">?</div>
+                    <div class="cipher-char" data-num="11">?</div>
+                    <div class="cipher-char" data-num="25">?</div>
+                </div>
+
+                <!-- IS -->
+                <div class="word-group">
+                    <div class="cipher-char" data-num="10">?</div>
+                    <div class="cipher-char" data-num="16">?</div>
+                </div>
+
+                <!-- WON -->
+                <div class="word-group">
+                    <div class="cipher-char" data-num="1">?</div>
+                    <div class="cipher-char" data-num="3">?</div>
+                    <div class="cipher-char" data-num="22">?</div>
+                </div>
+            </div>
+
+            <input type="text" id="answerInput" class="answer-input" placeholder="Enter the decoded message..." autocomplete="off">
+            <br>
+            <button class="btn-style" onclick="checkAnswer()">Claim Treasure</button>
+            <p id="error" class="error-msg">That is not the correct message.</p>
+
+            <!-- Success Modal -->
+            <div id="ui-layer" class="ui-layer hidden-ui">
+                <div id="win-screen">
+                    <div class="game-msg">Correct!</div>
+                    <p style="margin-bottom:20px; font-size:1.1rem;">The final step awaits.</p>
+                    <button id="final-btn" class="btn-style" onclick="goToTreasure()">Open The Chest</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="spacer-large"></div>
+        <div class="hidden-clue">12. outdoor</div>
+    </div>
+
+    <script>
+        /* Key: Whole Grain Oats, Corn Starch, Sugar, Salt, Tripotassium Phosphate
+           15=T, 2=H, 5=E
+           2=H, 33=U, 11=N, 25=T
+           10=I, 16=S
+           1=W, 3=O, 22=N
+           Answer: THE HUNT IS WON
+        */
+        const _a = [84, 72, 69, 32, 72, 85, 78, 84, 32, 73, 83, 32, 87, 79, 78]; // "THE HUNT IS WON"
+        
+        // Target: holiday-hunt-treasure.html
+        const _t = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
+
+        function _decode(arr) { return String.fromCharCode(...arr); }
+
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.toUpperCase().trim().replace(/\s+/g, ' ');
+            const correct = _decode(_a);
+            
+            if(input === correct) {
+                const ui = document.getElementById('ui-layer');
+                ui.classList.remove('hidden-ui');
+                ui.classList.add('active-ui');
+            } else {
+                const err = document.getElementById('error');
+                err.style.display = 'block';
+                const inputEl = document.getElementById('answerInput');
+                inputEl.classList.remove('shake');
+                void inputEl.offsetWidth; // Trigger reflow
+                inputEl.classList.add('shake');
+                setTimeout(() => err.style.display = 'none', 2000);
+            }
+        }
+
+        function goToTreasure() {
+            const url = _decode(_t);
+            try {
+                if (window.location.protocol === 'blob:') throw new Error("Restricted");
+                window.location.href = url;
+            } catch (e) {
+                const btn = document.getElementById('final-btn');
+                btn.innerText = "Redirecting...";
+                const a = document.createElement('a');
+                a.href = url;
+                a.innerText = "Click here if not redirected";
+                a.style.color = "#cfdef3";
+                a.style.display = "block";
+                a.style.marginTop = "15px";
+                btn.parentNode.appendChild(a);
+                a.click();
+            }
+        }
+
+        document.getElementById("answerInput").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") checkAnswer();
+        });
+
+        /* --- SNOW ANIMATION (Harmonized) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
+        
+        // Add shake animation style dynamically
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+            .shake { animation: shake 0.4s; border-color: #ff6b6b !important; }
+        `;
+        document.head.appendChild(styleSheet);
+    </script>
+</body>
+</html>
