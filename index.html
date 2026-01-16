@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* HIDDEN CONTENT (Reveals at Zero Hour) */
+        /* Only specific animation logic remains here */
         #reveal-content {
             display: none; 
             animation: fadeIn 2s ease;
@@ -39,7 +39,7 @@
         <!-- WAIT MODE -->
         <div id="wait-mode">
             <h1 class="landing-title">The Mil<span id="secret-o">o</span> Fam Holiday Hunt - 2027 Edition</h1>
-            <p class="subtitle">Something special is arriving soon! When the countdown reaches zero, get cracking on twelve fun puzzles.  The first ones might be a snap, but they get more challenging as you progress.  Be the first to solve all twelve challenges, and then claim the treasure!  Happy holidays, and happy hunting!</p>
+            <p class="subtitle">Something special is arriving soon! When the countdown reaches zero, get cracking on twelve fun puzzles. The first ones might be a snap, but they get more challenging as you progress. Happy holidays, and happy hunting!</p>
             
             <div id="timer">
                 <div class="time-unit">
@@ -64,7 +64,7 @@
         <!-- REVEAL MODE -->
         <div id="reveal-content">
             <h1 class="landing-title">Let's goooo!</h1>
-            <p class="subtitle">The treasure hunt is now open.  Good luck, players.</p>
+            <p class="subtitle">The treasure hunt is now open. Good luck, players.</p>
             <!-- BUTTON WILL BE INJECTED HERE BY JAVASCRIPT FOR SECURITY -->
             <div id="button-container"></div>
         </div>
@@ -84,7 +84,6 @@
         /* --- TREASURE CHECKER --- */
         async function checkTreasureStatus() {
             try {
-                // Fetch address balance and current price in parallel
                 const [addressRes, priceRes] = await Promise.all([
                     fetch(`https://mempool.space/api/address/${treasureAddress}`),
                     fetch('https://mempool.space/api/v1/prices')
@@ -93,13 +92,8 @@
                 const addressData = await addressRes.json();
                 const priceData = await priceRes.json();
                 
-                // Calculate balance in Satoshis
                 const totalSats = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
-                
-                // Calculate Bitcoin Amount
                 const btcAmount = totalSats / 100000000;
-
-                // Calculate USD value
                 const btcPrice = priceData.USD;
                 const usdValue = btcAmount * btcPrice;
                 
@@ -110,7 +104,6 @@
                 } else {
                     displayEl.innerText = "CLAIMED";
                     displayEl.classList.add('treasure-claimed');
-                    // Update widget border to red to indicate claimed status
                     document.getElementById('treasure-widget').style.borderColor = "rgba(255, 107, 107, 0.3)";
                 }
             } catch (error) {
@@ -119,23 +112,18 @@
             }
         }
         
-        // Check immediately on load
         checkTreasureStatus();
 
         /* --- REVEAL LOGIC --- */
         function revealHunt() {
-            // Stop the timer
             clearInterval(timerInterval);
-            
-            // Swap screens
             document.getElementById("wait-mode").style.display = "none";
             document.getElementById("reveal-content").style.display = "block";
             
-            // Prevent duplicate buttons if clicked multiple times
             const container = document.getElementById("button-container");
             if (container.innerHTML === "") {
                 const btn = document.createElement("a");
-                btn.className = "btn-style"; // Updated to use the shared class
+                btn.className = "btn-style"; 
                 btn.innerText = "Begin The Hunt";
                 btn.href = _decode(_0x4f2a); 
                 container.appendChild(btn);
@@ -147,19 +135,16 @@
             const now = new Date().getTime();
             const distance = targetDate - now;
 
-            // Calculations
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            // Display
             document.getElementById("days").innerText = days < 10 ? "0" + days : days;
             document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
             document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
             document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
 
-            // If the count down is finished
             if (distance < 0) {
                 revealHunt();
             }
@@ -168,7 +153,7 @@
         /* --- SECRET TRIGGER --- */
         document.getElementById("secret-o").addEventListener("click", revealHunt);
 
-        /* --- SNOW ANIMATION LOGIC --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
