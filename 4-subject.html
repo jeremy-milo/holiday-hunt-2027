@@ -44,7 +44,8 @@
 
         /* Add backgrounds back for Game Over and Win screens so text is readable */
         #game-over-screen, #win-screen {
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.6); /* Slightly transparent to see game behind */
+            backdrop-filter: blur(2px);
         }
 
         /* Start screen specific - just the button centered */
@@ -66,7 +67,6 @@
                 
                 <div id="ui-layer" class="ui-layer">
                     <div id="start-screen">
-                        <!-- Removed "Ready to Run?" text -->
                         <button id="start-btn" class="btn-style">Start Game</button>
                     </div>
                     
@@ -295,8 +295,8 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
         function jump() { if (willow.grounded && isPlaying) { willow.dy = willow.jumpPower; willow.grounded = false; playSound('jump'); } }
-        function gameOver() { isPlaying = false; isGameOver = true; document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'block'; }
-        function gameWin() { isPlaying = false; playSound('win'); startFireworksShow(); document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('win-screen').style.display = 'block'; requestAnimationFrame(gameLoop); }
+        function gameOver() { isPlaying = false; isGameOver = true; document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'flex'; }
+        function gameWin() { isPlaying = false; playSound('win'); startFireworksShow(); document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('win-screen').style.display = 'flex'; requestAnimationFrame(gameLoop); }
         
         const rockets = []; const fireParticles = [];
         function patrioticColor() { const palette = ['#ff0033', '#ffffff', '#0066ff', '#ffcc00']; return palette[Math.floor(Math.random() * palette.length)]; }
