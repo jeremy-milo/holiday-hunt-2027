@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>2. gravity</title>
+    <title>3. garage</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
@@ -15,28 +15,33 @@
     
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 2: Loyal Pup</h1>
-            <p class="question">What is the name of the Milo family dog?</p>
-            <input type="text" id="answerInput" placeholder="Type the name..." autocomplete="off">
+            <h1>Puzzle 3: Never Again</h1>
+            
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" title="Puzzle Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <p class="question">Rick just wants to tell you how he's feeling.  How many "nevers" are there?</p>
+            <input type="text" id="answerInput" placeholder="Enter the number..." autocomplete="off">
             <br>
             <button onclick="checkAnswer()">Submit</button>
-            <p id="error" class="error-msg">That is not the correct name.</p>
+            <p id="error" class="error-msg">Incorrect count. Watch closer.</p>
 
             <!-- Success Modal -->
             <div id="ui-layer" class="ui-layer hidden-ui">
-                <div class="game-msg">Good Dog!</div>
+                <div class="game-msg">Correct!</div>
                 <button class="btn-style" onclick="proceed()">Next Puzzle</button>
             </div>
         </div>
 
         <div class="spacer-large"></div>
-        <div class="hidden-clue">2. gravity</div>
+        <div class="hidden-clue">3. garage</div>
     </div>
 
     <script>
         /* --- PUZZLE CONFIG --- */
-        const _a = [87, 105, 108, 108, 111, 119]; // Answer: Willow
-        const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108]; // Next: 3-garage.html
+        const _a = [52, 48]; // Answer: 40
+        const _n = [52, 45, 115, 117, 98, 106, 101, 99, 116, 46, 104, 116, 109, 108]; // Next: 4-subject.html
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
@@ -44,7 +49,7 @@
             const input = document.getElementById('answerInput').value.trim();
             const correct = _decode(_a);
             
-            if(input.toLowerCase() === correct.toLowerCase()) {
+            if(input === correct) {
                 const ui = document.getElementById('ui-layer');
                 ui.classList.remove('hidden-ui');
                 ui.classList.add('active-ui');
