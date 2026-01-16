@@ -12,6 +12,7 @@
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
+    
     <div class="container">
         <div class="puzzle-box">
             <h1>Puzzle 2: Loyal Pup</h1>
@@ -33,8 +34,9 @@
     </div>
 
     <script>
-        const _a = [87, 105, 108, 108, 111, 119];
-        const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108];
+        /* --- PUZZLE CONFIG --- */
+        const _a = [87, 105, 108, 108, 111, 119]; // Answer: Willow
+        const _n = [51, 45, 103, 97, 114, 97, 103, 101, 46, 104, 116, 109, 108]; // Next: 3-garage.html
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
@@ -61,23 +63,61 @@
             if (event.key === "Enter") checkAnswer();
         });
 
+        /* --- SNOW ANIMATION (Harmonized) --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight;
-        canvas.width = width; canvas.height = height;
-        const particles = []; 
-        for(let i=0; i<100; i++) particles.push({x: Math.random()*width, y: Math.random()*height, r: Math.random()*3+1, sy: Math.random()*1+0.5, sx: Math.random()*0.5-0.25, o: Math.random()*0.5+0.3});
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
         function animate() {
-            ctx.clearRect(0,0,width,height);
+            ctx.clearRect(0, 0, width, height);
             particles.forEach(p => {
-                p.y += p.sy; p.x += p.sx;
-                if(p.y > height) p.y=0; if(p.x > width) p.x=0; if(p.x < 0) p.x=width;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = `rgba(255,255,255,${p.o})`; ctx.fill();
+                p.update();
+                p.draw();
             });
             requestAnimationFrame(animate);
         }
         animate();
-        window.addEventListener('resize', () => { width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height; });
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
     </script>
 </body>
 </html>
