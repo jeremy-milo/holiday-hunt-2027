@@ -17,17 +17,17 @@
         <div class="puzzle-box">
             <h1>Puzzle 3: Never Again</h1>
             
+            <!-- Using global class video-container for styling -->
             <div class="video-container">
                 <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" title="Puzzle Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
 
-            <p class="question">Rick just wants to tell you how he's feeling.  How many "nevers" are there?</p>
+            <p class="question">Rick just wants to tell you how he's feeling. How many "nevers" are there?</p>
             <input type="text" id="answerInput" placeholder="Enter the number..." autocomplete="off">
             <br>
             <button onclick="checkAnswer()">Submit</button>
             <p id="error" class="error-msg">Incorrect, try listening again!.</p>
 
-            <!-- Success Modal -->
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div class="game-msg">You never gave up!</div>
                 <button class="btn-style" onclick="proceed()">Next puzzle</button>
@@ -39,9 +39,8 @@
     </div>
 
     <script>
-        /* --- PUZZLE CONFIG --- */
-        const _a = [52, 48]; // Answer: 40
-        const _n = [52, 45, 115, 117, 98, 106, 101, 99, 116, 46, 104, 116, 109, 108]; // Next: 4-subject.html
+        const _a = [52, 48]; 
+        const _n = [52, 45, 115, 117, 98, 106, 101, 99, 116, 46, 104, 116, 109, 108]; 
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
@@ -68,7 +67,7 @@
             if (event.key === "Enter") checkAnswer();
         });
 
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
