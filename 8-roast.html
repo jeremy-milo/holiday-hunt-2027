@@ -26,30 +26,14 @@
             border-radius: 10px;
             box-shadow: 0 0 30px rgba(207, 222, 243, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
             border-bottom: 8px solid #111;
-            display: inline-block;
+            display: flex; /* Changed to flex for centering if needed */
+            justify-content: center;
             max-width: 100%;
-            overflow-x: auto; 
+            overflow-x: hidden; /* Eliminated scrolling */
             box-sizing: border-box;
-            -webkit-overflow-scrolling: touch; 
         }
         
-        /* New scroll grip area for mobile usability */
-        .scroll-grip {
-            width: 100%;
-            height: 40px;
-            background: rgba(255,255,255,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            color: rgba(255,255,255,0.4);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            /* Allow touch panning here */
-            touch-action: pan-x; 
-        }
+        /* Removed scroll-grip styles as it is no longer needed */
         
         .keys-container { display: flex; position: relative; height: 200px; }
 
@@ -106,8 +90,7 @@
            
             <div id="game-container" class="game-frame" style="background: none; border: none; box-shadow: none;">
                 <div class="piano-wrapper">
-                    <!-- Grip area handles scrolling logic via CSS touch-action -->
-                    <div class="scroll-grip">&larr; Swipe Here to Scroll &rarr;</div>
+                    <!-- Removed scroll grip -->
                     <div class="keys-container" id="piano-keys"></div>
                 </div>
             </div>
@@ -136,6 +119,25 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
+        function playWinSound() {
+            initAudio();
+            const now = audioCtx.currentTime; 
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => { 
+                const o = audioCtx.createOscillator(); 
+                const g = audioCtx.createGain(); 
+                o.connect(g); 
+                g.connect(audioCtx.destination); 
+                o.type = 'triangle'; 
+                o.frequency.value = freq; 
+                g.gain.setValueAtTime(0, now + i*0.1); 
+                g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); 
+                g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); 
+                o.start(now + i*0.1); 
+                o.stop(now + i*0.1 + 0.5); 
+            });
+        }
+
         function buildPiano() {
             pianoContainer.innerHTML = ''; let globalIdx = 0; const minKey = 4; const maxKey = 33; 
             for (let oct = 0; oct < 3; oct++) {
@@ -146,7 +148,6 @@
                         const wKey = document.createElement('div'); wKey.className = 'white-key'; wKey.dataset.note = globalIdx;
                         const currentIdx = globalIdx; 
                         
-                        // Prevent default on touchstart to stop scrolling while playing
                         const handlePlay = (e) => { 
                             if(e.type==='touchstart') e.preventDefault(); 
                             playNote(currentIdx, wKey); 
@@ -218,6 +219,7 @@
             }
         }
         function winGame() { 
+            playWinSound(); // Play the chime
             const ui = document.getElementById('ui-layer'); 
             ui.classList.remove('hidden-ui');
             ui.classList.add('active-ui'); 
