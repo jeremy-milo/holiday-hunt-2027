@@ -33,6 +33,7 @@
             width: 100%;
             max-width: 450px;
             aspect-ratio: 1/1;
+            margin: 0 auto 20px auto; /* Centered */
         }
 
         .grid-cell {
@@ -85,14 +86,6 @@
             height: 20px; font-size: 0.9rem; color: #ff9; margin-top: 5px; font-style: italic;
         }
 
-        /* Standardize button in this file context */
-        button.action-btn {
-            padding: 10px 20px; font-size: 1rem; border-radius: 5px; border: none;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            color: #222; font-weight: bold; cursor: pointer; transition: transform 0.1s;
-        }
-        button.action-btn:active { transform: scale(0.95); }
-
         /* Animations */
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } 100% { transform: translateX(0); } }
@@ -112,19 +105,23 @@
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
-        <h1>Puzzle 9: Candy Cane Quest</h1>
-        <p class="instructions">The grid below is hiding three candy canes, and each one is four squares long. Tap the squares to find them all before you run out of guesses!</p>
-       
-        <div class="game-status" id="status-display">35 guesses remaining</div>
+        <div class="puzzle-box">
+            <h1>Puzzle 9: Candy Cane Quest</h1>
+            <p class="instructions">The grid below is hiding three candy canes, and each one is four squares long. Tap the squares to find them all before you run out of guesses!</p>
+           
+            <div class="game-status" id="status-display">35 guesses remaining</div>
 
-        <div class="grid-wrapper" id="game-grid"></div>
+            <div class="grid-wrapper" id="game-grid"></div>
 
-        <div class="feedback-msg" id="feedback"></div>
+            <div class="feedback-msg" id="feedback"></div>
 
-        <div id="ui-layer" class="ui-layer hidden-ui">
-            <div class="game-msg" id="end-title"></div>
-            <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
-            <button class="action-btn" id="end-btn" onclick="">Proceed</button>
+            <div id="ui-layer" class="ui-layer hidden-ui">
+                <div id="win-screen">
+                    <div class="game-msg" id="end-title"></div>
+                    <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
+                    <button class="btn-style" id="end-btn" onclick="">Proceed</button>
+                </div>
+            </div>
         </div>
 
         <div class="spacer-medium"></div>
@@ -132,29 +129,7 @@
     </div>
 
     <script>
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight;
-        canvas.width = width; canvas.height = height;
-        const snowParticles = []; 
-        for (let i = 0; i < 80; i++) {
-            snowParticles.push({
-                x: Math.random() * width, y: Math.random() * height,
-                r: Math.random() * 2 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.5 + 0.2
-            });
-        }
-        function animateSnow() {
-            ctx.clearRect(0,0,width,height);
-            snowParticles.forEach(p => {
-                p.y += p.sy; p.x += p.sx;
-                if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width;
-                ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-                ctx.fillStyle = "#fff"; ctx.fill();
-            });
-            ctx.globalAlpha = 1; requestAnimationFrame(animateSnow);
-        }
-        animateSnow();
-
+        /* --- GAME LOGIC --- */
         const GRID_SIZE = 10; const NUM_SHIPS = 3; const SHIP_LENGTH = 4; const MAX_GUESSES = 35;
         let grid = []; let ships = []; let guesses = []; let hits = 0; let guessesLeft = MAX_GUESSES; let gameActive = true;
 
@@ -249,8 +224,66 @@
             else { title.innerText = "Out of Swirls"; sub.innerText = "The candy canes remain hidden."; btn.innerText = "Try Again"; btn.onclick = initGame; }
         }
 
-        function goToNextLevel() { window.location.href = "10-property.html"; }
+        const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
+        function goToNextLevel() { window.location.href = String.fromCharCode(..._nextUrl); }
+        
+        /* --- SNOW ANIMATION (Harmonized) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
         initGame();
+        
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
     </script>
 </body>
 </html>
