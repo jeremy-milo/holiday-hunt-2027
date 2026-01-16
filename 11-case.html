@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* Specific styles for Feed the Yeti */
         #game-ui {
             display: flex;
             flex-direction: column;
@@ -66,6 +65,7 @@
             font-family: 'Montserrat', sans-serif;
             font-weight: bold;
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
         .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
         .control-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
@@ -87,11 +87,11 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             font-weight: bold;
+            -webkit-tap-highlight-color: transparent;
         }
         .toggle-opt.active { background: #f6d365; color: #1b2735; }
         .toggle-opt:not(.active) { color: #aaa; }
 
-        /* Map Visualizer (Simple) */
         .mini-map {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -111,20 +111,20 @@
             font-size: 1rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold;
         }
 
-        /* Improved UI Layer */
-        .ui-layer .game-msg {
-            margin-bottom: 30px; /* More space between text and button */
-            display: block;
+        /* Override to center win/loss screens using flex from inline styles */
+        #win-screen, #lose-screen {
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100%; 
             width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
         }
 
         #death-msg {
-            white-space: pre-wrap; /* Allows line breaks if needed */
+            white-space: pre-wrap;
             line-height: 1.4;
         }
-
     </style>
 </head>
 <body>
@@ -166,13 +166,12 @@
                 <div class="mini-map" id="mini-map"></div>
             </div>
 
-            <!-- Success/Fail Modals -->
             <div id="ui-layer" class="ui-layer hidden-ui">
-                <div id="win-screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%;">
+                <div id="win-screen">
                     <div class="game-msg">The yeti is stoked!</div>
                     <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Next puzzle</button>
                 </div>
-                <div id="lose-screen" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%;">
+                <div id="lose-screen">
                     <div class="game-msg" style="color: #ff6b6b;" id="death-msg">You failed to feed the yeti this time!</div>
                     <button class="btn-style" onclick="initGame()">Try Again</button>
                 </div>
@@ -190,7 +189,7 @@
         let startPos = {x:0, y:0};
         let yetiPos, pitPos1, pitPos2, batPos1, batPos2;
         let visited = [];
-        let actionMode = 'move'; // 'move' or 'shoot'
+        let actionMode = 'move'; 
         let gameActive = true;
         let snacks = 3;
 
@@ -198,7 +197,6 @@
             gameActive = true;
             visited = [];
             snacks = 3;
-            // Generate Random Positions (ensure no overlap on start)
             startPos = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) };
             playerPos = {...startPos};
             
@@ -217,7 +215,6 @@
             batPos1 = getRandPos();
             batPos2 = getRandPos();
 
-            // UI Reset
             document.getElementById('game-log').innerHTML = '<div class="log-entry">You enter the frozen caverns...</div>';
             document.getElementById('ui-layer').classList.add('hidden-ui');
             document.getElementById('ui-layer').classList.remove('active-ui');
@@ -242,7 +239,6 @@
             if (dir === 'E') target.x++;
             if (dir === 'W') target.x--;
 
-            // Bounds Check
             if (target.x < 0 || target.x >= GRID_W || target.y < 0 || target.y >= GRID_H) {
                 log("That path is blocked by ice.", "warning-text");
                 return;
@@ -252,7 +248,6 @@
                 playerPos = target;
                 checkRoom();
             } else {
-                // Tossing Snack
                 if (snacks > 0) {
                     snacks--;
                     if (target.x === yetiPos.x && target.y === yetiPos.y) {
@@ -274,7 +269,6 @@
         }
 
         function relocateYetiRandomly() {
-            // Find a safe spot (not player, not hazard)
             let possibleMoves = [];
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
@@ -293,32 +287,25 @@
         }
 
         function checkRoom() {
-            // 1. Check Yeti Collision (New Logic: Yeti runs away)
             if (isSame(playerPos, yetiPos)) {
                 log("You walked right into the Yeti! He was startled and ran away.", "warning-text");
                 relocateYetiRandomly();
-                // We assume hazards are not checked if Yeti was here, or we check them now?
-                // Usually if Yeti moves, you are now safe in this room (unless it's also a hazard room, but we prevent Yeti in hazard rooms usually)
-                // Let's mark visited and update
                 if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
                 updateState();
                 return;
             }
 
-            // 2. Check Hazards
             if (isSame(playerPos, pitPos1) || isSame(playerPos, pitPos2)) {
                 gameOver("Splash! You fell in a freezing slush puddle.");
                 return;
             }
             if (isSame(playerPos, batPos1) || isSame(playerPos, batPos2)) {
                 log("Friendly bats carry you to a new room!", "warning-text");
-                // Move player randomly
                 playerPos = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) };
-                checkRoom(); // Recursive check for new room
+                checkRoom(); 
                 return;
             }
 
-            // 3. Safe Room - Mark visited & Show Warnings
             if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
             updateState();
         }
@@ -329,7 +316,6 @@
             
             let warnings = [];
             
-            // Check adjacency
             const adj = getNeighbors(playerPos);
             
             if (adj.some(p => isSame(p, yetiPos))) warnings.push("<span class='danger-text'>You hear a tummy rumble...</span>");
@@ -342,8 +328,6 @@
                 log("The room is quiet.");
             }
             
-            // Update display to use 1-based indexing
-            // Adding 1 to the index to shift from 0-4 to 1-5
             document.getElementById('room-indicator').innerText = `Room ${playerPos.x + 1},${playerPos.y + 1}`;
         }
 
@@ -391,7 +375,7 @@
             document.getElementById('win-screen').style.display = 'flex';
         }
 
-        const _next = [49, 50, 45, 111, 117, 116, 100, 111, 111, 114, 46, 104, 116, 109, 108]; // 12-outdoor.html
+        const _next = [49, 50, 45, 111, 117, 116, 100, 111, 111, 114, 46, 104, 116, 109, 108]; 
         function goToNextLevel() {
             const url = String.fromCharCode(..._next);
             try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } 
@@ -402,7 +386,7 @@
             }
         }
 
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
