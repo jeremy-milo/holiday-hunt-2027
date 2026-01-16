@@ -220,7 +220,7 @@
         function showEndScreen(won) {
             const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
             layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
-            if (won) { title.innerText = "Sweet Victory!"; sub.innerText = "You found all the candy canes."; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
+            if (won) { title.innerText = "Sweet Victory!"; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
             else { title.innerText = "Out of Swirls"; sub.innerText = "The candy canes remain hidden."; btn.innerText = "Try Again"; btn.onclick = initGame; }
         }
 
