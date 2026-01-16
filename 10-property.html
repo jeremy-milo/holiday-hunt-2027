@@ -146,6 +146,16 @@
         const rangeRot = document.getElementById('input-rotation'); const rangeScale = document.getElementById('input-scale');
         const btnLetters = document.getElementById('btn-letters'); const btnSpiral = document.getElementById('btn-spiral');
 
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (type === 'win') {
+                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
+            }
+        }
+
         function init() {
             randomizeLayer(layers.letters); randomizeLayer(layers.spiral);
             updateInputs(); applyTransforms('letters'); applyTransforms('spiral');
@@ -211,6 +221,7 @@
             const input = document.getElementById('player-guess'); const val = input.value.trim(); 
             let keyStr = ""; for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
             if (val.toLowerCase() === keyStr.toLowerCase()) { 
+                playSound('win'); // Added chime
                 const ui = document.getElementById('win-modal'); ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
             } else {
                 input.style.borderColor = "#ff4444";
