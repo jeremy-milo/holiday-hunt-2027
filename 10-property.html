@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* Specific Styles for Spirograph Game */
         #puzzle-stage {
             position: relative;
             z-index: 10;
@@ -19,12 +18,11 @@
             height: 50vh;
             max-height: 500px;
             background: rgba(0, 0, 0, 0.3);
-            /* Original Gold Border Style */
             box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
             border-radius: 10px;
             overflow: hidden;
-            touch-action: none;
-            margin: 0 auto 20px auto; /* Explicitly centered */
+            touch-action: none; 
+            margin: 0 auto 20px auto; 
         }
 
         .puzzle-layer {
@@ -45,7 +43,6 @@
         #layer-letters { z-index: 5; filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)) brightness(1.2); }
         #layer-spiral { z-index: 10; opacity: 0.9; mix-blend-mode: exclusion; pointer-events: auto; }
 
-        /* --- CONTROLS --- */
         #controls-area {
             position: relative;
             z-index: 10;
@@ -58,7 +55,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin: 0 auto 30px auto; /* Explicitly centered */
+            margin: 0 auto 30px auto; 
         }
 
         .control-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -74,7 +71,6 @@
             box-shadow: 0 0 5px rgba(246, 211, 101, 0.8);
         }
 
-        /* Layer Selector */
         .layer-toggles { display: flex; justify-content: center; gap: 15px; margin-bottom: 5px; }
         .toggle-btn {
             padding: 8px 15px; background: transparent; border: 2px solid #f6d365;
@@ -84,7 +80,6 @@
         }
         .toggle-btn.active { background: #f6d365; color: #1b2735; box-shadow: 0 0 15px rgba(246, 211, 101, 0.4); }
 
-        /* --- ANSWER INPUT --- */
         #answer-area {
             position: relative; z-index: 10; display: flex;
             flex-direction: column; align-items: center; width: 100%; margin: 0 auto 20px auto;
@@ -106,14 +101,11 @@
                 The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
             </p>
 
-            <!-- Puzzle Stage -->
             <div id="puzzle-stage">
-                <!-- Note: Ensure 'code.png' and 'key.png' exist in your directory -->
                 <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
                 <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
             </div>
 
-            <!-- Controls -->
             <div id="controls-area">
                 <div class="layer-toggles">
                     <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
@@ -129,13 +121,11 @@
                 </div>
             </div>
 
-            <!-- Answer Input -->
             <div id="answer-area">
                 <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
                 <button class="btn-style" onclick="checkAnswer()">Unlock</button>
             </div>
             
-            <!-- Win Modal (Initially Hidden) -->
             <div id="win-modal" class="ui-layer hidden-ui">
                 <div class="win-text">Alignment complete!</div>
                 <button class="btn-style" id="next-btn" onclick="goNext()">Next puzzle</button>
@@ -220,7 +210,7 @@
             try { window.location.href = nextUrl; } catch(e) { const btn = document.getElementById('next-btn'); btn.innerText = "Redirecting..."; const a = document.createElement('a'); a.href = nextUrl; a.click(); }
         }
         
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
