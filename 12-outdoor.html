@@ -103,15 +103,14 @@
 
             <input type="text" id="answerInput" class="answer-input" placeholder="Enter the decoded message..." autocomplete="off">
             <br>
-            <button class="btn-style" onclick="checkAnswer()">Claim Treasure</button>
+            <button class="btn-style" onclick="checkAnswer()">Verify message</button>
             <p id="error" class="error-msg">That is not the correct message.</p>
 
             <!-- Success Modal -->
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
-                    <div class="game-msg">Correct!</div>
-                    <p style="margin-bottom:20px; font-size:1.1rem;">The final step awaits.</p>
-                    <button id="final-btn" class="btn-style" onclick="goToTreasure()">Open The Chest</button>
+                    <div class="game-msg">Great work!</div>
+                    <button id="final-btn" class="btn-style" onclick="goToTreasure()">Unlock the treasure</button>
                 </div>
             </div>
         </div>
