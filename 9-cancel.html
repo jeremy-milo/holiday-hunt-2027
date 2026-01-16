@@ -134,6 +134,16 @@
         const GRID_SIZE = 10; const NUM_SHIPS = 3; const SHIP_LENGTH = 4; const MAX_GUESSES = 35;
         let grid = []; let ships = []; let guesses = []; let hits = 0; let guessesLeft = MAX_GUESSES; let gameActive = true;
 
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (type === 'win') {
+                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
+            }
+        }
+
         function initGame() {
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
             ships = []; guesses = []; hits = 0; guessesLeft = MAX_GUESSES; gameActive = true;
@@ -211,7 +221,11 @@
 
         function checkWin() {
             const totalTarget = NUM_SHIPS * SHIP_LENGTH;
-            if (hits === totalTarget) { gameActive = false; showEndScreen(true); }
+            if (hits === totalTarget) { 
+                gameActive = false; 
+                showEndScreen(true);
+                playSound('win'); // Play success sound
+            }
         }
 
         function checkLoss() {
