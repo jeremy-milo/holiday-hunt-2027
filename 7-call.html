@@ -17,6 +17,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin: 0 auto; /* Center within puzzle box */
         }
 
         #puzzle-image {
@@ -49,20 +50,23 @@
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
-        <h1>Puzzle 7: The Nose Knows</h1>
-        <p class="instructions">Give the yeti a high five if you need a hint.</p>
-       
-        <div id="game-container" class="game-frame">
-            <img src="yeti-black.jpg" id="puzzle-image" alt="Yeti Puzzle">
-            <div id="input-area">
-                <input type="text" id="yeti-msg" class="answer-input" placeholder="What is the yeti's favorite song?">
-            </div>
-            <button class="btn-style" onclick="checkAnswers()">Verify Message</button>
+        <div class="puzzle-box">
+            <h1>Puzzle 7: The Nose Knows</h1>
+            <p class="instructions">Give the yeti a high five if you need a hint.</p>
+           
+            <div id="game-container" class="game-frame">
+                <!-- Note: Ensure 'yeti-black.jpg' and 'yeti-red.jpg' exist in your directory -->
+                <img src="yeti-black.jpg" id="puzzle-image" alt="Yeti Puzzle">
+                <div id="input-area">
+                    <input type="text" id="yeti-msg" class="answer-input" placeholder="What is the yeti's favorite song?">
+                </div>
+                <button class="btn-style" onclick="checkAnswers()">Verify Message</button>
 
-            <div id="ui-layer" class="ui-layer hidden-ui">
-                <div id="win-screen">
-                    <div class="game-msg">Message Received!</div>
-                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Puzzle</button>
+                <div id="ui-layer" class="ui-layer hidden-ui">
+                    <div id="win-screen">
+                        <div class="game-msg">Message Received!</div>
+                        <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Puzzle</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,11 +149,62 @@
         }
         const _next = [56, 45, 114, 111, 97, 115, 116, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
-        const canvas = document.getElementById("snow-canvas"); const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight; canvas.width = width; canvas.height = height;
-        const snowParticles = []; for (let i = 0; i < 80; i++) { snowParticles.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.5 + 0.2 }); }
-        function animateSnow() { ctx.clearRect(0,0,width,height); snowParticles.forEach(p => { p.y += p.sy; p.x += p.sx; if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width; ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); }); ctx.globalAlpha = 1; requestAnimationFrame(animateSnow); }
-        animateSnow();
+        
+        /* --- SNOW ANIMATION (Harmonized) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
     </script>
 </body>
 </html>
