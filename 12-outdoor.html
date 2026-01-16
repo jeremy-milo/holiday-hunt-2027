@@ -42,18 +42,10 @@
             position: relative;
         }
 
-        .hint-box {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 8px;
-            font-size: 1rem;
-            margin-bottom: 20px;
-            border-left: 3px solid #f6d365;
-            text-align: left;
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            font-style: italic;
-            line-height: 1.6;
+        /* Override generic input if needed, though answer-input class handles most */
+        #answerInput {
+            text-align: center;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -106,9 +98,8 @@
             <button class="btn-style" onclick="checkAnswer()">Verify message</button>
             <p id="error" class="error-msg">That is not the correct message.</p>
 
-            <!-- Success Modal -->
             <div id="ui-layer" class="ui-layer hidden-ui">
-                <div id="win-screen">
+                <div id="win-screen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
                     <div class="game-msg">You ate that one for breakfast!</div>
                     <button id="final-btn" class="btn-style" onclick="goToTreasure()">Unlock the treasure</button>
                 </div>
@@ -121,8 +112,6 @@
 
     <script>
         const _a = [84, 72, 69, 32, 72, 85, 78, 84, 32, 73, 83, 32, 87, 79, 78];
-        
-
         const _t = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
 
         function _decode(arr) { return String.fromCharCode(...arr); }
@@ -140,7 +129,7 @@
                 err.style.display = 'block';
                 const inputEl = document.getElementById('answerInput');
                 inputEl.classList.remove('shake');
-                void inputEl.offsetWidth; // Trigger reflow
+                void inputEl.offsetWidth; 
                 inputEl.classList.add('shake');
                 setTimeout(() => err.style.display = 'none', 2000);
             }
@@ -169,7 +158,7 @@
             if (event.key === "Enter") checkAnswer();
         });
 
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
@@ -225,7 +214,6 @@
             canvas.height = height;
         });
         
-        // Add shake animation style dynamically
         const styleSheet = document.createElement("style");
         styleSheet.innerText = `
             @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
