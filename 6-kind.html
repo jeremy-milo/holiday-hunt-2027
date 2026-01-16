@@ -11,14 +11,15 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* Specific Styles for Image & Input Grid */
+        /* Specific Styles for Image & Input Grid Layout */
         #game-container {
             max-width: 600px; 
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 auto; /* Center within puzzle box */
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         #puzzle-image {
@@ -40,7 +41,7 @@
             width: 100%;
             margin-bottom: 20px;
         }
-
+        
         @media (max-width: 600px) {
             #input-area { grid-template-columns: 1fr; }
             #game-container { padding: 10px; }
@@ -56,10 +57,10 @@
             <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?</p>
             
             <div id="game-container" class="game-frame">
-                <!-- Note: Ensure 'selfie.jpg' exists in your directory -->
                 <img src="selfie.jpg" id="puzzle-image" alt="Selfie">
 
                 <div id="input-area">
+                    <!-- Class answer-input is defined in puzzle-style.css -->
                     <input type="text" class="answer-input" placeholder="Difference 1">
                     <input type="text" class="answer-input" placeholder="Difference 2">
                     <input type="text" class="answer-input" placeholder="Difference 3">
@@ -133,7 +134,7 @@
         const _next = [55, 45, 99, 97, 108, 108, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
