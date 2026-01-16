@@ -16,20 +16,34 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 auto 40px auto; /* Centered within puzzle box */
+            margin: 0 auto 40px auto; 
         }
 
         .piano-wrapper {
             position: relative;
             background: #222;
-            padding: 20px 20px 10px 20px;
+            padding: 40px 20px 20px 20px; 
             border-radius: 10px;
-            /* Silver Glow Shadow */
             box-shadow: 0 0 30px rgba(207, 222, 243, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
             border-bottom: 8px solid #111;
             display: inline-block;
             max-width: 100%;
             overflow-x: auto; 
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .scroll-hint {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            pointer-events: none;
         }
 
         .keys-container { display: flex; position: relative; height: 200px; }
@@ -41,6 +55,7 @@
             position: relative; cursor: pointer;
             box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1);
             flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         .white-key:active, .white-key.active {
             background: linear-gradient(to bottom, #eee 0%, #ddd 100%);
@@ -55,10 +70,10 @@
             position: absolute; z-index: 10; right: -12px;
             border-radius: 0 0 3px 3px; cursor: pointer;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
         }
         .black-key:active, .black-key.active { background: #111; transform: translateY(2px); }
 
-        /* Warm Yellow/Orange Hint Animation (Matching Buttons) */
         @keyframes pulse-hint {
             0% { 
                 box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 0 0 rgba(253, 160, 133, 0.7); 
@@ -86,6 +101,7 @@
            
             <div id="game-container" class="game-frame" style="background: none; border: none; box-shadow: none;">
                 <div class="piano-wrapper">
+                    <div class="scroll-hint">&larr; Scroll here &rarr;</div>
                     <div class="keys-container" id="piano-keys"></div>
                 </div>
             </div>
@@ -115,12 +131,13 @@
                     const p = patterns[i];
                     if (globalIdx >= minKey && globalIdx < maxKey) {
                         const wKey = document.createElement('div'); wKey.className = 'white-key'; wKey.dataset.note = globalIdx;
-                        const currentIdx = globalIdx; const handlePlay = (e) => { e.preventDefault(); playNote(currentIdx, wKey); };
+                        const currentIdx = globalIdx; 
+                        const handlePlay = (e) => { if(e.type==='touchstart') e.preventDefault(); playNote(currentIdx, wKey); };
                         wKey.addEventListener('mousedown', handlePlay); wKey.addEventListener('touchstart', handlePlay);
                         pianoContainer.appendChild(wKey);
                         if (p.b && globalIdx + 1 < maxKey) {
                              const bKey = document.createElement('div'); bKey.className = 'black-key'; bKey.dataset.note = globalIdx + 1;
-                             const bIdx = globalIdx + 1; const handlePlayB = (e) => { e.stopPropagation(); e.preventDefault(); playNote(bIdx, bKey); };
+                             const bIdx = globalIdx + 1; const handlePlayB = (e) => { e.stopPropagation(); if(e.type==='touchstart') e.preventDefault(); playNote(bIdx, bKey); };
                              bKey.addEventListener('mousedown', handlePlayB); bKey.addEventListener('touchstart', handlePlayB); wKey.appendChild(bKey);
                         }
                     }
@@ -136,7 +153,6 @@
 
         const baseSeq = [ 4,4,4, 4,4,4, 4,7,0,2,4 ];
         function playNote(index, element) {
-            // Hint removal logic moved to checkSequence to ensure it stays until correct key is pressed
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             const freq = 130.81 * Math.pow(2, index / 12);
@@ -153,7 +169,6 @@
             if (matchIndex === 0) {
                 const relative = noteIndex % 12;
                 if (relative === 4) { 
-                    // Correct start of sequence found
                     removeHints(); 
                     matchIndex = 1; 
                     detectedOctaveOffset = noteIndex - 4; 
@@ -165,7 +180,6 @@
                 else {
                     const relative = noteIndex % 12;
                     if (relative === 4) { 
-                        // Restart sequence if hitting start note
                         matchIndex = 1; 
                         detectedOctaveOffset = noteIndex - 4; 
                     } else { 
@@ -183,7 +197,7 @@
         const _dest = [57, 45, 99, 97, 110, 99, 101, 108, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._dest); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
