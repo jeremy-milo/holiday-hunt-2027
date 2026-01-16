@@ -15,7 +15,8 @@
         #game-container {
             aspect-ratio: 4 / 3;
             max-height: 75vh;
-            max-width: 700px; 
+            max-width: 700px;
+            margin: 0 auto; /* Center within puzzle box */
         }
     </style>
 </head>
@@ -23,16 +24,18 @@
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
-        <h1>Puzzle 5: Scrambled Selfie</h1>
-        <p class="instructions">Tap the pieces adjacent to the empty slot to slide them.<br>Rearrange the grid to complete the photo.</p>
-        
-        <div id="game-container" class="game-frame">
-            <div id="puzzle-grid"></div>
+        <div class="puzzle-box">
+            <h1>Puzzle 5: Scrambled Selfie</h1>
+            <p class="instructions">Tap the pieces adjacent to the empty slot to slide them.<br>Rearrange the grid to complete the photo.</p>
+            
+            <div id="game-container" class="game-frame">
+                <div id="puzzle-grid"></div>
 
-            <div id="ui-layer" class="ui-layer hidden-ui">
-                <div id="win-screen">
-                    <div class="game-msg">Picture Perfect!</div>
-                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Level</button>
+                <div id="ui-layer" class="ui-layer hidden-ui">
+                    <div id="win-screen">
+                        <div class="game-msg">Picture Perfect!</div>
+                        <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Proceed to Next Level</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -46,6 +49,7 @@
         const uiLayer = document.getElementById('ui-layer');
         const COLS = 5; const ROWS = 5;
         const TOTAL_PIECES = COLS * ROWS;
+        /* Note: Ensure 'selfie.jpg' exists in your directory, or this will show blank squares */
         const IMAGE_SRC = 'selfie.jpg';
         let pieces = []; let boardState = []; let isSolved = false;
 
@@ -120,13 +124,66 @@
             if (type === 'slide') { osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1); gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } 
             else if (type === 'win') { const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50]; notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); }); }
         }
+        
         const _next = [54, 45, 107, 105, 110, 100, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
-        const canvas = document.getElementById("snow-canvas"); const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight; canvas.width = width; canvas.height = height;
-        const snowParticles = []; for (let i = 0; i < 80; i++) { snowParticles.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.5 + 0.2 }); }
-        function animateSnow() { ctx.clearRect(0,0,width,height); snowParticles.forEach(p => { p.y += p.sy; p.x += p.sx; if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width; ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); }); ctx.globalAlpha = 1; requestAnimationFrame(animateSnow); }
-        animateSnow();
+        
+        /* --- SNOW ANIMATION (Harmonized) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
+
         initLogic();
     </script>
 </body>
