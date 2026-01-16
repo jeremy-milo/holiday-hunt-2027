@@ -44,7 +44,7 @@
 
         .room-display {
             font-size: 1.5rem;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-family: 'Cinzel', serif;
             color: #f6d365;
         }
@@ -107,6 +107,10 @@
         .map-cell.visited { background: rgba(255,255,255,0.4); }
         .map-cell.current { background: #f6d365; box-shadow: 0 0 5px #f6d365; }
 
+        .snack-counter {
+            font-size: 1rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -114,18 +118,18 @@
     
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 11: Feed the Yeti</h1>
+            <h1>Puzzle 11: Snack Time for Yeti</h1>
             <p class="instructions">
-                Navigate the ice caves to find the hungry Yeti. <br>
-                <strong>Chill</strong> = Slush Puddle nearby. <strong>Wings</strong> = Bats nearby. <strong>Rumble</strong> = Hungry Yeti nearby.<br>
-                Toss a treat into the Yeti's room to make a friend!
+                Navigate the 5x5 labrynth of ice caves to feed the hungry Yeti.  But he's shy, so you'll need to toss the snack into the correct room.  You just have three tries!<br>
+                <strong>Draft</strong> = Slush Puddle nearby. <strong>Wings</strong> = Bats nearby. <strong>Rumble</strong> = Hungry Yeti nearby.<br>
             </p>
             
             <div id="game-ui">
                 <div class="room-display" id="room-indicator">Cave Entrance</div>
+                <div class="snack-counter" id="snack-display">Snacks: 3</div>
                 
                 <div class="status-log" id="game-log">
-                    <div class="log-entry">You enter the frozen caverns with a bag of snacks...</div>
+                    <div class="log-entry">You enter the frozen caverns...</div>
                 </div>
 
                 <div class="action-toggle">
@@ -162,7 +166,7 @@
             </div>
         </div>
 
-        <div class="spacer-large"></div>
+        <div class="spacer-medium"></div>
         <div class="hidden-clue">11. case</div>
     </div>
 
@@ -175,10 +179,12 @@
         let visited = [];
         let actionMode = 'move'; // 'move' or 'shoot'
         let gameActive = true;
+        let snacks = 3;
 
         function initGame() {
             gameActive = true;
             visited = [];
+            snacks = 3;
             // Generate Random Positions (ensure no overlap on start)
             startPos = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) };
             playerPos = {...startPos};
@@ -234,39 +240,61 @@
                 checkRoom();
             } else {
                 // Tossing Snack
-                if (target.x === yetiPos.x && target.y === yetiPos.y) {
-                    gameWin();
+                if (snacks > 0) {
+                    snacks--;
+                    if (target.x === yetiPos.x && target.y === yetiPos.y) {
+                        gameWin();
+                        return;
+                    } else {
+                        log("You tossed a snack... but nobody was there.", "warning-text");
+                        if (snacks === 0) {
+                            gameOver("You ran out of snacks! The Yeti remains hungry.");
+                            return;
+                        }
+                        log("The Yeti heard the splash and ran somewhere else!", "danger-text");
+                        relocateYetiRandomly(); // Yeti moves to random spot if missed shot
+                    }
+                    updateState();
                 } else {
-                    log("You tossed a snack... but nobody was there.", "warning-text");
-                    log("You hear the Yeti moving around!", "danger-text");
-                    moveYeti();
+                    gameOver("You have no snacks left!");
                 }
-                setMode('move'); // Reset to move after shot
+                setMode('move'); 
             }
         }
 
-        function moveYeti() {
-            // Yeti moves to a random adjacent cell (if valid)
-            const moves = [{x:0, y:-1}, {x:0, y:1}, {x:1, y:0}, {x:-1, y:0}];
-            const validMoves = moves.map(m => ({x: yetiPos.x + m.x, y: yetiPos.y + m.y}))
-                                    .filter(p => p.x >= 0 && p.x < GRID_W && p.y >= 0 && p.y < GRID_H);
-            if (validMoves.length > 0) {
-                yetiPos = validMoves[Math.floor(Math.random() * validMoves.length)];
-                // If Yeti moves onto player
-                if (yetiPos.x === playerPos.x && yetiPos.y === playerPos.y) {
-                    gameOver("The Yeti bumped into you! You dropped your snacks.");
-                } else {
-                    updateState(); // Re-check warnings
+        function relocateYetiRandomly() {
+            // Find a safe spot (not player, not hazard)
+            let possibleMoves = [];
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    const p = {x, y};
+                    if (isSame(p, playerPos)) continue;
+                    if (isSame(p, pitPos1) || isSame(p, pitPos2)) continue;
+                    if (isSame(p, batPos1) || isSame(p, batPos2)) continue;
+                    possibleMoves.push(p);
                 }
+            }
+            
+            if (possibleMoves.length > 0) {
+                yetiPos = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                updateState();
             }
         }
 
         function checkRoom() {
-            // 1. Check Hazards
+            // 1. Check Yeti Collision (New Logic: Yeti runs away)
             if (isSame(playerPos, yetiPos)) {
-                gameOver("You startled the Yeti! He ran away.");
+                log("You walked right into the Yeti! He was startled and ran away.", "warning-text");
+                relocateYetiRandomly();
+                // We assume hazards are not checked if Yeti was here, or we check them now?
+                // Usually if Yeti moves, you are now safe in this room (unless it's also a hazard room, but we prevent Yeti in hazard rooms usually)
+                // Let's mark visited and update
+                if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
+                updateState();
                 return;
             }
+
+            // 2. Check Hazards
             if (isSame(playerPos, pitPos1) || isSame(playerPos, pitPos2)) {
                 gameOver("Splash! You fell in a slush puddle. Gross.");
                 return;
@@ -279,13 +307,15 @@
                 return;
             }
 
-            // 2. Safe Room - Mark visited & Show Warnings
+            // 3. Safe Room - Mark visited & Show Warnings
             if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
             updateState();
         }
 
         function updateState() {
             renderMap();
+            document.getElementById('snack-display').innerText = "Snacks: " + snacks;
+            
             let warnings = [];
             
             // Check adjacency
@@ -298,10 +328,11 @@
             if (warnings.length > 0) {
                 warnings.forEach(w => log(w));
             } else {
-                log("The cave is silent.");
+                log("The room is quiet.");
             }
             
-            document.getElementById('room-indicator').innerText = `Room ${playerPos.x},${playerPos.y}`;
+            // Update display to use 1-based indexing
+            document.getElementById('room-indicator').innerText = `Room ${playerPos.x + 1},${playerPos.y + 1}`;
         }
 
         function getNeighbors(p) {
