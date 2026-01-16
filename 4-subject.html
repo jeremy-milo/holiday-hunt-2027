@@ -11,27 +11,42 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* Specific dimension overrides for this game to match original gameplay area */
+        /* CRITICAL GAME CSS */
         #game-container {
             max-width: 700px;
             height: 300px;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
             cursor: pointer;
-            margin: 0 auto; /* Center the game frame */
+            margin: 0 auto; 
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            /* Prevents scrolling while tapping on mobile */
+            touch-action: none; 
+            -webkit-user-select: none;
+            user-select: none;
         }
         canvas#gameCanvas {
             width: 100%;
             height: 100%;
             display: block;
         }
-
-        /* Override UI Layer to be transparent for the start screen */
-        #game-container .ui-layer {
-            background: rgba(0,0,0,0) !important;
-            pointer-events: none; /* Pass clicks through mostly */
-        }
         
-        /* Re-enable pointer events for the screens and button */
+        /* UI LAYERS */
+        #game-container .ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0); /* Default transparent */
+            pointer-events: none; /* Let clicks pass through to game by default */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* Active screens capture clicks */
         #start-screen, #game-over-screen, #win-screen {
             pointer-events: auto;
             width: 100%;
@@ -42,15 +57,9 @@
             justify-content: center;
         }
 
-        /* Add backgrounds back for Game Over and Win screens so text is readable */
         #game-over-screen, #win-screen {
-            background: rgba(0,0,0,0.6); /* Slightly transparent to see game behind */
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(2px);
-        }
-
-        /* Start screen specific - just the button centered */
-        #start-screen {
-            /* Transparent background */
         }
     </style>
 </head>
@@ -95,15 +104,26 @@
         const GAME_HEIGHT = 400;
         gameCanvas.width = GAME_WIDTH;
         gameCanvas.height = GAME_HEIGHT;
+        
+        // Audio Context setup
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
+        function ensureAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
         function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // Safety check if audio failed to initialize
+            if (!audioCtx) return;
+            
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
+            
             if (type === 'jump') {
                 osc.type = 'square'; 
                 osc.frequency.setValueAtTime(400, audioCtx.currentTime);
@@ -159,6 +179,8 @@
             gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + startTime + duration);
             osc.start(audioCtx.currentTime + startTime); osc.stop(audioCtx.currentTime + startTime + duration);
         }
+        
+        // Game State Variables
         let gameSpeed = 12; let distance = 0; let nextSpawnDist = 800;
         let isPlaying = false; let isGameOver = false; let frames = 0;
         const WIN_DISTANCE = 11250;
@@ -166,6 +188,9 @@
         let obstacles = []; let bgOffset1 = 0; let bgOffset2 = 0;
 
         function resetGame() {
+            // Ensure audio is ready on user interaction
+            ensureAudio();
+            
             willow.y = 300; willow.dy = 0; obstacles = []; distance = 0; nextSpawnDist = 800;
             gameSpeed = 12; isPlaying = true; isGameOver = false;
             document.getElementById('ui-layer').classList.add('hidden-ui');
@@ -335,9 +360,19 @@
             }
         }
         document.body.onkeydown = function(e){ if(e.keyCode == 32) { e.preventDefault(); jump(); } }
-        document.getElementById('game-container').addEventListener('mousedown', jump);
-        document.getElementById('game-container').addEventListener('touchstart', (e) => { if(e.target.tagName === 'BUTTON') return; e.preventDefault(); jump(); });
+        
+        // Interaction Handlers (Touch & Click)
+        const container = document.getElementById('game-container');
+        container.addEventListener('mousedown', jump);
+        container.addEventListener('touchstart', (e) => { 
+            // Allow buttons to be clicked, but jump for everything else
+            if(e.target.tagName === 'BUTTON') return; 
+            e.preventDefault(); 
+            jump(); 
+        }, {passive: false});
+
         document.getElementById('start-btn').addEventListener('click', resetGame);
+        
         const _next = [53, 45, 115, 116, 97, 116, 101, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') { throw new Error("Blob navigation restricted"); } window.location.href = url; } catch (e) { console.log("Navigation restricted."); } }
         
