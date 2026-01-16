@@ -21,6 +21,7 @@
             box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
             border-radius: 10px;
             overflow: hidden;
+            /* Prevent browser handling of gestures INSIDE the stage */
             touch-action: none; 
             margin: 0 auto 20px auto; 
         }
@@ -169,13 +170,23 @@
         rangeScale.addEventListener('input', (e) => { layers[activeLayerId].scale = parseFloat(e.target.value); applyTransforms(activeLayerId); });
 
         let isDragging = false; let startX, startY; let initialLayerX, initialLayerY; let draggedLayerId = null;
-        stage.addEventListener('mousedown', startDrag); stage.addEventListener('touchstart', startDrag, {passive: false});
-        document.addEventListener('mousemove', drag); document.addEventListener('touchmove', drag, {passive: false});
-        document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag);
+        
+        // Listeners for dragging. Note: 'touch-action: none' on #puzzle-stage handles the scroll blocking.
+        // We attach move/end listeners to the document to handle dragging outside the box, 
+        // BUT we must only block default if we are actively dragging.
+        stage.addEventListener('mousedown', startDrag); 
+        stage.addEventListener('touchstart', startDrag, {passive: false});
+        
+        document.addEventListener('mousemove', drag); 
+        document.addEventListener('touchmove', drag, {passive: false});
+        
+        document.addEventListener('mouseup', endDrag); 
+        document.addEventListener('touchend', endDrag);
 
         function startDrag(e) {
             if (e.target.classList.contains('puzzle-layer')) {
-                e.preventDefault(); isDragging = true;
+                e.preventDefault(); 
+                isDragging = true;
                 draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
                 selectLayer(draggedLayerId);
                 const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
@@ -184,7 +195,10 @@
             }
         }
         function drag(e) {
-            if (!isDragging) return; e.preventDefault(); 
+            if (!isDragging) return; 
+            // Prevent scrolling ONLY if we are actively dragging a piece
+            if(e.cancelable) e.preventDefault(); 
+            
             const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
             const dx = clientX - startX; const dy = clientY - startY;
             layers[draggedLayerId].x = initialLayerX + dx; layers[draggedLayerId].y = initialLayerY + dy;
