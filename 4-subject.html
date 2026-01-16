@@ -17,6 +17,7 @@
             height: 300px;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
             cursor: pointer;
+            margin: 0 auto; /* Center the game frame */
         }
         canvas#gameCanvas {
             width: 100%;
@@ -29,26 +30,28 @@
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
-        <h1>Puzzle 4: Willow's Run</h1>
-        <p class="instructions">Tap, click, or press spacebar to Jump. Avoid the stumps, logs and holes!</p>
-        
-        <div id="game-container" class="game-frame">
-            <canvas id="gameCanvas"></canvas>
+        <div class="puzzle-box">
+            <h1>Puzzle 4: Willow's Run</h1>
+            <p class="instructions">Tap, click, or press spacebar to Jump. Avoid the stumps, logs and holes!</p>
             
-            <div id="ui-layer" class="ui-layer">
-                <div id="start-screen">
-                    <div class="game-msg">Ready to Run?</div>
-                    <button id="start-btn" class="btn-style">Start Game</button>
-                </div>
+            <div id="game-container" class="game-frame">
+                <canvas id="gameCanvas"></canvas>
                 
-                <div id="game-over-screen" style="display:none;">
-                    <div class="game-msg" style="color: #ff6b6b; text-shadow: 0 0 10px red;">Ouch!</div>
-                    <button onclick="resetGame()" id="restart-btn" class="btn-style">Try Again</button>
-                </div>
+                <div id="ui-layer" class="ui-layer">
+                    <div id="start-screen">
+                        <div class="game-msg">Ready to Run?</div>
+                        <button id="start-btn" class="btn-style">Start Game</button>
+                    </div>
+                    
+                    <div id="game-over-screen" style="display:none;">
+                        <div class="game-msg" style="color: #ff6b6b; text-shadow: 0 0 10px red;">Ouch!</div>
+                        <button onclick="resetGame()" id="restart-btn" class="btn-style">Try Again</button>
+                    </div>
 
-                <div id="win-screen" style="display:none;">
-                    <div class="game-msg">Good Girl Willow!</div>
-                    <button id="next-level-btn" onclick="goToNextLevel()" class="btn-style">Next Puzzle</button>
+                    <div id="win-screen" style="display:none;">
+                        <div class="game-msg">Good Girl Willow!</div>
+                        <button id="next-level-btn" onclick="goToNextLevel()" class="btn-style">Next Puzzle</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -303,11 +306,61 @@
         const _next = [53, 45, 115, 116, 97, 116, 101, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') { throw new Error("Blob navigation restricted"); } window.location.href = url; } catch (e) { console.log("Navigation restricted."); } }
         
-        const canvas = document.getElementById("snow-canvas"); const ctx = canvas.getContext("2d");
-        let width = window.innerWidth; let height = window.innerHeight; canvas.width = width; canvas.height = height;
-        const snowParticles = []; for (let i = 0; i < 100; i++) { snowParticles.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 3 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.6 + 0.3 }); }
-        function animateSnow() { ctx.clearRect(0,0,width,height); snowParticles.forEach(p => { p.y += p.sy; p.x += p.sx; if (p.y > height) p.y = -5; if (p.x > width) p.x = 0; if (p.x < 0) p.x = width; ctx.globalAlpha = p.o; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); }); ctx.globalAlpha = 1; requestAnimationFrame(animateSnow); }
-        animateSnow();
+        /* --- SNOW ANIMATION (Harmonized) --- */
+        const canvas = document.getElementById("snow-canvas");
+        const ctx = canvas.getContext("2d");
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        const particles = [];
+        const particleCount = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y > height) this.y = 0;
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        });
     </script>
 </body>
 </html>
