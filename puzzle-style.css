@@ -52,6 +52,24 @@ h1 {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); 
 }
 
+/* Specific larger title for landing page */
+.landing-title {
+    font-size: 3rem;
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 40px;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .question { 
     font-size: 1.5rem; 
     margin-bottom: 30px; 
@@ -67,30 +85,35 @@ h1 {
 /* Responsive Font Sizes */
 @media (max-width: 600px) { 
     h1 { font-size: 2rem; } 
+    .landing-title { font-size: 1.8rem; }
+    .subtitle { font-size: 0.9rem; }
     .question { font-size: 1.2rem; } 
 }
 
 /* --- COMPONENT: BUTTONS --- */
+/* Harmonized to use the Yellow/Orange Gradient from Index */
 button, .btn-style {
-    padding: 15px 40px; 
-    font-size: 1.2rem; 
-    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); 
-    border: none; 
-    border-radius: 50px; 
-    cursor: pointer; 
-    font-weight: bold; 
-    color: #1b2735; 
-    text-transform: uppercase; 
-    transition: transform 0.2s;
-    font-family: 'Montserrat', sans-serif;
     margin-top: 10px;
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    color: #333;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(253, 160, 133, 0.6);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
     display: inline-block;
-    box-shadow: 0 0 15px rgba(207, 222, 243, 0.3);
+    font-family: 'Montserrat', sans-serif;
 }
 
 button:hover, .btn-style:hover { 
     transform: scale(1.05); 
-    box-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
+    box-shadow: 0 0 25px rgba(253, 160, 133, 0.8);
 }
 
 /* --- COMPONENT: INPUTS --- */
@@ -112,8 +135,8 @@ input[type="text"], .answer-input {
 
 input[type="text"]:focus {
     background: rgba(0, 0, 0, 0.7);
-    border-color: #cfdef3;
-    box-shadow: 0 0 10px rgba(207, 222, 243, 0.2);
+    border-color: #fda085; /* Matches button orange */
+    box-shadow: 0 0 10px rgba(253, 160, 133, 0.3);
 }
 
 /* --- COMPONENT: PUZZLE BOX --- */
@@ -128,17 +151,78 @@ input[type="text"]:focus {
     overflow: hidden;
 }
 
-/* --- COMPONENT: GAME CONTAINERS --- */
-.game-frame {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
+/* --- COMPONENT: TREASURE WIDGET (Moved from Index) --- */
+.treasure-widget {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 15px 25px;
+    margin: 0 auto 40px auto;
+    display: inline-block;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: all 0.5s ease;
+}
+
+.treasure-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    margin-bottom: 5px;
+}
+
+.treasure-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.treasure-claimed {
+    color: #ff6b6b;
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+/* --- COMPONENT: COUNTDOWN TIMER (Moved from Index) --- */
+#timer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    padding: 15px;
     border-radius: 10px;
-    background: rgba(0,0,0,0.3);
-    /* Silver Border */
-    box-shadow: 0 0 0 4px #cfdef3, 0 0 30px rgba(207, 222, 243, 0.2);
-    overflow: hidden;
-    box-sizing: border-box;
+    min-width: 80px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.number {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+    .number { font-size: 1.5rem; }
+    .time-unit { min-width: 60px; padding: 10px; }
+    #timer { gap: 10px; }
 }
 
 /* --- UI OVERLAYS (Success/Fail Modals) --- */
@@ -164,9 +248,9 @@ input[type="text"]:focus {
 .game-msg {
     font-family: 'Cinzel', serif;
     font-size: 2rem;
-    color: #cfdef3;
+    color: #fda085; /* Harmonized with button */
     margin-bottom: 20px;
-    text-shadow: 0 0 20px rgba(207, 222, 243, 0.5);
+    text-shadow: 0 0 20px rgba(253, 160, 133, 0.5);
     text-align: center;
 }
 
