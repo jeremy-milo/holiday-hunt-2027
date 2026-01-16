@@ -103,9 +103,15 @@
             width: 15px; height: 15px;
             background: rgba(255,255,255,0.1);
             border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
         }
         .map-cell.visited { background: rgba(255,255,255,0.4); }
-        .map-cell.current { background: #f6d365; box-shadow: 0 0 5px #f6d365; }
+        .map-cell.current { background: #f6d365; box-shadow: 0 0 5px #f6d365; color: #000; }
 
         .snack-counter {
             font-size: 1rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold;
@@ -156,7 +162,8 @@
                     <button class="control-btn" id="btn-n" onclick="handleAction('N')">N</button>
                     <div></div>
                     <button class="control-btn" id="btn-w" onclick="handleAction('W')">W</button>
-                    <div style="display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;">🍪</div>
+                    <!-- Cookie removed -->
+                    <div style="display:flex;align-items:center;justify-content:center;"></div>
                     <button class="control-btn" id="btn-e" onclick="handleAction('E')">E</button>
                     <div></div>
                     <button class="control-btn" id="btn-s" onclick="handleAction('S')">S</button>
@@ -192,6 +199,16 @@
         let actionMode = 'move'; 
         let gameActive = true;
         let snacks = 3;
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (type === 'win') {
+                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
+            }
+        }
 
         function initGame() {
             gameActive = true;
@@ -355,6 +372,19 @@
                     d.className = 'map-cell';
                     if (x === playerPos.x && y === playerPos.y) d.classList.add('current');
                     else if (visited.some(p => p.x === x && p.y === y)) d.classList.add('visited');
+                    
+                    // Logic to show letters
+                    let letter = '';
+                    if (x === yetiPos.x && y === yetiPos.y) letter = 'Y';
+                    else if ((x === batPos1.x && y === batPos1.y) || (x === batPos2.x && y === batPos2.y)) letter = 'B';
+                    else if ((x === pitPos1.x && y === pitPos1.y) || (x === pitPos2.x && y === pitPos2.y)) letter = 'P';
+                    
+                    if (letter) {
+                        d.innerText = letter;
+                        d.style.color = '#fff'; // ensure visible
+                        if (x === playerPos.x && y === playerPos.y) d.style.color = '#000'; // dark text on current yellow cell
+                    }
+
                     map.appendChild(d);
                 }
             }
@@ -369,6 +399,7 @@
         }
 
         function gameWin() {
+            playSound('win'); // Added sound
             gameActive = false;
             const ui = document.getElementById('ui-layer');
             ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
