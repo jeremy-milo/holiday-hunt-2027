@@ -16,7 +16,8 @@
             aspect-ratio: 4 / 3;
             max-height: 75vh;
             max-width: 700px;
-            margin: 0 auto; /* Center within puzzle box */
+            margin: 0 auto;
+            position: relative;
         }
     </style>
 </head>
@@ -29,6 +30,7 @@
             <p class="instructions">Tap the pieces adjacent to the empty slot to slide them.<br>Rearrange the grid to complete the photo.</p>
             
             <div id="game-container" class="game-frame">
+                <!-- Grid styles are now pulled from puzzle-style.css -->
                 <div id="puzzle-grid"></div>
 
                 <div id="ui-layer" class="ui-layer hidden-ui">
@@ -49,7 +51,6 @@
         const uiLayer = document.getElementById('ui-layer');
         const COLS = 5; const ROWS = 5;
         const TOTAL_PIECES = COLS * ROWS;
-        /* Note: Ensure 'selfie.jpg' exists in your directory, or this will show blank squares */
         const IMAGE_SRC = 'selfie.jpg';
         let pieces = []; let boardState = []; let isSolved = false;
 
@@ -58,7 +59,9 @@
             for (let i = 0; i < TOTAL_PIECES; i++) {
                 boardState.push(i);
                 const piece = document.createElement('div');
-                piece.id = `p-${i}`; piece.classList.add('puzzle-piece');
+                piece.id = `p-${i}`; 
+                /* Style class from external CSS */
+                piece.classList.add('puzzle-piece');
                 const row = Math.floor(i / COLS); const col = i % COLS;
                 const bgX = (col / (COLS - 1)) * 100; const bgY = (row / (ROWS - 1)) * 100;
                 piece.style.backgroundImage = `url('${IMAGE_SRC}')`;
@@ -128,7 +131,7 @@
         const _next = [54, 45, 107, 105, 110, 100, 46, 104, 116, 109, 108];
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
