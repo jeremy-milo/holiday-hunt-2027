@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* GAME BOARD STYLES */
         .game-status {
             font-size: 1.2rem;
             color: #f6d365;
@@ -33,7 +32,7 @@
             width: 100%;
             max-width: 450px;
             aspect-ratio: 1/1;
-            margin: 0 auto 20px auto; /* Centered */
+            margin: 0 auto 20px auto;
         }
 
         .grid-cell {
@@ -49,9 +48,13 @@
             width: 100%;
             height: 100%;
             aspect-ratio: 1/1; 
+            -webkit-tap-highlight-color: transparent;
         }
         
-        .grid-cell:hover { background: rgba(255, 255, 255, 0.2); }
+        /* Only show hover effect on devices that support hover (mouse) */
+        @media (hover: hover) {
+            .grid-cell:hover { background: rgba(255, 255, 255, 0.2); }
+        }
 
         .cane-overlay {
             position: absolute;
@@ -86,7 +89,6 @@
             height: 20px; font-size: 0.9rem; color: #ff9; margin-top: 5px; font-style: italic;
         }
 
-        /* Animations */
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } 100% { transform: translateX(0); } }
         @keyframes revealCane { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -129,7 +131,6 @@
     </div>
 
     <script>
-        /* --- GAME LOGIC --- */
         const GRID_SIZE = 10; const NUM_SHIPS = 3; const SHIP_LENGTH = 4; const MAX_GUESSES = 35;
         let grid = []; let ships = []; let guesses = []; let hits = 0; let guessesLeft = MAX_GUESSES; let gameActive = true;
 
@@ -220,14 +221,14 @@
         function showEndScreen(won) {
             const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
             layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
-            if (won) { title.innerText = "Sweet victory!"; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
-            else { title.innerText = "Out of guesses"; btn.innerText = "Try Again"; btn.onclick = initGame; }
+            if (won) { if(title) title.innerText = "Sweet victory!"; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
+            else { if(title) title.innerText = "Out of guesses"; btn.innerText = "Try Again"; btn.onclick = initGame; }
         }
 
         const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
         function goToNextLevel() { window.location.href = String.fromCharCode(..._nextUrl); }
         
-        /* --- SNOW ANIMATION (Harmonized) --- */
+        /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
         const ctx = canvas.getContext("2d");
         let width = window.innerWidth;
