@@ -119,7 +119,7 @@
 
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
-                    <div class="game-msg">Sweet success!</div>
+                    <div class="game-msg" id="end-title">Sweet success!</div>
                     <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
                     <button class="btn-style" id="end-btn" onclick="">Next puzzle</button>
                 </div>
@@ -235,8 +235,15 @@
         function showEndScreen(won) {
             const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
             layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
-            if (won) { if(title) title.innerText = "Sweet victory!"; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
-            else { if(title) title.innerText = "Out of guesses"; btn.innerText = "Try Again"; btn.onclick = initGame; }
+            if (won) { 
+                if(title) title.innerText = "Sweet victory!"; 
+                btn.innerText = "Next Puzzle"; 
+                btn.onclick = goToNextLevel; 
+            } else { 
+                if(title) title.innerText = "You're out of guesses"; 
+                btn.innerText = "Try Again"; 
+                btn.onclick = initGame; 
+            }
         }
 
         const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
