@@ -203,16 +203,28 @@
         const willow = { x: 100, y: 300, width: 56, height: 76, dy: 0, jumpPower: -13, gravity: 0.65, grounded: true };
         let obstacles = []; let bgOffset1 = 0; let bgOffset2 = 0;
 
+        // FPS Throttling Variables
+        let lastTime = 0;
+        const fps = 60;
+        const fpsInterval = 1000 / fps;
+
         function resetGame() {
             initAudio(); // Init audio on user gesture
             
             willow.y = 300; willow.dy = 0; obstacles = []; distance = 0; nextSpawnDist = 800;
-            gameSpeed = 12; isPlaying = true; isGameOver = false;
+            
+            // ADJUST SPEED BASED ON DEVICE
+            const isMobile = window.innerWidth < 768;
+            gameSpeed = isMobile ? 9 : 12; // Slower base speed for mobile
+            
+            isPlaying = true; isGameOver = false;
             document.getElementById('ui-layer').classList.add('hidden-ui');
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-over-screen').style.display = 'none';
             document.getElementById('win-screen').style.display = 'none';
-            gameLoop();
+            
+            lastTime = performance.now();
+            gameLoop(lastTime);
         }
 
         function drawInitialState() {
@@ -295,18 +307,36 @@
             }
         }
 
-        function gameLoop() {
+        function gameLoop(timestamp) {
             if (!isPlaying && !isGameOver && frames > 0) {
+                // Background animation in pause state
                 gCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT); drawEnvironment(); drawFinishLine(); drawWillow(); animateFireworks(); requestAnimationFrame(gameLoop); return;
             }
             if (!isPlaying) return;
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+
+            // FPS Control
+            const elapsed = timestamp - lastTime;
+            if (elapsed < fpsInterval) return;
+            lastTime = timestamp - (elapsed % fpsInterval);
+
             gCtx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT); frames++; distance += gameSpeed; bgOffset1 += gameSpeed * 0.5; bgOffset2 += gameSpeed * 0.2;
             drawEnvironment(); drawFinishLine();
             gCtx.fillStyle = 'rgba(0,0,0,0.5)'; gCtx.fillRect(20, 20, 200, 10);
             gCtx.fillStyle = '#cfdef3'; /* SILVER PROGRESS BAR */
             gCtx.fillRect(20, 20, Math.min(200, (distance/WIN_DISTANCE)*200), 10);
-            const minGap = 490; const variance = Math.random() * 400; 
-            if (distance > nextSpawnDist && distance < WIN_DISTANCE - 400) { spawnObstacle(); nextSpawnDist = distance + minGap + variance; }
+            
+            // --- VARIABILITY UPDATE ---
+            // Much wider variance in spawn distance
+            const minGap = 450; 
+            const variance = Math.random() * 850; // Random extra gap between 0 and 850px
+            if (distance > nextSpawnDist && distance < WIN_DISTANCE - 400) { 
+                spawnObstacle(); 
+                nextSpawnDist = distance + minGap + variance; 
+            }
+            // --------------------------
+
             if (!willow.grounded) { willow.dy += willow.gravity; willow.y += willow.dy; }
             let groundY = 300;
             if (willow.y >= groundY) {
@@ -336,7 +366,6 @@
                 if (obs.x + obs.w < -100) { obstacles.splice(i, 1); i--; }
             }
             if (distance > WIN_DISTANCE) { gameWin(); return; }
-            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function jump() { if (willow.grounded && isPlaying) { willow.dy = willow.jumpPower; willow.grounded = false; playSound('jump'); } }
