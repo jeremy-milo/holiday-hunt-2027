@@ -33,8 +33,10 @@
             touch-action: none; /* Important for touch dragging */
         }
         
-        #code-img { z-index: 10; width: 300px; }
-        #key-img { z-index: 5; width: 300px; }
+        /* Set fixed opacity since controls were removed. 
+           Code layer is slightly transparent to see the Key layer below/above. */
+        #code-img { z-index: 10; width: 300px; opacity: 0.8; }
+        #key-img { z-index: 5; width: 300px; opacity: 1; }
 
         .controls-container {
             background: rgba(0, 0, 0, 0.6);
@@ -103,12 +105,6 @@
             margin-bottom: 15px;
             font-size: 1.1rem;
         }
-
-        #reset-btn {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-        }
     </style>
 </head>
 <body>
@@ -128,14 +124,6 @@
             <div class="controls-container">
                 <div class="section-title">Code File Controls</div>
                 
-                <div class="control-group">
-                    <label>Opacity</label>
-                    <div class="slider-wrapper">
-                        <button class="adjust-btn" onclick="adjustValue('opacity-code', -0.05)">&#60;</button>
-                        <input type="range" id="opacity-code" min="0" max="1" step="0.05" value="0.8">
-                        <button class="adjust-btn" onclick="adjustValue('opacity-code', 0.05)">&#62;</button>
-                    </div>
-                </div>
                 <div class="control-group">
                     <label>Size</label>
                     <div class="slider-wrapper">
@@ -159,14 +147,6 @@
                 <div class="section-title">Key File Controls</div>
 
                 <div class="control-group">
-                    <label>Opacity</label>
-                    <div class="slider-wrapper">
-                        <button class="adjust-btn" onclick="adjustValue('opacity-key', -0.05)">&#60;</button>
-                        <input type="range" id="opacity-key" min="0" max="1" step="0.05" value="1">
-                        <button class="adjust-btn" onclick="adjustValue('opacity-key', 0.05)">&#62;</button>
-                    </div>
-                </div>
-                <div class="control-group">
                     <label>Size</label>
                     <div class="slider-wrapper">
                         <button class="adjust-btn" onclick="adjustValue('size-key', -10)">&#60;</button>
@@ -184,11 +164,9 @@
                 </div>
             </div>
 
-            <button id="reset-btn" class="btn-style" style="background: rgba(255,255,255,0.2);">Reset Images</button>
-
             <br><br>
-            <p class="question">What 4-letter code is revealed?</p>
-            <input type="text" id="answerInput" class="answer-input" placeholder="XXXX">
+            <!-- Question Removed as requested -->
+            <input type="text" id="answerInput" class="answer-input" placeholder="Type the encoded message">
             <button class="btn-style" onclick="checkAnswer()">Unlock</button>
             <p id="error" class="error-msg">Incorrect.</p>
 
@@ -268,37 +246,22 @@
         // Helper to update CSS based on inputs
         function updateStyles() {
             // Code Image
-            const opCode = document.getElementById('opacity-code').value;
             const szCode = document.getElementById('size-code').value;
             const rotCode = document.getElementById('rotate-code').value;
             
-            codeImg.style.opacity = opCode;
             codeImg.style.width = szCode + "px";
-            // We apply rotation via transform, but preserve the centering translation if we weren't dragging.
-            // However, since drag sets top/left, we just use rotate. 
-            // BUT: dragging uses top/left. Rotation is separate.
-            // Problem: standard CSS drag usually conflicts with transform translate.
-            // Solution: We will apply rotation to the transform, but NOT translate, because dragging handles position via top/left properties.
-            // The initial state had translate(-50%, -50%). If we drag, we are changing top/left absolutely.
-            // To simplify: let's remove the transform translation once we start moving, OR simply use rotation.
-            // Best approach for this simple tool: Apply rotate. The initial CSS centering (transform: translate) might fight with this.
-            // Let's check initial CSS: transform: translate(-50%, -50%).
-            // We need to keep that translate if we haven't moved it, OR just rely on rotation.
-            // Actually, best way is to apply rotation.
             codeImg.style.transform = `translate(-50%, -50%) rotate(${rotCode}deg)`;
             
             // Key Image
-            const opKey = document.getElementById('opacity-key').value;
             const szKey = document.getElementById('size-key').value;
             const rotKey = document.getElementById('rotate-key').value;
 
-            keyImg.style.opacity = opKey;
             keyImg.style.width = szKey + "px";
             keyImg.style.transform = `translate(-50%, -50%) rotate(${rotKey}deg)`;
         }
 
         // Add event listeners to all inputs
-        ['opacity-code', 'size-code', 'rotate-code', 'opacity-key', 'size-key', 'rotate-key'].forEach(id => {
+        ['size-code', 'rotate-code', 'size-key', 'rotate-key'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateStyles);
         });
 
@@ -309,8 +272,6 @@
             let step = parseFloat(input.step) || 1; 
             
             // If delta is provided (e.g. 10 or 0.05), use it, otherwise fallback to step
-            // But the button calls pass explicit delta.
-            
             let newVal = val + delta;
             
             // Clamp within min/max
@@ -326,30 +287,9 @@
         // Initialize styles
         updateStyles();
 
-        // Reset Button
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            // Reset Positions
-            codeImg.style.top = "50%";
-            codeImg.style.left = "50%";
-            keyImg.style.top = "50%";
-            keyImg.style.left = "50%";
-            
-            // Reset Inputs
-            document.getElementById('opacity-code').value = 0.8;
-            document.getElementById('size-code').value = 300;
-            document.getElementById('rotate-code').value = 0;
-            
-            document.getElementById('opacity-key').value = 1;
-            document.getElementById('size-key').value = 300;
-            document.getElementById('rotate-key').value = 0;
-            
-            updateStyles();
-        });
-
-
         // --- GAME LOGIC ---
         const _a = [55, 48, 55, 55]; // 7077
-        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108]; 
+        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 101, 108]; 
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
