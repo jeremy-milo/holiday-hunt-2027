@@ -9,91 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="puzzle-style.css">
-    
-    <style>
-        #game-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0 auto 40px auto; 
-        }
-
-        .piano-wrapper {
-            position: relative;
-            background: #222;
-            padding: 0 20px 20px 20px; 
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(207, 222, 243, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-            border-bottom: 8px solid #111;
-            display: flex; /* Changed to flex for centering if needed */
-            justify-content: center;
-            max-width: 100%;
-            overflow-x: hidden; /* Eliminated scrolling */
-            box-sizing: border-box;
-        }
-        
-        /* Removed scroll-grip styles as it is no longer needed */
-        
-        .keys-container { display: flex; position: relative; height: 200px; }
-
-        .white-key {
-            width: 40px; height: 100%;
-            background: linear-gradient(to bottom, #fff 0%, #eee 100%);
-            border: 1px solid #ccc; border-radius: 0 0 5px 5px;
-            position: relative; cursor: pointer;
-            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1);
-            flex-shrink: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .white-key:active, .white-key.active {
-            background: linear-gradient(to bottom, #eee 0%, #ddd 100%);
-            transform: translateY(2px);
-            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2);
-            z-index: 5;
-        }
-
-        .black-key {
-            width: 24px; height: 60%;
-            background: linear-gradient(to bottom, #333 0%, #000 100%);
-            position: absolute; z-index: 10; right: -12px;
-            border-radius: 0 0 3px 3px; cursor: pointer;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            -webkit-tap-highlight-color: transparent;
-        }
-        .black-key:active, .black-key.active { background: #111; transform: translateY(2px); }
-
-        @keyframes pulse-hint {
-            0% { 
-                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 0 0 rgba(253, 160, 133, 0.7); 
-                border-color: #fda085; 
-            }
-            50% { 
-                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 20px 5px rgba(246, 211, 101, 0.6); 
-                border-color: #f6d365; 
-            }
-            100% { 
-                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1), 0 0 0 0 rgba(253, 160, 133, 0); 
-                border-color: #ccc; 
-            }
-        }
-        .key-hint { animation: pulse-hint 1.5s infinite; z-index: 5 !important; }
-
-        @media (max-width: 600px) {
-            .piano-wrapper {
-                overflow-x: scroll; /* Allow scrolling if keys are too narrow to comfortably fit */
-                padding: 40px 10px 20px 10px; /* Reduce horizontal padding */
-            }
-            .white-key {
-                width: 30px; /* Smaller width for white keys */
-            }
-            .black-key {
-                width: 18px; /* Smaller width for black keys */
-                right: -9px; /* Adjust position to stay centered relative to white keys */
-                height: 55%; /* Slightly less height to fit proportion */
-            }
-        }
-    </style>
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
@@ -105,7 +20,6 @@
            
             <div id="game-container" class="game-frame" style="background: none; border: none; box-shadow: none;">
                 <div class="piano-wrapper">
-                    <!-- Removed scroll grip -->
                     <div class="keys-container" id="piano-keys"></div>
                 </div>
             </div>
@@ -113,7 +27,7 @@
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
                     <div class="game-msg">Bravo!</div>
-                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Next puzzle</button>
+                    <button class="btn-style" id="next-level-btn" onclick="nextLevel()">Next puzzle</button>
                 </div>
             </div>
         </div>
@@ -122,66 +36,50 @@
         <div class="hidden-clue">8. roast</div>
     </div>
 
+    <script src="snow.js"></script>
+    <script src="utils.js"></script>
     <script>
         const pianoContainer = document.getElementById('piano-keys');
-        let audioCtx;
         
-        function initAudio() {
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        function playWinSound() {
-            initAudio();
-            const now = audioCtx.currentTime; 
-            const notes = [523.25, 659.25, 783.99, 1046.50];
-            notes.forEach((freq, i) => { 
-                const o = audioCtx.createOscillator(); 
-                const g = audioCtx.createGain(); 
-                o.connect(g); 
-                g.connect(audioCtx.destination); 
-                o.type = 'triangle'; 
-                o.frequency.value = freq; 
-                g.gain.setValueAtTime(0, now + i*0.1); 
-                g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); 
-                g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); 
-                o.start(now + i*0.1); 
-                o.stop(now + i*0.1 + 0.5); 
-            });
-        }
-
+        // Use audioCtx from utils.js if available, or create one
+        // Note: utils.js already creates one called audioCtx
+        
         function buildPiano() {
-            pianoContainer.innerHTML = ''; let globalIdx = 0; const minKey = 4; const maxKey = 33; 
+            pianoContainer.innerHTML = ''; 
+            let globalIdx = 0; 
+            const minKey = 4; 
+            const maxKey = 33; 
             for (let oct = 0; oct < 3; oct++) {
                 const patterns = [{ w: 'C', b: 'C#' }, { w: 'D', b: 'D#' }, { w: 'E', b: null }, { w: 'F', b: 'F#' }, { w: 'G', b: 'G#' }, { w: 'A', b: 'A#' }, { w: 'B', b: null }];
                 for (let i = 0; i < patterns.length; i++) {
                     const p = patterns[i];
                     if (globalIdx >= minKey && globalIdx < maxKey) {
-                        const wKey = document.createElement('div'); wKey.className = 'white-key'; wKey.dataset.note = globalIdx;
+                        const wKey = document.createElement('div'); 
+                        wKey.className = 'white-key'; 
+                        wKey.dataset.note = globalIdx;
+                        wKey.style.touchAction = 'none'; // Prevent scrolling while playing
+                        
                         const currentIdx = globalIdx; 
                         
-                        const handlePlay = (e) => { 
-                            if(e.type==='touchstart') e.preventDefault(); 
-                            playNote(currentIdx, wKey); 
-                        };
-                        
-                        wKey.addEventListener('mousedown', handlePlay); 
-                        wKey.addEventListener('touchstart', handlePlay, {passive: false});
+                        // Unified pointer handling for mobile and desktop
+                        wKey.addEventListener('pointerdown', (e) => {
+                            e.preventDefault();
+                            playNote(currentIdx, wKey);
+                        });
                         
                         pianoContainer.appendChild(wKey);
                         if (p.b && globalIdx + 1 < maxKey) {
-                             const bKey = document.createElement('div'); bKey.className = 'black-key'; bKey.dataset.note = globalIdx + 1;
+                             const bKey = document.createElement('div'); 
+                             bKey.className = 'black-key'; 
+                             bKey.dataset.note = globalIdx + 1;
+                             bKey.style.touchAction = 'none';
+                             
                              const bIdx = globalIdx + 1; 
-                             const handlePlayB = (e) => { 
-                                 e.stopPropagation(); 
-                                 if(e.type==='touchstart') e.preventDefault(); 
-                                 playNote(bIdx, bKey); 
-                             };
-                             bKey.addEventListener('mousedown', handlePlayB); 
-                             bKey.addEventListener('touchstart', handlePlayB, {passive: false}); 
+                             bKey.addEventListener('pointerdown', (e) => {
+                                 e.stopPropagation();
+                                 e.preventDefault();
+                                 playNote(bIdx, bKey);
+                             });
                              wKey.appendChild(bKey);
                         }
                     }
@@ -191,23 +89,49 @@
             }
             showHint();
         }
-        function showHint() { const hintKey = document.querySelector('.white-key[data-note="16"]'); if (hintKey) hintKey.classList.add('key-hint'); }
-        function removeHints() { const hints = document.querySelectorAll('.key-hint'); hints.forEach(k => k.classList.remove('key-hint')); }
+        
+        function showHint() { 
+            const hintKey = document.querySelector('.white-key[data-note="16"]'); 
+            if (hintKey) hintKey.classList.add('key-hint'); 
+        }
+        
+        function removeHints() { 
+            const hints = document.querySelectorAll('.key-hint'); 
+            hints.forEach(k => k.classList.remove('key-hint')); 
+        }
+        
         buildPiano();
 
         const baseSeq = [ 4,4,4, 4,4,4, 4,7,0,2,4 ];
+        
         function playNote(index, element) {
-            initAudio();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator(); 
+            const gain = audioCtx.createGain();
             const freq = 130.81 * Math.pow(2, index / 12);
-            osc.frequency.value = freq; osc.type = 'triangle'; osc.connect(gain); gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime; gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc.start(now); osc.stop(now + 0.6);
-            element.classList.add('active'); setTimeout(() => element.classList.remove('active'), 150);
+            
+            osc.frequency.value = freq; 
+            osc.type = 'triangle'; 
+            osc.connect(gain); 
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime; 
+            gain.gain.setValueAtTime(0, now); 
+            gain.gain.linearRampToValueAtTime(0.3, now + 0.05); 
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            osc.start(now); 
+            osc.stop(now + 0.6);
+            
+            element.classList.add('active'); 
+            setTimeout(() => element.classList.remove('active'), 150);
             checkSequence(index);
         }
 
-        let matchIndex = 0; let detectedOctaveOffset = -1;
+        let matchIndex = 0; 
+        let detectedOctaveOffset = -1;
+        
         function checkSequence(noteIndex) {
             let targetRel = baseSeq[matchIndex];
             if (matchIndex === 0) {
@@ -220,8 +144,12 @@
                 }
             } else {
                 const expected = targetRel + detectedOctaveOffset;
-                if (noteIndex === expected) { matchIndex++; if (matchIndex >= baseSeq.length) { winGame(); } } 
-                else {
+                if (noteIndex === expected) { 
+                    matchIndex++; 
+                    if (matchIndex >= baseSeq.length) { 
+                        winGame(); 
+                    } 
+                } else {
                     const relative = noteIndex % 12;
                     if (relative === 4) { 
                         matchIndex = 1; 
@@ -233,70 +161,18 @@
                 }
             }
         }
+        
         function winGame() { 
-            playWinSound(); // Play the chime
+            playSound('win');
             const ui = document.getElementById('ui-layer'); 
             ui.classList.remove('hidden-ui');
             ui.classList.add('active-ui'); 
         }
-        const _dest = [57, 45, 99, 97, 110, 99, 101, 108, 46, 104, 116, 109, 108];
-        function goToNextLevel() { const url = String.fromCharCode(..._dest); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
-        /* --- SNOW ANIMATION --- */
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.radius = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y > height) this.y = 0;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
-            }
+        const _dest = [57, 45, 99, 97, 110, 99, 101, 108, 46, 104, 116, 109, 108];
+        function nextLevel() {
+            goToNextLevel(_dest);
         }
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        });
     </script>
 </body>
 </html>

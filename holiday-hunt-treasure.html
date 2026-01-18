@@ -10,37 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="puzzle-style.css">
     
-    <style>
-        .text-block {
-            font-size: 1.1rem; 
-            opacity: 0.95; 
-            margin-bottom: 20px; 
-            line-height: 1.6; 
-            text-align: left; 
-            width: 100%;
-        }
-        
-        .highlight-link {
-            color: #f6d365; 
-            text-decoration: underline; 
-            transition: color 0.3s;
-            font-weight: bold;
-        }
-        
-        .highlight-link:hover {
-            color: #fda085;
-        }
-
-        .puzzle-box {
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-        }
-
-        @media (max-width: 600px) {
-            .text-block { font-size: 1rem; }
-        }
-    </style>
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
@@ -49,76 +18,20 @@
         <div class="puzzle-box">
             <h1>Congratulations!</h1>
             
-            <p class="text-block">You solved all twelve puzzles!  But you didn't think claiming the treasure would be quite that simple, did you?!</p>
+            <p class="text-block">You solved all twelve puzzles!  But you didn\'t think claiming the treasure would be quite that simple, did you?!</p>
                 
-            <p class="text-block">Hidden in each of the twelve puzzle pages is a secret word. First you must gather all twelve secret words, being careful to keep them in their exact order.  These are the twelve "seed words" that protect the Bitcoin wallet where the treasure was stashed.</p>
+            <p class="text-block">Hidden in each of the twelve puzzle pages is a secret word. First you must gather all twelve secret words, being careful to keep them in their exact order.  These are the twelve \"seed words\" that protect the Bitcoin wallet where the treasure was stashed.</p>
                 
-            <p class="text-block">Once you have the twelve seed words, download a Bitcoin wallet app (like <a href="https://bluewallet.io/" class="highlight-link">BlueWallet</a>). Tap "Add a wallet", choose the standard Bitcoin wallet type, then tap "Import wallet" instead of the "Create" button.  Now type the twelve seed words in their correct order into the box, and then tap "Import".</p>
+            <p class="text-block">Once you have the twelve seed words, download a Bitcoin wallet app (like <a href=\"https://bluewallet.io/\" class="highlight-link">BlueWallet</a>). Tap \"Add a wallet\", choose the standard Bitcoin wallet type, then tap \"Import wallet\" instead of the \"Create\" button.  Now type the twelve seed words in their correct order into the box, and then tap \"Import\".</p>
             
-            <p class="text-block">At that point, the treasure chest is unlocked but you haven't taken the treasure into your posession.  You still need to send the treasure to a new Bitcoin wallet that only you control. If you don't act fast, someone else might snatch the treasure first!</p>
+            <p class="text-block">At that point, the treasure chest is unlocked but you haven\'t taken the treasure into your posession.  You still need to send the treasure to a new Bitcoin wallet that only you control. If you don\'t act fast, someone else might snatch the treasure first!</p>
                 
-            <p class="text-block">So open or create a different Bitcoin wallet (not the treasure wallet), get your wallet's receiving address, and send everything from the treasure wallet to your address.  Now at long last, the treasure is yours!!!</p>
+            <p class="text-block">So open or create a different Bitcoin wallet (not the treasure wallet), get your wallet\'s receiving address, and send everything from the treasure wallet to your address.  Now at long last, the treasure is yours!!!</p>
             
-            <p class="text-block">PS: If you successfully claim the treasure (or even if you don't!) please <a href="mailto:jeremymilo@gmail.com?subject=Milo%20Fam%20Holiday%20Hunt" class="highlight-link">drop us a note</a> to share what you think about our treasure hunt.  Thanks for playing!</p>
+            <p class="text-block">PS: If you successfully claim the treasure (or even if you don\'t!) please <a href=\"mailto:jeremymilo@gmail.com?subject=Milo%20Fam%20Holiday%20Hunt\" class="highlight-link">drop us a note</a> to share what you think about our treasure hunt.  Thanks for playing!</p>
         </div>
     </div>
 
-    <script>
-        /* --- SNOW ANIMATION --- */
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.radius = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y > height) this.y = 0;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        });
-    </script>
+    <script src="snow.js"></script>
 </body>
 </html>

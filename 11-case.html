@@ -16,7 +16,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 600px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -41,11 +41,28 @@
         .danger-text { color: #ff6b6b; font-weight: bold; }
         .success-text { color: #69f0ae; font-weight: bold; }
 
-        .room-display {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            font-family: 'Cinzel', serif;
-            color: #f6d365;
+        .game-layout-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .controls-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .map-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
         }
 
         .controls-grid {
@@ -66,6 +83,7 @@
             font-weight: bold;
             transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
+            min-width: 60px;
         }
         .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
         .control-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
@@ -95,29 +113,44 @@
         .mini-map {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            margin-top: 20px;
-            opacity: 0.7;
+            gap: 8px;
+            opacity: 0.9;
         }
         .map-cell {
-            width: 15px; height: 15px;
+            width: 50px; height: 50px;
             background: rgba(255,255,255,0.1);
-            border-radius: 2px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 18px;
             font-weight: bold;
             color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .map-cell.visited { background: rgba(255,255,255,0.4); }
-        .map-cell.current { background: #f6d365; box-shadow: 0 0 5px #f6d365; color: #000; }
+        .map-cell.visited { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.4); }
+        .map-cell.current { background: #f6d365; box-shadow: 0 0 15px #f6d365; color: #000; border-color: #fff; }
 
         .snack-counter {
-            font-size: 1rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold;
+            font-size: 1.2rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
         }
 
-        /* Override to center win/loss screens using flex from inline styles */
+        @media (max-width: 768px) {
+            .game-layout-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            .map-cell {
+                width: 40px; height: 40px;
+                font-size: 14px;
+            }
+            .mini-map {
+                gap: 5px;
+                margin-top: 10px;
+            }
+        }
+
         #win-screen, #lose-screen {
             display: none; 
             flex-direction: column; 
@@ -140,7 +173,7 @@
         <div class="puzzle-box">
             <h1>Puzzle 11: Snack Time for Yeti</h1>
             <p class="instructions">
-                Navigate the 5x5 labyrinth of ice caves to feed the hungry Yeti.  But he's super shy, so you'll need to toss a snack into the correct room before running out!  Avoid the rooms with bats and slush puddles.<br>
+                Navigate the 5x5 labyrinth of ice caves to feed the hungry Yeti.  But he\'s super shy, so you\'ll need to toss a snack into the correct room before running out!  Avoid the rooms with bats and slush puddles.<br>
                 <strong>Draft</strong> = Slush Puddle nearby. <strong>Wings</strong> = Bats nearby. <strong>Rumble</strong> = Hungry Yeti nearby.<br>
             </p>
             
@@ -151,25 +184,31 @@
                     <div class="log-entry">You enter the frozen caverns...</div>
                 </div>
 
-                <div class="action-toggle">
-                    <div class="toggle-opt active" id="mode-move" onclick="setMode('move')">Move</div>
-                    <div class="toggle-opt" id="mode-shoot" onclick="setMode('shoot')">Toss Snack</div>
-                </div>
+                <div class="game-layout-container">
+                    <div class="controls-column">
+                        <div class="action-toggle">
+                            <div class="toggle-opt active" id="mode-move" onclick="setMode(\'move\')">Move</div>
+                            <div class="toggle-opt" id="mode-shoot" onclick="setMode(\'shoot\')">Toss Snack</div>
+                        </div>
 
-                <div class="controls-grid">
-                    <div></div>
-                    <button class="control-btn" id="btn-n" onclick="handleAction('N')">N</button>
-                    <div></div>
-                    <button class="control-btn" id="btn-w" onclick="handleAction('W')">W</button>
-                    <!-- Cookie removed -->
-                    <div style="display:flex;align-items:center;justify-content:center;"></div>
-                    <button class="control-btn" id="btn-e" onclick="handleAction('E')">E</button>
-                    <div></div>
-                    <button class="control-btn" id="btn-s" onclick="handleAction('S')">S</button>
-                    <div></div>
-                </div>
+                        <div class="controls-grid">
+                            <div></div>
+                            <button class="control-btn" id="btn-n" onclick="handleAction(\'N\')">N</button>
+                            <div></div>
+                            <button class="control-btn" id="btn-w" onclick="handleAction(\'W\')">W</button>
+                            <div style="display:flex;align-items:center;justify-content:center; color: #f6d365; font-weight: bold;" id="room-indicator"></div>
+                            <button class="control-btn" id="btn-e" onclick="handleAction(\'E\')">E</button>
+                            <div></div>
+                            <button class="control-btn" id="btn-s" onclick="handleAction(\'S\')">S</button>
+                            <div></div>
+                        </div>
+                    </div>
 
-                <div class="mini-map" id="mini-map"></div>
+                    <div class="map-column">
+                        <div style="margin-bottom: 10px; font-family: \'Cinzel\', serif; font-size: 0.9rem; opacity: 0.8;">Labyrinth Map</div>
+                        <div class="mini-map" id="mini-map"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="ui-layer" class="ui-layer hidden-ui">
@@ -188,6 +227,8 @@
         <div class="hidden-clue">11. case</div>
     </div>
 
+    <script src="snow.js"></script>
+    <script src="utils.js"></script>
     <script>
         const GRID_W = 5;
         const GRID_H = 5;
@@ -195,19 +236,9 @@
         let startPos = {x:0, y:0};
         let yetiPos, pitPos1, pitPos2, batPos1, batPos2;
         let visited = [];
-        let actionMode = 'move'; 
+        let actionMode = \'move\'; 
         let gameActive = true;
         let snacks = 3;
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (type === 'win') {
-                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
-            }
-        }
 
         function initGame() {
             gameActive = true;
@@ -231,36 +262,36 @@
             batPos1 = getRandPos();
             batPos2 = getRandPos();
 
-            document.getElementById('game-log').innerHTML = '<div class="log-entry">You enter the frozen caverns...</div>';
-            document.getElementById('ui-layer').classList.add('hidden-ui');
-            document.getElementById('ui-layer').classList.remove('active-ui');
-            document.getElementById('win-screen').style.display = 'none';
-            document.getElementById('lose-screen').style.display = 'none';
-            setMode('move');
+            document.getElementById(\'game-log\').innerHTML = \'<div class=\"log-entry\">You enter the frozen caverns...</div>\';
+            document.getElementById(\'ui-layer\').classList.add(\'hidden-ui\');
+            document.getElementById(\'ui-layer\').classList.remove(\'active-ui\');
+            document.getElementById(\'win-screen\').style.display = \'none\';
+            document.getElementById(\'lose-screen\').style.display = \'none\';
+            setMode(\'move\');
             updateState();
         }
 
         function setMode(mode) {
             actionMode = mode;
-            document.getElementById('mode-move').className = mode === 'move' ? 'toggle-opt active' : 'toggle-opt';
-            document.getElementById('mode-shoot').className = mode === 'shoot' ? 'toggle-opt active' : 'toggle-opt';
+            document.getElementById(\'mode-move\').className = mode === \'move\' ? \'toggle-opt active\' : \'toggle-opt\';
+            document.getElementById(\'mode-shoot\').className = mode === \'shoot\' ? \'toggle-opt active\' : \'toggle-opt\';
         }
 
         function handleAction(dir) {
             if (!gameActive) return;
             
             let target = { ...playerPos };
-            if (dir === 'N') target.y--;
-            if (dir === 'S') target.y++;
-            if (dir === 'E') target.x++;
-            if (dir === 'W') target.x--;
+            if (dir === \'N\') target.y--;
+            if (dir === \'S\') target.y++;
+            if (dir === \'E\') target.x++;
+            if (dir === \'W\') target.x--;
 
             if (target.x < 0 || target.x >= GRID_W || target.y < 0 || target.y >= GRID_H) {
-                log("That path is blocked by ice.", "warning-text");
+                log(\"That path is blocked by ice.\", \"warning-text\");
                 return;
             }
 
-            if (actionMode === 'move') {
+            if (actionMode === \'move\') {
                 playerPos = target;
                 checkRoom();
             } else {
@@ -270,17 +301,17 @@
                         gameWin();
                         return;
                     } else {
-                        log("You tossed a snack... but nobody was there.", "warning-text");
+                        log(\"You tossed a snack... but nobody was there.\", \"warning-text\");
                         if (snacks === 0) {
-                            gameOver("You ran out of snacks!");
+                            gameOver(\"You ran out of snacks!\");
                             return;
                         }
                     }
                     updateState();
                 } else {
-                    gameOver("You have no snacks left!");
+                    gameOver(\"You have no snacks left!\");
                 }
-                setMode('move'); 
+                setMode(\'move\'); 
             }
         }
 
@@ -304,7 +335,7 @@
 
         function checkRoom() {
             if (isSame(playerPos, yetiPos)) {
-                log("You walked right into the Yeti! He was startled and ran away.", "warning-text");
+                log(\"You walked right into the Yeti! He was startled and ran away.\", \"warning-text\");
                 relocateYetiRandomly();
                 if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
                 updateState();
@@ -312,11 +343,11 @@
             }
 
             if (isSame(playerPos, pitPos1) || isSame(playerPos, pitPos2)) {
-                gameOver("Splash! You fell in a freezing slush puddle.");
+                gameOver(\"Splash! You fell in a freezing slush puddle.\");
                 return;
             }
             if (isSame(playerPos, batPos1) || isSame(playerPos, batPos2)) {
-                log("Friendly bats carry you to a new room!", "warning-text");
+                log(\"Friendly bats carry you to a new room!\", \"warning-text\");
                 playerPos = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) };
                 checkRoom(); 
                 return;
@@ -328,23 +359,23 @@
 
         function updateState() {
             renderMap();
-            document.getElementById('snack-display').innerText = "Snacks remaining: " + snacks;
+            document.getElementById(\'snack-display\').innerText = \"Snacks remaining: \" + snacks;
             
             let warnings = [];
             
             const adj = getNeighbors(playerPos);
             
-            if (adj.some(p => isSame(p, yetiPos))) warnings.push("<span class='danger-text'>You hear a tummy rumble...</span>");
-            if (adj.some(p => isSame(p, pitPos1) || isSame(p, pitPos2))) warnings.push("<span class='warning-text'>You feel a cold draft...</span>");
-            if (adj.some(p => isSame(p, batPos1) || isSame(p, batPos2))) warnings.push("<span class='warning-text'>You hear flapping wings...</span>");
+            if (adj.some(p => isSame(p, yetiPos))) warnings.push(\"<span class=\'danger-text\'>You hear a tummy rumble...</span>\");
+            if (adj.some(p => isSame(p, pitPos1) || isSame(p, pitPos2))) warnings.push(\"<span class=\'warning-text\'>You feel a cold draft...</span>\");
+            if (adj.some(p => isSame(p, batPos1) || isSame(p, batPos2))) warnings.push(\"<span class=\'warning-text\'>You hear flapping wings...</span>\");
 
             if (warnings.length > 0) {
                 warnings.forEach(w => log(w));
             } else {
-                log("The room is quiet.");
+                log(\"The room is quiet.\");
             }
             
-            document.getElementById('room-indicator').innerText = `Room ${playerPos.x + 1},${playerPos.y + 1}`;
+            document.getElementById(\'room-indicator\').innerText = `${playerPos.x + 1},${playerPos.y + 1}`;
         }
 
         function getNeighbors(p) {
@@ -356,32 +387,32 @@
 
         function isSame(p1, p2) { return p1.x === p2.x && p1.y === p2.y; }
 
-        function log(msg, cls='') {
-            const el = document.getElementById('game-log');
-            el.innerHTML += `<div class="log-entry ${cls}">${msg}</div>`;
+        function log(msg, cls=\'\') {
+            const el = document.getElementById(\'game-log\');
+            el.innerHTML += `<div class=\"log-entry ${cls}\">${msg}</div>`;
             el.scrollTop = el.scrollHeight;
         }
 
         function renderMap() {
-            const map = document.getElementById('mini-map');
-            map.innerHTML = '';
+            const map = document.getElementById(\'mini-map\');
+            map.innerHTML = \'\';
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
-                    const d = document.createElement('div');
-                    d.className = 'map-cell';
-                    if (x === playerPos.x && y === playerPos.y) d.classList.add('current');
-                    else if (visited.some(p => p.x === x && p.y === y)) d.classList.add('visited');
+                    const d = document.createElement(\'div\');
+                    d.className = \'map-cell\';
+                    if (x === playerPos.x && y === playerPos.y) d.classList.add(\'current\');
+                    else if (visited.some(p => p.x === x && p.y === y)) d.classList.add(\'visited\');
                     
                     // Logic to show letters
-                    let letter = '';
-                    if (x === yetiPos.x && y === yetiPos.y) letter = 'Y';
-                    else if ((x === batPos1.x && y === batPos1.y) || (x === batPos2.x && y === batPos2.y)) letter = 'B';
-                    else if ((x === pitPos1.x && y === pitPos1.y) || (x === pitPos2.x && y === pitPos2.y)) letter = 'P';
+                    let letter = \'\';
+                    if (x === yetiPos.x && y === yetiPos.y) letter = \'Y\';
+                    else if ((x === batPos1.x && y === batPos1.y) || (x === batPos2.x && y === batPos2.y)) letter = \'B\';
+                    else if ((x === pitPos1.x && y === pitPos1.y) || (x === pitPos2.x && y === pitPos2.y)) letter = \'P\';
                     
                     if (letter) {
                         d.innerText = letter;
-                        d.style.color = '#fff'; // ensure visible
-                        if (x === playerPos.x && y === playerPos.y) d.style.color = '#000'; // dark text on current yellow cell
+                        d.style.color = \'#fff\'; 
+                        if (x === playerPos.x && y === playerPos.y) d.style.color = \'#000\'; 
                     }
 
                     map.appendChild(d);
@@ -391,86 +422,30 @@
 
         function gameOver(reason) {
             gameActive = false;
-            document.getElementById('death-msg').innerText = reason;
-            const ui = document.getElementById('ui-layer');
-            ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
-            document.getElementById('lose-screen').style.display = 'flex';
+            document.getElementById(\'death-msg\').innerText = reason;
+            const ui = document.getElementById(\'ui-layer\');
+            ui.classList.remove(\'hidden-ui\'); ui.classList.add(\'active-ui\');
+            document.getElementById(\'lose-screen\').style.display = \'flex\';
         }
 
         function gameWin() {
-            playSound('win'); // Added sound
+            playSound(\'win\'); 
             gameActive = false;
-            const ui = document.getElementById('ui-layer');
-            ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
-            document.getElementById('win-screen').style.display = 'flex';
+            const ui = document.getElementById(\'ui-layer\');
+            ui.classList.remove(\'hidden-ui\'); ui.classList.add(\'active-ui\');
+            document.getElementById(\'win-screen\').style.display = \'flex\';
         }
 
         const _next = [49, 50, 45, 111, 117, 116, 100, 111, 111, 114, 46, 104, 116, 109, 108]; 
         function goToNextLevel() {
             const url = String.fromCharCode(..._next);
-            try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } 
+            try { if (window.location.protocol === \'blob:\') throw new Error(\"Restricted\"); window.location.href = url; } 
             catch (e) { 
-                const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Opening..."; 
-                const a = document.createElement('a'); a.href = url; a.innerText = "Click here"; a.style.color="#333"; a.style.display="block"; 
+                const btn = document.getElementById(\'next-level-btn\'); btn.innerHTML = \"Opening...\"; 
+                const a = document.createElement(\'a\'); a.href = url; a.innerText = \"Click here\"; a.style.color=\"#333\"; a.style.display=\"block\"; 
                 btn.parentNode.appendChild(a); a.click(); 
             }
         }
-
-        /* --- SNOW ANIMATION --- */
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.radius = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y > height) this.y = 0;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        });
 
         initGame();
     </script>

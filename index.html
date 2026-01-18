@@ -10,17 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="puzzle-style.css">
     
-    <style>
-        #reveal-content {
-            display: none; 
-            animation: fadeIn 2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
 </head>
 <body>
 
@@ -58,7 +47,7 @@
         </div>
 
         <div id="reveal-content">
-            <h1 class="landing-title">Let's goooo!</h1>
+            <h1 class="landing-title">Let\'s goooo!</h1>
             <p class="subtitle">The treasure hunt is now open. Good luck, players.</p>
             <div id="button-container"></div>
         </div>
@@ -68,7 +57,7 @@
     <script src="utils.js"></script>
     <script>
         const targetDate = new Date(2026, 11, 25, 9, 0, 0).getTime(); 
-        const treasureAddress = 'bc1qdluefrhrzu3px5p3x6qfgdcuw6qlyymwsk8kjy';
+        const treasureAddress = \'bc1qdluefrhrzu3px5p3x6qfgdcuw6qlyymwsk8kjy\';
 
         const _0x4f2a = [49, 45, 99, 97, 112, 105, 116, 97, 108, 46, 104, 116, 109, 108];
 
@@ -76,7 +65,7 @@
             try {
                 const [addressRes, priceRes] = await Promise.all([
                     fetch(`https://mempool.space/api/address/${treasureAddress}`),
-                    fetch('https://mempool.space/api/v1/prices')
+                    fetch(\'https://mempool.space/api/v1/prices\')
                 ]);
 
                 const addressData = await addressRes.json();
@@ -87,18 +76,18 @@
                 const btcPrice = priceData.USD;
                 const usdValue = btcAmount * btcPrice;
                 
-                const displayEl = document.getElementById('treasure-value');
+                const displayEl = document.getElementById(\'treasure-value\');
                 
                 if (totalSats > 0) {
-                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style="font-size: 0.8em; opacity: 0.8;">${btcAmount} Bitcoin</span><br><span style="font-size: 0.8em; opacity: 0.8;">$${usdValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style=\"font-size: 0.8em; opacity: 0.8;\">${btcAmount} Bitcoin</span><br><span style=\"font-size: 0.8em; opacity: 0.8;\">$${usdValue.toLocaleString(\'en-US\', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
                 } else {
-                    displayEl.innerText = "CLAIMED";
-                    displayEl.classList.add('treasure-claimed');
-                    document.getElementById('treasure-widget').style.borderColor = "rgba(255, 107, 107, 0.3)";
+                    displayEl.innerText = \"CLAIMED\";
+                    displayEl.classList.add(\'treasure-claimed\');
+                    document.getElementById(\'treasure-widget\').style.borderColor = \"rgba(255, 107, 107, 0.3)\";
                 }
             } catch (error) {
-                console.error("Error fetching treasure status:", error);
-                document.getElementById('treasure-value').innerText = "Status Unknown";
+                console.error(\"Error fetching treasure status:\", error);
+                document.getElementById(\'treasure-value\').innerText = \"Status Unknown\";
             }
         }
         
