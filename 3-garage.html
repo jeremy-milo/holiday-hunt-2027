@@ -63,7 +63,7 @@
     <script src="snow.js"></script>
     <script>
         const _a = [52, 48]; 
-        const _n = [52, 45, 115, 117, 98, 106, 101, 99, 116, 46, 104, 116, 109, 101, 108]; 
+        const _n = [52, 45, 115, 117, 98, 106, 101, 99, 116, 46, 104, 116, 109, 108]; 
 
         function _decode(arr) { return String.fromCharCode(...arr); }
 
@@ -95,10 +95,7 @@
         }
 
         function proceed() {
-            // Note: In the uploaded file, the URL array for _n was manually corrected to 
-            // 4-subject.html ( [52, 45, 115, 117, 98, 106, 101, 99, 116, 46, 104, 116, 109, 108] )
-            // The original upload had 52 which is '4'.
-            window.location.href = "4-subject.html";
+            window.location.href = _decode(_n);
         }
 
         document.getElementById("answerInput").addEventListener("keyup", function(event) {
