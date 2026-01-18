@@ -66,35 +66,49 @@
             const widgetEl = document.getElementById(\'treasure-widget\');
             
             try {
-                const [addressRes, priceRes] = await Promise.all([
-                    fetch(`https://mempool.space/api/address/${treasureAddress}`),
-                    fetch(\'https://mempool.space/api/v1/prices\')
-                ]);
-
-                if (!addressRes.ok || !priceRes.ok) throw new Error(\"API Error\");
-
+                // Fetch balance from Mempool.space
+                const addressRes = await fetch(`https://mempool.space/api/address/${treasureAddress}`);
+                if (!addressRes.ok) throw new Error(\"Balance API error\");
                 const addressData = await addressRes.json();
-                const priceData = await priceRes.json();
                 
-                const totalSats = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
+                // Calculate balance from chain_stats
+                const funded = addressData.chain_stats.funded_txo_sum || 0;
+                const spent = addressData.chain_stats.spent_txo_sum || 0;
+                const totalSats = funded - spent;
                 
+                // Fetch price independently (so balance still shows if price fails)
+                let usdValueStr = \"\";
+                try {
+                    const priceRes = await fetch(\'https://mempool.space/api/v1/prices\');
+                    if (priceRes.ok) {
+                        const priceData = await priceRes.json();
+                        const btcPrice = priceData.USD || 0;
+                        const usdValue = (totalSats / 100000000) * btcPrice;
+                        if (usdValue > 0) {
+                            usdValueStr = `<br><span style=\"font-size: 0.8em; opacity: 0.8;\">$${usdValue.toLocaleString(\'en-US\', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                        }
+                    }
+                } catch (e) { 
+                    console.warn(\"Price fetch failed, continuing with balance only.\"); 
+                }
+
                 if (totalSats > 0) {
                     const btcAmount = totalSats / 100000000;
-                    const btcPrice = priceData.USD || 0;
-                    const usdValue = btcAmount * btcPrice;
-                    
                     displayEl.innerHTML = `
                         ${totalSats.toLocaleString()} satoshis<br>
-                        <span style=\"font-size: 0.8em; opacity: 0.8;\">${btcAmount.toFixed(8)} Bitcoin</span><br>
-                        <span style=\"font-size: 0.8em; opacity: 0.8;\">$${usdValue.toLocaleString(\'en-US\', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        <span style=\"font-size: 0.8em; opacity: 0.8;\">${btcAmount.toFixed(8)} Bitcoin</span>${usdValueStr}
                     `;
-                } else {
+                } else if (funded > 0) {
+                    // It was funded and then spent, so it was claimed
                     displayEl.innerText = \"CLAIMED\";
                     displayEl.classList.add(\'treasure-claimed\');
                     widgetEl.style.borderColor = \"rgba(255, 107, 107, 0.4)\";
+                } else {
+                    // Never funded or just 0
+                    displayEl.innerText = \"0 satoshis\";
                 }
             } catch (error) {
-                console.error(\"Error fetching treasure status:\", error);
+                console.error(\"Treasure status error:\", error);
                 displayEl.innerText = \"Status Unavailable\";
             }
         }
