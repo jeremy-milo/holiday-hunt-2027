@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="puzzle-style.css">
-    
 </head>
 <body>
 
@@ -23,7 +22,7 @@
         </div>
 
         <div id="wait-mode">
-            <h1 class="landing-title">The Mil<span id="secret-o">o</span> Fam Holiday Hunt - 2027 Edition</h1>
+            <h1 class="landing-title">The Mil<span id="secret-o" style="cursor: help;">o</span> Fam Holiday Hunt - 2027 Edition</h1>
             <p class="subtitle">Something special is arriving soon! When the countdown reaches zero, get cracking on twelve fun puzzles. The first ones might be a snap, but they get more challenging as you progress. Happy holidays, and happy hunting!</p>
             
             <div id="timer">
@@ -46,7 +45,7 @@
             </div>
         </div>
 
-        <div id="reveal-content">
+        <div id="reveal-content" style="display: none;">
             <h1 class="landing-title">Let\'s goooo!</h1>
             <p class="subtitle">The treasure hunt is now open. Good luck, players.</p>
             <div id="button-container"></div>
@@ -56,53 +55,66 @@
     <script src="snow.js"></script>
     <script src="utils.js"></script>
     <script>
-        const targetDate = new Date(2026, 11, 25, 9, 0, 0).getTime(); 
+        // Set target date to Jan 1, 2027 at 9:00 AM Pacific Time (UTC-8)
+        const targetDate = new Date(\'2027-01-01T09:00:00-08:00\').getTime(); 
         const treasureAddress = \'bc1qdluefrhrzu3px5p3x6qfgdcuw6qlyymwsk8kjy\';
 
         const _0x4f2a = [49, 45, 99, 97, 112, 105, 116, 97, 108, 46, 104, 116, 109, 108];
 
         async function checkTreasureStatus() {
+            const displayEl = document.getElementById(\'treasure-value\');
+            const widgetEl = document.getElementById(\'treasure-widget\');
+            
             try {
                 const [addressRes, priceRes] = await Promise.all([
                     fetch(`https://mempool.space/api/address/${treasureAddress}`),
                     fetch(\'https://mempool.space/api/v1/prices\')
                 ]);
 
+                if (!addressRes.ok || !priceRes.ok) throw new Error(\"API Error\");
+
                 const addressData = await addressRes.json();
                 const priceData = await priceRes.json();
                 
                 const totalSats = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
-                const btcAmount = totalSats / 100000000;
-                const btcPrice = priceData.USD;
-                const usdValue = btcAmount * btcPrice;
-                
-                const displayEl = document.getElementById(\'treasure-value\');
                 
                 if (totalSats > 0) {
-                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style=\"font-size: 0.8em; opacity: 0.8;\">${btcAmount} Bitcoin</span><br><span style=\"font-size: 0.8em; opacity: 0.8;\">$${usdValue.toLocaleString(\'en-US\', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                    const btcAmount = totalSats / 100000000;
+                    const btcPrice = priceData.USD || 0;
+                    const usdValue = btcAmount * btcPrice;
+                    
+                    displayEl.innerHTML = `
+                        ${totalSats.toLocaleString()} satoshis<br>
+                        <span style=\"font-size: 0.8em; opacity: 0.8;\">${btcAmount.toFixed(8)} Bitcoin</span><br>
+                        <span style=\"font-size: 0.8em; opacity: 0.8;\">$${usdValue.toLocaleString(\'en-US\', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    `;
                 } else {
                     displayEl.innerText = \"CLAIMED\";
                     displayEl.classList.add(\'treasure-claimed\');
-                    document.getElementById(\'treasure-widget\').style.borderColor = \"rgba(255, 107, 107, 0.3)\";
+                    widgetEl.style.borderColor = \"rgba(255, 107, 107, 0.4)\";
                 }
             } catch (error) {
                 console.error(\"Error fetching treasure status:\", error);
-                document.getElementById(\'treasure-value\').innerText = \"Status Unknown\";
+                displayEl.innerText = \"Status Unavailable\";
             }
         }
         
         checkTreasureStatus();
 
         function revealHunt() {
-            clearInterval(timerInterval);
-            document.getElementById("wait-mode").style.display = "none";
-            document.getElementById("reveal-content").style.display = "block";
+            if (typeof timerInterval !== \'undefined\') clearInterval(timerInterval);
             
-            const container = document.getElementById("button-container");
-            if (container.innerHTML === "") {
-                const btn = document.createElement("a");
-                btn.className = "btn-style"; 
-                btn.innerText = "Begin The Hunt";
+            const waitMode = document.getElementById(\"wait-mode\");
+            const revealContent = document.getElementById(\"reveal-content\");
+            
+            if (waitMode) waitMode.style.display = \"none\";
+            if (revealContent) revealContent.style.display = \"block\";
+            
+            const container = document.getElementById(\"button-container\");
+            if (container && container.innerHTML === \"\") {
+                const btn = document.createElement(\"a\");
+                btn.className = \"btn-style\"; 
+                btn.innerText = \"Begin The Hunt\";
                 btn.href = _decode(_0x4f2a); 
                 container.appendChild(btn);
             }
@@ -112,22 +124,29 @@
             const now = new Date().getTime();
             const distance = targetDate - now;
 
+            if (distance < 0) {
+                revealHunt();
+                return;
+            }
+
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            document.getElementById("days").innerText = days < 10 ? "0" + days : days;
-            document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
-            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
-            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+            const dEl = document.getElementById(\"days\");
+            const hEl = document.getElementById(\"hours\");
+            const mEl = document.getElementById(\"minutes\");
+            const sEl = document.getElementById(\"seconds\");
 
-            if (distance < 0) {
-                revealHunt();
-            }
+            if (dEl) dEl.innerText = days < 10 ? \"0\" + days : days;
+            if (hEl) hEl.innerText = hours < 10 ? \"0\" + hours : hours;
+            if (mEl) mEl.innerText = minutes < 10 ? \"0\" + minutes : minutes;
+            if (sEl) sEl.innerText = seconds < 10 ? \"0\" + seconds : seconds;
         }, 1000);
 
-        document.getElementById("secret-o").addEventListener("click", revealHunt);
+        const secretO = document.getElementById(\"secret-o\");
+        if (secretO) secretO.addEventListener(\"click\", revealHunt);
     </script>
 </body>
 </html>
