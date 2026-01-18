@@ -95,15 +95,15 @@ function playSound(type, param1 = null, param2 = null, param3 = null) {
         noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
         noise.start(now);
-    } else if (type === 'playNote' && param1 !== null && param2 !== null && param3 !== null) { // For 4-subject's specific playNote
+    } else if (type === 'playNote' && param1 !== null && param2 !== null && param3 !== null) { 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.type = 'sine';
-        osc.frequency.value = param1; // freq
-        gain.gain.setValueAtTime(0.1, now + param2); // startTime
-        gain.gain.linearRampToValueAtTime(0, now + param2 + param3); // duration
+        osc.frequency.value = param1; 
+        gain.gain.setValueAtTime(0.1, now + param2); 
+        gain.gain.linearRampToValueAtTime(0, now + param2 + param3); 
         osc.start(now + param2);
         osc.stop(now + param2 + param3);
     }
@@ -122,7 +122,6 @@ function goToNextLevel(urlArray) {
             if (nextButton) {
                 nextButton.innerText = "Click to proceed";
                 nextButton.onclick = () => window.location.href = url;
-                // Add a hidden link for accessibility/fallback even if button is clicked
                 let fallbackLink = document.createElement('a');
                 fallbackLink.href = url;
                 fallbackLink.innerText = "Click here if not redirected";
@@ -134,7 +133,6 @@ function goToNextLevel(urlArray) {
                 nextButton.parentNode.insertBefore(fallbackLink, nextButton.nextSibling);
             }
         } else {
-            // If no UI layer is active, just try to navigate
             window.location.href = url;
         }
     }
