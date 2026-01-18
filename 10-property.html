@@ -44,6 +44,15 @@
             /* High visibility for the code itself */
             opacity: 1.0; 
             mix-blend-mode: normal; 
+
+            /* Restore clipped corner */
+            clip-path: polygon(
+                10px 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%, 
+                0 10px
+            );
         }
         
         /* Key Image Container (Foreground/Draggable) */
