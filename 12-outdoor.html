@@ -40,6 +40,7 @@
             color: #f6d365;
             text-shadow: 0 0 10px rgba(246, 211, 101, 0.3);
             position: relative;
+            transition: transform 0.3s ease, background 0.3s;
         }
 
         /* Override generic input if needed, though answer-input class handles most */
@@ -61,15 +62,15 @@
                 In shops on the web or the aisles in store.<br>
                 They're made out of oats and they're whole-grain and round,<br>
                 Where the crunch with some milk in a breakfast are found.<br>
-                They look like small donuts, but off-white and thin,<br>
-                Now inspect the contents to lock in your win.<br>
+                They look like small donuts, but light brown and thin,<br>
+                Now <b>inspect the contents</b> to lock in your win.<br>
                 Count letters with care to build out your key,<br>
                 The path to the finish gets easy to see!<br><br>
             </p>
             
             <div class="cipher-container">
                 <div class="word-group">
-                    <div class="cipher-char">13</div>
+                    <div class="cipher-char" id="flipping-char">13</div>
                     <div class="cipher-char">2</div>
                     <div class="cipher-char">5</div>
                 </div>
@@ -168,6 +169,21 @@
         document.getElementById("answerInput").addEventListener("keyup", function(event) {
             if (event.key === "Enter") checkAnswer();
         });
+
+        /* --- FLIPPING ANIMATION FOR FIRST CHAR --- */
+        const flippingChar = document.getElementById('flipping-char');
+        setInterval(() => {
+            // Toggle between '13' and 'T'
+            flippingChar.innerText = flippingChar.innerText === '13' ? 'T' : '13';
+            
+            // Optional: Add a subtle visual pop when it flips
+            flippingChar.style.transform = "scale(1.1)";
+            flippingChar.style.background = "rgba(255, 255, 255, 0.2)";
+            setTimeout(() => {
+                flippingChar.style.transform = "scale(1)";
+                flippingChar.style.background = "rgba(255, 255, 255, 0.1)";
+            }, 150);
+        }, 1000);
 
         /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
