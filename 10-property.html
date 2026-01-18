@@ -27,7 +27,7 @@
             /* Initial centering, overridden by JS randomization */
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); 
+            /* transform: translate(-50%, -50%); Removed because randomization sets explicit top/left */
             max-width: none; 
             cursor: move;
             user-select: none;
@@ -36,6 +36,7 @@
             /* Visual settings for overlapping */
             opacity: 0.6; 
             mix-blend-mode: screen; /* Helps visibility on dark backgrounds */
+            transform-origin: center center;
         }
         
         #code-img { z-index: 10; width: 300px; }
@@ -258,6 +259,8 @@
             const finalRotCode = rotCodeInput + codeRotOffset;
             
             codeImg.style.width = szCode + "px";
+            // Rotation around center. 
+            // Note: Since we use top/left for position (drag), we don't need translate() here.
             codeImg.style.transform = `rotate(${finalRotCode}deg)`;
             
             // Key Image
@@ -296,36 +299,42 @@
         }
 
         function randomizeInit() {
-            // Randomize Code Image
+            // 1. Randomize Visuals (Size & Position)
             const codeSize = getRandomInt(200, 450);
-            
-            // Generate random offsets for rotation solution
-            codeRotOffset = getRandomInt(0, 360);
-            keyRotOffset = getRandomInt(0, 360);
-
-            // Also randomize the initial slider positions so it doesn't look static
-            const initialSliderCode = getRandomInt(0, 360);
-            const initialSliderKey = getRandomInt(0, 360);
-            
-            const codeTop = getRandomInt(30, 70); // Percentage
-            const codeLeft = getRandomInt(30, 70); // Percentage
-
-            document.getElementById('size-code').value = codeSize;
-            document.getElementById('rotate-code').value = initialSliderCode;
-            
-            codeImg.style.top = codeTop + "%";
-            codeImg.style.left = codeLeft + "%";
-            
-            // Randomize Key Image
             const keySize = getRandomInt(200, 450);
-            const keyTop = getRandomInt(30, 70); // Percentage
-            const keyLeft = getRandomInt(30, 70); // Percentage
-
-            document.getElementById('size-key').value = keySize;
-            document.getElementById('rotate-key').value = initialSliderKey;
             
-            keyImg.style.top = keyTop + "%";
-            keyImg.style.left = keyLeft + "%";
+            document.getElementById('size-code').value = codeSize;
+            document.getElementById('size-key').value = keySize;
+
+            codeImg.style.top = getRandomInt(30, 60) + "%";
+            codeImg.style.left = getRandomInt(30, 60) + "%";
+            keyImg.style.top = getRandomInt(30, 60) + "%";
+            keyImg.style.left = getRandomInt(30, 60) + "%";
+
+            // 2. Randomize Rotation Solution
+            // We want the puzzle to be solvable at a random absolute angle (e.g. 45 degrees absolute)
+            // BUT we want the SLIDERS to be at different values when solved.
+            
+            const solutionAbsAngle = getRandomInt(0, 360); // Visual angle when aligned
+
+            // Pick a target slider position for Code (e.g., 100)
+            const targetSliderCode = getRandomInt(20, 340);
+            
+            // Pick a target slider position for Key that is DIFFERENT (e.g., 200)
+            // Ensure at least 60 degrees difference so user can't just match numbers
+            let targetSliderKey;
+            do {
+                targetSliderKey = getRandomInt(20, 340);
+            } while (Math.abs(targetSliderCode - targetSliderKey) < 60);
+
+            // Calculate Offsets required to achieve this
+            // Visual = Slider + Offset  -->  Offset = Visual - Slider
+            codeRotOffset = solutionAbsAngle - targetSliderCode;
+            keyRotOffset = solutionAbsAngle - targetSliderKey;
+
+            // 3. Scramble initial slider positions (so it doesn't start solved)
+            document.getElementById('rotate-code').value = getRandomInt(0, 360);
+            document.getElementById('rotate-key').value = getRandomInt(0, 360);
 
             // Apply these values
             updateStyles();
