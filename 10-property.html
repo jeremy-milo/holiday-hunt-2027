@@ -4,165 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>11. case</title>
+    <title>10. property</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="puzzle-style.css">
-    
     <style>
-        #game-ui {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* --- IMAGE MANIPULATION STYLES --- */
+        #img-manipulation-area {
+            position: relative;
             width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
+            height: 350px; 
+            background: rgba(255, 255, 255, 0.9); /* Lighter background to help visibility in multiply mode */
+            border: 2px solid rgba(255, 255, 255, 0.3); 
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-radius: 10px;
         }
 
-        .status-log {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+        .manipulatable-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            max-width: none; 
+            cursor: move;
+            user-select: none;
+            touch-action: none; 
+            transform-origin: center center;
+            box-sizing: border-box; /* Ensure padding doesn't affect dimensions calculation logic excessively */
+            
+            /* Clipped corner: 10px on top-left */
+            clip-path: polygon(
+                10px 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%, 
+                0 10px
+            );
+        }
+        
+        /* Code Image (Background) */
+        #code-img { 
+            z-index: 5; 
+            /* Width is fixed at 600px now */
+            width: 600px; 
+            transform: translate(-50%, -50%); 
+            
+            /* High visibility for the code itself */
+            opacity: 1.0; 
+            mix-blend-mode: normal; 
+        }
+        
+        /* Key Image Container (Foreground/Draggable) */
+        #key-img { 
+            z-index: 10; 
+            /* Initial width set by JS, but good to have default */
+            width: 300px; 
+            
+            /* Multiply mode makes white pixels transparent */
+            mix-blend-mode: multiply;
+            opacity: 1.0; 
+
+            /* BORDER TECHNIQUE: Container Background + Padding */
+            /* This creates a solid border that perfectly follows the clip-path */
+            background-color: #222; /* Dark Grey Border Color */
+            padding: 2px;           /* Width of the border */
+        }
+
+        /* Inner image style to ensure it fills the container and provides white background for multiply */
+        #key-img img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: white; /* Blocks the border color from showing through transparency */
+            /* The image itself is rectangular, but the container clips it */
+        }
+
+        .controls-container {
+            background: rgba(0, 0, 0, 0.6);
             padding: 15px;
-            width: 100%;
-            height: 120px;
-            overflow-y: auto;
+            border-radius: 10px;
             margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            text-align: left;
+            width: 100%;
             box-sizing: border-box;
-            color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;}
-        .warning-text { color: #ffeb3b; font-weight: bold; }
-        .danger-text { color: #ff6b6b; font-weight: bold; }
-        .success-text { color: #69f0ae; font-weight: bold; }
-
-        .game-layout-container {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 40px;
-            width: 100%;
-            margin-top: 20px;
+        .control-group {
+            margin-bottom: 15px;
+            text-align: left;
         }
 
-        .controls-column {
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        /* Fine-tuning layout */
+        .slider-wrapper {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            flex: 1;
-        }
-
-        .map-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-bottom: 20px;
         }
 
-        .control-btn {
+        .adjust-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
             cursor: pointer;
-            font-family: 'Montserrat', sans-serif;
             font-weight: bold;
-            transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
-            min-width: 60px;
-        }
-        .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
-        .control-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-
-        .action-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: rgba(0,0,0,0.3);
-            padding: 5px;
-            border-radius: 30px;
-        }
-
-        .toggle-opt {
-            padding: 10px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .toggle-opt.active { background: #f6d365; color: #1b2735; }
-        .toggle-opt:not(.active) { color: #aaa; }
-
-        .mini-map {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            opacity: 0.9;
-        }
-        .map-cell {
-            width: 50px; height: 50px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .map-cell.visited { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.4); }
-        .map-cell.current { background: #f6d365; box-shadow: 0 0 15px #f6d365; color: #000; border-color: #fff; }
-
-        .snack-counter {
-            font-size: 1.2rem; color: #ffeb3b; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+            transition: background 0.2s;
+            padding: 0; 
         }
 
-        @media (max-width: 768px) {
-            .game-layout-container {
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
-            }
-            .map-cell {
-                width: 40px; height: 40px;
-                font-size: 14px;
-            }
-            .mini-map {
-                gap: 5px;
-                margin-top: 10px;
-            }
+        .adjust-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
-        #win-screen, #lose-screen {
-            display: none; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100%; 
-            width: 100%;
+        .adjust-btn:active {
+            background: #fda085;
+            color: #000;
         }
 
-        #death-msg {
-            white-space: pre-wrap;
-            line-height: 1.4;
+        input[type="range"] {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .section-title {
+            color: #f6d365;
+            font-family: 'Cinzel', serif;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -171,288 +154,230 @@
     
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 11: Snack Time for Yeti</h1>
-            <p class="instructions">
-                Navigate the 5x5 labyrinth of ice caves to feed the hungry Yeti.  But he's super shy, so you'll need to toss a snack into the correct room before running out!  Avoid the rooms with bats and slush puddles.<br>
-                <strong>Draft</strong> = Slush Puddle nearby. <strong>Wings</strong> = Bats nearby. <strong>Rumble</strong> = Hungry Yeti nearby.<br>
-            </p>
+            <h1>Puzzle 10: Spirographic</h1>
+            <p class="instructions">Restore alignment to recover the encoded message.</p>
             
-            <div id="game-ui">
-                <div class="snack-counter" id="snack-display">Snacks remaining: 3</div>
+            <div id="img-manipulation-area">
+                <img src="code.png" id="code-img" class="manipulatable-img" style="top: 50%; left: 50%;" alt="Code Layer">
                 
-                <div class="status-log" id="game-log">
-                    <div class="log-entry">You enter the frozen caverns...</div>
+                <!-- Updated Structure: Wrapper DIV for Border -->
+                <div id="key-img" class="manipulatable-img">
+                    <img src="key.png" alt="Key Layer">
                 </div>
+            </div>
 
-                <div class="game-layout-container">
-                    <div class="controls-column">
-                        <div class="action-toggle">
-                            <div class="toggle-opt active" id="mode-move" onclick="setMode('move')">Move</div>
-                            <div class="toggle-opt" id="mode-shoot" onclick="setMode('shoot')">Toss Snack</div>
-                        </div>
-
-                        <div class="controls-grid">
-                            <div></div>
-                            <button class="control-btn" id="btn-n" onclick="handleAction('N')">N</button>
-                            <div></div>
-                            <button class="control-btn" id="btn-w" onclick="handleAction('W')">W</button>
-                            <div style="display:flex;align-items:center;justify-content:center; color: #f6d365; font-weight: bold;" id="room-indicator"></div>
-                            <button class="control-btn" id="btn-e" onclick="handleAction('E')">E</button>
-                            <div></div>
-                            <button class="control-btn" id="btn-s" onclick="handleAction('S')">S</button>
-                            <div></div>
-                        </div>
+            <!-- KEY Controls Only -->
+            <div class="controls-container">
+                <div class="control-group">
+                    <label>Size</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('size-key', -10)">&#60;</button>
+                        <input type="range" id="size-key" min="50" max="600" step="10" value="300">
+                        <button class="adjust-btn" onclick="adjustValue('size-key', 10)">&#62;</button>
                     </div>
-
-                    <div class="map-column">
-                        <div style="margin-bottom: 10px; font-family: 'Cinzel', serif; font-size: 0.9rem; opacity: 0.8;">Labyrinth Map</div>
-                        <div class="mini-map" id="mini-map"></div>
+                </div>
+                <div class="control-group">
+                    <label>Rotation</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('rotate-key', -1)">&#60;</button>
+                        <input type="range" id="rotate-key" min="0" max="360" step="1" value="0">
+                        <button class="adjust-btn" onclick="adjustValue('rotate-key', 1)">&#62;</button>
                     </div>
                 </div>
             </div>
 
+            <br><br>
+            <input type="text" id="answerInput" class="answer-input" placeholder="Type the encoded message">
+            <button class="btn-style" onclick="checkAnswer()">Unlock</button>
+            <p id="error" class="error-msg">Incorrect.</p>
+
             <div id="ui-layer" class="ui-layer hidden-ui">
-                <div id="win-screen">
-                    <div class="game-msg">The yeti is stoked!</div>
-                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Next puzzle</button>
-                </div>
-                <div id="lose-screen">
-                    <div class="game-msg" style="color: #ff6b6b;" id="death-msg">You failed to feed the yeti this time!</div>
-                    <button class="btn-style" onclick="initGame()">Try Again</button>
-                </div>
+                <div class="game-msg">Access Granted</div>
+                <button class="btn-style" onclick="proceed()">Next puzzle</button>
             </div>
         </div>
 
         <div class="spacer-large"></div>
-        <div class="hidden-clue">11. case</div>
+        <div class="hidden-clue">10. property</div>
     </div>
 
     <script src="snow.js"></script>
-    <script src="utils.js"></script>
     <script>
-        const GRID_W = 5;
-        const GRID_H = 5;
-        let playerPos = {x:0, y:0};
-        let startPos = {x:0, y:0};
-        let yetiPos, pitPos1, pitPos2, batPos1, batPos2;
-        let visited = [];
-        let actionMode = 'move'; 
-        let gameActive = true;
-        let snacks = 3;
-
-        function initGame() {
-            gameActive = true;
-            visited = [];
-            snacks = 3;
-            startPos = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) };
-            playerPos = {...startPos};
+        // --- DRAG & DROP LOGIC ---
+        function makeDraggable(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             
-            let positions = [startPos];
-            const getRandPos = () => {
-                let p;
-                do { p = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) }; } 
-                while (positions.some(pos => pos.x === p.x && pos.y === p.y));
-                positions.push(p);
-                return p;
-            };
+            elmnt.onmousedown = dragMouseDown;
+            elmnt.ontouchstart = dragTouchStart;
 
-            yetiPos = getRandPos();
-            pitPos1 = getRandPos();
-            pitPos2 = getRandPos();
-            batPos1 = getRandPos();
-            batPos2 = getRandPos();
-
-            document.getElementById('game-log').innerHTML = '<div class="log-entry">You enter the frozen caverns...</div>';
-            document.getElementById('ui-layer').classList.add('hidden-ui');
-            document.getElementById('ui-layer').classList.remove('active-ui');
-            document.getElementById('win-screen').style.display = 'none';
-            document.getElementById('lose-screen').style.display = 'none';
-            setMode('move');
-            updateState();
-        }
-
-        function setMode(mode) {
-            actionMode = mode;
-            document.getElementById('mode-move').className = mode === 'move' ? 'toggle-opt active' : 'toggle-opt';
-            document.getElementById('mode-shoot').className = mode === 'shoot' ? 'toggle-opt active' : 'toggle-opt';
-        }
-
-        function handleAction(dir) {
-            if (!gameActive) return;
-            
-            let target = { ...playerPos };
-            if (dir === 'N') target.y--;
-            if (dir === 'S') target.y++;
-            if (dir === 'E') target.x++;
-            if (dir === 'W') target.x--;
-
-            if (target.x < 0 || target.x >= GRID_W || target.y < 0 || target.y >= GRID_H) {
-                log("That path is blocked by ice.", "warning-text");
-                return;
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
             }
 
-            if (actionMode === 'move') {
-                playerPos = target;
-                checkRoom();
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+
+            // Touch support
+            function dragTouchStart(e) {
+                const touch = e.touches[0];
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                document.ontouchend = closeDragElement;
+                document.ontouchmove = elementTouchDrag;
+            }
+
+            function elementTouchDrag(e) {
+                e.preventDefault(); 
+                const touch = e.touches[0];
+                pos1 = pos3 - touch.clientX;
+                pos2 = pos4 - touch.clientY;
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+        }
+
+        const codeImg = document.getElementById("code-img");
+        const keyImg = document.getElementById("key-img");
+        
+        // Code image is static now, only Key is draggable
+        makeDraggable(keyImg);
+
+        // --- IMAGE MANIPULATION LOGIC ---
+        
+        let keyRotOffset = 0;
+
+        function updateStyles() {
+            // Key Image
+            const szKey = document.getElementById('size-key').value;
+            const rotKeyInput = parseFloat(document.getElementById('rotate-key').value);
+            
+            // Apply offset to rotation
+            const finalRotKey = rotKeyInput + keyRotOffset;
+
+            keyImg.style.width = szKey + "px";
+            keyImg.style.transform = `rotate(${finalRotKey}deg)`;
+        }
+
+        // Add event listeners to remaining inputs
+        ['size-key', 'rotate-key'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateStyles);
+        });
+
+        // Fine tuning function
+        window.adjustValue = function(id, delta) {
+            const input = document.getElementById(id);
+            let val = parseFloat(input.value);
+            
+            let newVal = val + delta;
+            
+            if(input.min) newVal = Math.max(parseFloat(input.min), newVal);
+            if(input.max) newVal = Math.min(parseFloat(input.max), newVal);
+            
+            input.value = newVal;
+            updateStyles();
+        };
+
+        // --- RANDOMIZATION LOGIC ---
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomizeInit() {
+            // 1. Fixed CODE Image (Target) Size
+            // Explicitly set to full size: 600px
+            const codeTargetWidth = 600; 
+            codeImg.style.width = codeTargetWidth + "px";
+
+            // 2. Randomize Initial KEY Image (Visuals)
+            // Pick a start size that is visibly different from target
+            let keyStartSize;
+            do {
+                keyStartSize = getRandomInt(200, 500);
+            } while (Math.abs(keyStartSize - codeTargetWidth) < 50);
+
+            document.getElementById('size-key').value = keyStartSize;
+
+            keyImg.style.top = getRandomInt(30, 60) + "%";
+            keyImg.style.left = getRandomInt(30, 60) + "%";
+
+            // 3. Randomize Rotation Solution
+            // The Code file is fixed at 0 degrees.
+            // User must rotate Key file to 0 degrees visual rotation to align.
+            // Visual = Slider + Offset. 0 = TargetSlider + Offset -> Offset = -TargetSlider
+            const targetSliderKey = getRandomInt(45, 315); // Random solution value on the slider
+            keyRotOffset = -targetSliderKey;
+
+            // 4. Scramble initial rotation slider
+            document.getElementById('rotate-key').value = getRandomInt(0, 360);
+
+            // Apply these values
+            updateStyles();
+        }
+
+        // Initialize on load
+        randomizeInit();
+
+
+        // --- GAME LOGIC ---
+        const _a = [55, 48, 55, 55]; // 7077
+        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 101, 108]; 
+
+        function _decode(arr) { return String.fromCharCode(...arr); }
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (type === 'win') {
+                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
+            }
+        }
+
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.trim();
+            const correct = _decode(_a);
+            
+            if(input === correct) {
+                playSound('win');
+                const ui = document.getElementById('ui-layer');
+                ui.classList.remove('hidden-ui');
+                ui.classList.add('active-ui');
             } else {
-                if (snacks > 0) {
-                    snacks--;
-                    if (target.x === yetiPos.x && target.y === yetiPos.y) {
-                        gameWin();
-                        return;
-                    } else {
-                        log("You tossed a snack... but nobody was there.", "warning-text");
-                        if (snacks === 0) {
-                            gameOver("You ran out of snacks!");
-                            return;
-                        }
-                    }
-                    updateState();
-                } else {
-                    gameOver("You have no snacks left!");
-                }
-                setMode('move'); 
+                const err = document.getElementById('error');
+                err.style.display = 'block';
+                setTimeout(() => err.style.display = 'none', 2000);
             }
         }
 
-        function relocateYetiRandomly() {
-            let possibleMoves = [];
-            for (let y = 0; y < GRID_H; y++) {
-                for (let x = 0; x < GRID_W; x++) {
-                    const p = {x, y};
-                    if (isSame(p, playerPos)) continue;
-                    if (isSame(p, pitPos1) || isSame(p, pitPos2)) continue;
-                    if (isSame(p, batPos1) || isSame(p, batPos2)) continue;
-                    possibleMoves.push(p);
-                }
-            }
-            
-            if (possibleMoves.length > 0) {
-                yetiPos = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                updateState();
-            }
+        function proceed() {
+            window.location.href = _decode(_n);
         }
 
-        function checkRoom() {
-            if (isSame(playerPos, yetiPos)) {
-                log("You walked right into the Yeti! He was startled and ran away.", "warning-text");
-                relocateYetiRandomly();
-                if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
-                updateState();
-                return;
-            }
-
-            if (isSame(playerPos, pitPos1) || isSame(playerPos, pitPos2)) {
-                gameOver("Splash! You fell in a freezing slush puddle.");
-                return;
-            }
-            if (isSame(playerPos, batPos1) || isSame(playerPos, batPos2)) {
-                log("Friendly bats carry you to a new room!", "warning-text");
-                playerPos = { x: Math.floor(Math.random()*GRID_W), y: Math.floor(Math.random()*GRID_H) };
-                checkRoom(); 
-                return;
-            }
-
-            if (!visited.some(p => isSame(p, playerPos))) visited.push(playerPos);
-            updateState();
-        }
-
-        function updateState() {
-            renderMap();
-            document.getElementById('snack-display').innerText = "Snacks remaining: " + snacks;
-            
-            let warnings = [];
-            
-            const adj = getNeighbors(playerPos);
-            
-            if (adj.some(p => isSame(p, yetiPos))) warnings.push("<span class='danger-text'>You hear a tummy rumble...</span>");
-            if (adj.some(p => isSame(p, pitPos1) || isSame(p, pitPos2))) warnings.push("<span class='warning-text'>You feel a cold draft...</span>");
-            if (adj.some(p => isSame(p, batPos1) || isSame(p, batPos2))) warnings.push("<span class='warning-text'>You hear flapping wings...</span>");
-
-            if (warnings.length > 0) {
-                warnings.forEach(w => log(w));
-            } else {
-                log("The room is quiet.");
-            }
-            
-            document.getElementById('room-indicator').innerText = `${playerPos.x + 1},${playerPos.y + 1}`;
-        }
-
-        function getNeighbors(p) {
-            return [
-                {x: p.x, y: p.y-1}, {x: p.x, y: p.y+1},
-                {x: p.x-1, y: p.y}, {x: p.x+1, y: p.y}
-            ];
-        }
-
-        function isSame(p1, p2) { return p1.x === p2.x && p1.y === p2.y; }
-
-        function log(msg, cls='') {
-            const el = document.getElementById('game-log');
-            el.innerHTML += `<div class="log-entry ${cls}">${msg}</div>`;
-            el.scrollTop = el.scrollHeight;
-        }
-
-        function renderMap() {
-            const map = document.getElementById('mini-map');
-            map.innerHTML = '';
-            for(let y=0; y<GRID_H; y++) {
-                for(let x=0; x<GRID_W; x++) {
-                    const d = document.createElement('div');
-                    d.className = 'map-cell';
-                    if (x === playerPos.x && y === playerPos.y) d.classList.add('current');
-                    else if (visited.some(p => p.x === x && p.y === y)) d.classList.add('visited');
-                    
-                    // Logic to show letters
-                    let letter = '';
-                    if (x === yetiPos.x && y === yetiPos.y) letter = 'Y';
-                    else if ((x === batPos1.x && y === batPos1.y) || (x === batPos2.x && y === batPos2.y)) letter = 'B';
-                    else if ((x === pitPos1.x && y === pitPos1.y) || (x === pitPos2.x && y === pitPos2.y)) letter = 'P';
-                    
-                    if (letter) {
-                        // In a real game, you wouldn't show these letters on the map unless revealed!
-                        // But for debugging or easy mode, we can leave them hidden or show them.
-                        // The original code tried to show them but only if visited?
-                        // Actually, logic below hides them unless visited or cheats are on. 
-                        // Let's just keep the visited logic for now.
-                        if (visited.some(p => p.x === x && p.y === y)) {
-                             // d.innerText = letter; // Optional: Reveal contents of visited rooms
-                        }
-                    }
-
-                    map.appendChild(d);
-                }
-            }
-        }
-
-        function gameOver(reason) {
-            gameActive = false;
-            document.getElementById('death-msg').innerText = reason;
-            const ui = document.getElementById('ui-layer');
-            ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
-            document.getElementById('lose-screen').style.display = 'flex';
-        }
-
-        function gameWin() {
-            playSound('win'); 
-            gameActive = false;
-            const ui = document.getElementById('ui-layer');
-            ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
-            document.getElementById('win-screen').style.display = 'flex';
-        }
-
-        const _next = [49, 50, 45, 111, 117, 116, 100, 111, 111, 114, 46, 104, 116, 109, 108]; 
-        function goToNextLevel() {
-            const url = String.fromCharCode(..._next);
-            try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } 
-            catch (e) { 
-                const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Opening..."; 
-                const a = document.createElement('a'); a.href = url; a.innerText = "Click here"; a.style.color="#333"; a.style.display="block"; 
-                btn.parentNode.appendChild(a); a.click(); 
-            }
-        }
-
-        initGame();
+        document.getElementById("answerInput").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") checkAnswer();
+        });
     </script>
 </body>
 </html>
