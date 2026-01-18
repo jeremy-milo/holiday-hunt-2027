@@ -1,10 +1,62 @@
-<script src="snow.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Hunt 2027</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="puzzle-style.css">
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    
+    <div class="container">
+        <div class="treasure-widget" id="treasure-widget">
+            <div class="treasure-label">Current Treasure Value</div>
+            <div id="treasure-value" class="treasure-value">Loading...</div>
+        </div>
+
+        <h1 class="landing-title">The Milo Holiday Hunt <span id="secret-o">2027</span></h1>
+        
+        <div id="wait-mode">
+            <p class="subtitle">The hunt begins in...</p>
+            <div id="timer">
+                <div class="time-unit">
+                    <div class="number" id="days">00</div>
+                    <div class="label">Days</div>
+                </div>
+                <div class="time-unit">
+                    <div class="number" id="hours">00</div>
+                    <div class="label">Hours</div>
+                </div>
+                <div class="time-unit">
+                    <div class="number" id="minutes">00</div>
+                    <div class="label">Minutes</div>
+                </div>
+                <div class="time-unit">
+                    <div class="number" id="seconds">00</div>
+                    <div class="label">Seconds</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="reveal-content" style="display: none;">
+            <p class="subtitle">The wait is over. Good luck!</p>
+            <div id="button-container">
+                </div>
+        </div>
+    </div>
+
+    <script src="snow.js"></script>
     <script src="utils.js"></script>
     <script>
         // Set target date to Jan 1, 2027 at 9:00 AM Pacific Time (UTC-8)
         const targetDate = new Date('2027-01-01T09:00:00-08:00').getTime(); 
         const treasureAddress = 'bc1qdluefrhrzu3px5p3x6qfgdcuw6qlyymwsk8kjy';
 
+        // Decoded: "1-capital.html"
         const _0x4f2a = [49, 45, 99, 97, 112, 105, 116, 97, 108, 46, 104, 116, 109, 108];
 
         async function checkTreasureStatus() {
@@ -108,3 +160,5 @@
         const secretO = document.getElementById("secret-o");
         if (secretO) secretO.addEventListener("click", revealHunt);
     </script>
+</body>
+</html>
