@@ -37,7 +37,7 @@
         /* Code Image (Background) */
         #code-img { 
             z-index: 5; 
-            /* Width is fixed at 600px now */
+            /* Width is set by JS */
             width: 600px; 
             transform: translate(-50%, -50%); 
             
@@ -66,7 +66,7 @@
             opacity: 1.0; 
 
             /* BORDER CONFIGURATION */
-            background-color: #222; /* The Border Color (Lighter Dark Grey) */
+            background-color: #777; /* The Border Color (Lighter Grey) */
             padding: 5px;           /* The Border Width (Wider) */
             
             /* Outer Clip: Larger cut to contain the border */
@@ -188,7 +188,8 @@
                     <label>Size</label>
                     <div class="slider-wrapper">
                         <button class="adjust-btn" onclick="adjustValue('size-key', -10)">&#60;</button>
-                        <input type="range" id="size-key" min="50" max="600" step="10" value="300">
+                        <!-- Increased max to 800 to ensure solution isn't always 100% -->
+                        <input type="range" id="size-key" min="50" max="800" step="10" value="300">
                         <button class="adjust-btn" onclick="adjustValue('size-key', 10)">&#62;</button>
                     </div>
                 </div>
@@ -320,8 +321,8 @@
 
         function randomizeInit() {
             // 1. Fixed CODE Image (Target) Size
-            // Explicitly set to full size: 600px
-            const codeTargetWidth = 600; 
+            // Randomized between 500 and 700 so the solution position on the slider varies
+            const codeTargetWidth = getRandomInt(500, 700); 
             codeImg.style.width = codeTargetWidth + "px";
 
             // 2. Randomize Initial KEY Image (Visuals)
