@@ -119,7 +119,7 @@
 
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
-                    <div class="game-msg">Sweet success!</div>
+                    <div class="game-msg" id="end-title">Sweet success!</div>
                     <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
                     <button class="btn-style" id="end-btn" onclick="">Next puzzle</button>
                 </div>
@@ -133,6 +133,16 @@
     <script>
         const GRID_SIZE = 10; const NUM_SHIPS = 3; const SHIP_LENGTH = 4; const MAX_GUESSES = 35;
         let grid = []; let ships = []; let guesses = []; let hits = 0; let guessesLeft = MAX_GUESSES; let gameActive = true;
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (type === 'win') {
+                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
+            }
+        }
 
         function initGame() {
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
@@ -211,7 +221,11 @@
 
         function checkWin() {
             const totalTarget = NUM_SHIPS * SHIP_LENGTH;
-            if (hits === totalTarget) { gameActive = false; showEndScreen(true); }
+            if (hits === totalTarget) { 
+                gameActive = false; 
+                showEndScreen(true);
+                playSound('win'); // Play success sound
+            }
         }
 
         function checkLoss() {
@@ -221,8 +235,15 @@
         function showEndScreen(won) {
             const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
             layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
-            if (won) { if(title) title.innerText = "Sweet victory!"; btn.innerText = "Next Puzzle"; btn.onclick = goToNextLevel; } 
-            else { if(title) title.innerText = "Out of guesses"; btn.innerText = "Try Again"; btn.onclick = initGame; }
+            if (won) { 
+                if(title) title.innerText = "Sweet victory!"; 
+                btn.innerText = "Next Puzzle"; 
+                btn.onclick = goToNextLevel; 
+            } else { 
+                if(title) title.innerText = "You're out of guesses"; 
+                btn.innerText = "Try Again"; 
+                btn.onclick = initGame; 
+            }
         }
 
         const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];

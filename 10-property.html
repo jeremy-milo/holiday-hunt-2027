@@ -21,6 +21,7 @@
             box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
             border-radius: 10px;
             overflow: hidden;
+            /* Prevent browser handling of gestures INSIDE the stage */
             touch-action: none; 
             margin: 0 auto 20px auto; 
         }
@@ -145,6 +146,16 @@
         const rangeRot = document.getElementById('input-rotation'); const rangeScale = document.getElementById('input-scale');
         const btnLetters = document.getElementById('btn-letters'); const btnSpiral = document.getElementById('btn-spiral');
 
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (type === 'win') {
+                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
+            }
+        }
+
         function init() {
             randomizeLayer(layers.letters); randomizeLayer(layers.spiral);
             updateInputs(); applyTransforms('letters'); applyTransforms('spiral');
@@ -169,13 +180,23 @@
         rangeScale.addEventListener('input', (e) => { layers[activeLayerId].scale = parseFloat(e.target.value); applyTransforms(activeLayerId); });
 
         let isDragging = false; let startX, startY; let initialLayerX, initialLayerY; let draggedLayerId = null;
-        stage.addEventListener('mousedown', startDrag); stage.addEventListener('touchstart', startDrag, {passive: false});
-        document.addEventListener('mousemove', drag); document.addEventListener('touchmove', drag, {passive: false});
-        document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag);
+        
+        // Listeners for dragging. Note: 'touch-action: none' on #puzzle-stage handles the scroll blocking.
+        // We attach move/end listeners to the document to handle dragging outside the box, 
+        // BUT we must only block default if we are actively dragging.
+        stage.addEventListener('mousedown', startDrag); 
+        stage.addEventListener('touchstart', startDrag, {passive: false});
+        
+        document.addEventListener('mousemove', drag); 
+        document.addEventListener('touchmove', drag, {passive: false});
+        
+        document.addEventListener('mouseup', endDrag); 
+        document.addEventListener('touchend', endDrag);
 
         function startDrag(e) {
             if (e.target.classList.contains('puzzle-layer')) {
-                e.preventDefault(); isDragging = true;
+                e.preventDefault(); 
+                isDragging = true;
                 draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
                 selectLayer(draggedLayerId);
                 const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
@@ -184,7 +205,10 @@
             }
         }
         function drag(e) {
-            if (!isDragging) return; e.preventDefault(); 
+            if (!isDragging) return; 
+            // Prevent scrolling ONLY if we are actively dragging a piece
+            if(e.cancelable) e.preventDefault(); 
+            
             const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
             const dx = clientX - startX; const dy = clientY - startY;
             layers[draggedLayerId].x = initialLayerX + dx; layers[draggedLayerId].y = initialLayerY + dy;
@@ -197,6 +221,7 @@
             const input = document.getElementById('player-guess'); const val = input.value.trim(); 
             let keyStr = ""; for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
             if (val.toLowerCase() === keyStr.toLowerCase()) { 
+                playSound('win'); // Added chime
                 const ui = document.getElementById('win-modal'); ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
             } else {
                 input.style.borderColor = "#ff4444";
