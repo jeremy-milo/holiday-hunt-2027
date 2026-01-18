@@ -52,7 +52,7 @@
     
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 6: Spot the Differences</h1>
+            <h1>Puzzle 7: Spot the Differences</h1>
             <p class="instructions">Can you spot the six things that are different in the photo below vs our holiday card?</p>
             
             <div id="game-container" class="game-frame">
@@ -130,7 +130,10 @@
                 notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
             }
         }
-        const _next = [55, 45, 99, 97, 108, 108, 46, 104, 116, 109, 108];
+        
+        // Corrected link to 8-roast.html
+        const _next = [56, 45, 114, 111, 97, 115, 116, 46, 104, 116, 109, 108];
+        
         function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
         /* --- SNOW ANIMATION --- */
