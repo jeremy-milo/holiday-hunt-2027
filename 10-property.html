@@ -24,19 +24,22 @@
 
         .manipulatable-img {
             position: absolute;
+            /* Initial centering, overridden by JS randomization */
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Start centered */
-            max-width: none; /* Allow scaling beyond container width if needed */
+            transform: translate(-50%, -50%); 
+            max-width: none; 
             cursor: move;
             user-select: none;
-            touch-action: none; /* Important for touch dragging */
+            touch-action: none; 
+            
+            /* Visual settings for overlapping */
+            opacity: 0.6; 
+            mix-blend-mode: screen; /* Helps visibility on dark backgrounds */
         }
         
-        /* Set fixed opacity since controls were removed. 
-           Code layer is slightly transparent to see the Key layer below/above. */
-        #code-img { z-index: 10; width: 300px; opacity: 0.8; }
-        #key-img { z-index: 5; width: 300px; opacity: 1; }
+        #code-img { z-index: 10; width: 300px; }
+        #key-img { z-index: 5; width: 300px; }
 
         .controls-container {
             background: rgba(0, 0, 0, 0.6);
@@ -80,7 +83,7 @@
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
-            padding: 0; /* Override default padding */
+            padding: 0; 
         }
 
         .adjust-btn:hover {
@@ -112,8 +115,8 @@
     
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 10: Intellectual Property</h1>
-            <p class="instructions">Align the code with the key to unlock the answer.</p>
+            <h1>Puzzle 10: Spirographic</h1>
+            <p class="instructions">Alignment has been compromised.  Rotate, resize and reposition the two files to restore alignment, and decode the message.</p>
             
             <div id="img-manipulation-area">
                 <img src="key.png" id="key-img" class="manipulatable-img" alt="Key Layer">
@@ -165,7 +168,6 @@
             </div>
 
             <br><br>
-            <!-- Question Removed as requested -->
             <input type="text" id="answerInput" class="answer-input" placeholder="Type the encoded message">
             <button class="btn-style" onclick="checkAnswer()">Unlock</button>
             <p id="error" class="error-msg">Incorrect.</p>
@@ -224,7 +226,7 @@
             }
 
             function elementTouchDrag(e) {
-                e.preventDefault(); // prevent scrolling
+                e.preventDefault(); 
                 const touch = e.touches[0];
                 pos1 = pos3 - touch.clientX;
                 pos2 = pos4 - touch.clientY;
@@ -243,21 +245,25 @@
 
         // --- IMAGE MANIPULATION LOGIC ---
         
-        // Helper to update CSS based on inputs
         function updateStyles() {
             // Code Image
             const szCode = document.getElementById('size-code').value;
             const rotCode = document.getElementById('rotate-code').value;
             
             codeImg.style.width = szCode + "px";
-            codeImg.style.transform = `translate(-50%, -50%) rotate(${rotCode}deg)`;
+            // Important: We only apply rotation to transform. 
+            // Position is handled by top/left styles (which drag logic updates)
+            // But we need the initial translate(-50%, -50%) if it hasn't been dragged? 
+            // The logic below randomizes top/left directly, so we can drop the translate for centering.
+            // We just rotate.
+            codeImg.style.transform = `rotate(${rotCode}deg)`;
             
             // Key Image
             const szKey = document.getElementById('size-key').value;
             const rotKey = document.getElementById('rotate-key').value;
 
             keyImg.style.width = szKey + "px";
-            keyImg.style.transform = `translate(-50%, -50%) rotate(${rotKey}deg)`;
+            keyImg.style.transform = `rotate(${rotKey}deg)`;
         }
 
         // Add event listeners to all inputs
@@ -269,23 +275,55 @@
         window.adjustValue = function(id, delta) {
             const input = document.getElementById(id);
             let val = parseFloat(input.value);
-            let step = parseFloat(input.step) || 1; 
             
-            // If delta is provided (e.g. 10 or 0.05), use it, otherwise fallback to step
             let newVal = val + delta;
             
-            // Clamp within min/max
             if(input.min) newVal = Math.max(parseFloat(input.min), newVal);
             if(input.max) newVal = Math.min(parseFloat(input.max), newVal);
             
             input.value = newVal;
-            
-            // Trigger update manually
             updateStyles();
         };
 
-        // Initialize styles
-        updateStyles();
+        // --- RANDOMIZATION LOGIC ---
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomizeInit() {
+            // Randomize Code Image
+            const codeSize = getRandomInt(200, 450);
+            const codeRot = getRandomInt(0, 360);
+            const codeTop = getRandomInt(30, 70); // Percentage
+            const codeLeft = getRandomInt(30, 70); // Percentage
+
+            document.getElementById('size-code').value = codeSize;
+            document.getElementById('rotate-code').value = codeRot;
+            
+            codeImg.style.top = codeTop + "%";
+            codeImg.style.left = codeLeft + "%";
+            // Remove the CSS transform translate because we are now positioning explicitly with random %
+            // and the updateStyles only applies rotation.
+            
+            // Randomize Key Image
+            const keySize = getRandomInt(200, 450);
+            const keyRot = getRandomInt(0, 360);
+            const keyTop = getRandomInt(30, 70); // Percentage
+            const keyLeft = getRandomInt(30, 70); // Percentage
+
+            document.getElementById('size-key').value = keySize;
+            document.getElementById('rotate-key').value = keyRot;
+            
+            keyImg.style.top = keyTop + "%";
+            keyImg.style.left = keyLeft + "%";
+
+            // Apply these values
+            updateStyles();
+        }
+
+        // Initialize on load
+        randomizeInit();
+
 
         // --- GAME LOGIC ---
         const _a = [55, 48, 55, 55]; // 7077
