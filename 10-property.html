@@ -49,6 +49,7 @@
         /* Code Image: Lower z-index so it sits behind the key */
         #code-img { 
             z-index: 5; 
+            /* Width is now randomized in JS, default fallback here */
             width: 600px; 
             transform: translate(-50%, -50%); 
         }
@@ -134,7 +135,7 @@
     <div class="container">
         <div class="puzzle-box">
             <h1>Puzzle 10: Spirographic</h1>
-            <p class="instructions">Alignment has been compromised. Resize and rotate the Key file to recover the encoded message.</p>
+            <p class="instructions">Alignment has been compromised. Restore alignment and recover the encoded message.</p>
             
             <div id="img-manipulation-area">
                 <!-- Swapped order in DOM for clarity, though z-index handles the layering -->
@@ -281,25 +282,31 @@
         }
 
         function randomizeInit() {
-            // 1. Randomize Visuals (Size & Position)
-            const keySize = getRandomInt(200, 450);
-            document.getElementById('size-key').value = keySize;
+            // 1. Randomize CODE Image (Target) Size
+            // Range 300-550 so it's not always max (600)
+            const codeTargetWidth = getRandomInt(300, 550);
+            codeImg.style.width = codeTargetWidth + "px";
+
+            // 2. Randomize Initial KEY Image (Visuals)
+            // Pick a start size that is visibly different from target
+            let keyStartSize;
+            do {
+                keyStartSize = getRandomInt(200, 500);
+            } while (Math.abs(keyStartSize - codeTargetWidth) < 50);
+
+            document.getElementById('size-key').value = keyStartSize;
 
             keyImg.style.top = getRandomInt(30, 60) + "%";
             keyImg.style.left = getRandomInt(30, 60) + "%";
 
-            // 2. Randomize Rotation Solution
+            // 3. Randomize Rotation Solution
             // The Code file is fixed at 0 degrees.
-            // Therefore, the user must rotate the Key file to 0 degrees visual rotation to align.
-            // We want the Slider to show a random value (e.g., 200) when the Visual Rotation is 0.
-            // Visual = Slider + Offset
-            // 0 = TargetSlider + Offset
-            // Offset = -TargetSlider
-            
+            // User must rotate Key file to 0 degrees visual rotation to align.
+            // Visual = Slider + Offset. 0 = TargetSlider + Offset -> Offset = -TargetSlider
             const targetSliderKey = getRandomInt(45, 315); // Random solution value on the slider
             keyRotOffset = -targetSliderKey;
 
-            // 3. Scramble initial slider positions
+            // 4. Scramble initial rotation slider
             document.getElementById('rotate-key').value = getRandomInt(0, 360);
 
             // Apply these values
