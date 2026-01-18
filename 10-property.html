@@ -31,15 +31,7 @@
             user-select: none;
             touch-action: none; 
             transform-origin: center center;
-
-            /* Clipped corner: 10px on top-left */
-            clip-path: polygon(
-                10px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 10px
-            );
+            /* Removed clip-path: polygon(...) to eliminate corner effect */
         }
         
         /* Code Image (Background) */
