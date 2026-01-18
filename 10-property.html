@@ -9,127 +9,192 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="puzzle-style.css">
-    
     <style>
-        #puzzle-stage {
+        /* --- IMAGE MANIPULATION STYLES --- */
+        #img-manipulation-area {
             position: relative;
-            z-index: 10;
             width: 100%;
-            height: 50vh;
-            max-height: 500px;
+            height: 500px;
             background: rgba(0, 0, 0, 0.3);
-            box-shadow: 0 0 0 4px #f6d365, 0 0 30px rgba(0,0,0,0.8);
-            border-radius: 10px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            margin-bottom: 20px;
             overflow: hidden;
-            /* Prevent browser handling of gestures INSIDE the stage */
-            touch-action: none; 
-            margin: 0 auto 20px auto; 
+            border-radius: 10px;
         }
 
-        .puzzle-layer {
+        .manipulatable-img {
             position: absolute;
-            top: 50%; left: 50%;
-            transform-origin: center center;
-            cursor: grab;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Start centered */
+            max-width: none; /* Allow scaling beyond container width if needed */
+            cursor: move;
             user-select: none;
-            -webkit-user-drag: none;
-            max-width: 85%;
-            max-height: 85%;
-            width: auto;
-            height: auto;
+            touch-action: none; /* Important for touch dragging */
         }
+        
+        #code-img { z-index: 10; width: 300px; }
+        #key-img { z-index: 5; width: 300px; }
 
-        .puzzle-layer:active { cursor: grabbing; }
-
-        #layer-letters { z-index: 5; filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)) brightness(1.2); }
-        #layer-spiral { z-index: 10; opacity: 0.9; mix-blend-mode: exclusion; pointer-events: auto; }
-
-        #controls-area {
-            position: relative;
-            z-index: 10;
-            background: rgba(0,0,0,0.3);
+        .controls-container {
+            background: rgba(0, 0, 0, 0.6);
             padding: 15px;
             border-radius: 10px;
-            border: 1px solid rgba(246, 211, 101, 0.2);
+            margin-bottom: 20px;
             width: 100%;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 0 auto 30px auto; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .control-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .control-label { width: 70px; font-size: 0.9rem; text-align: left; color: #f6d365; font-weight: 600; }
+        .control-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        /* Fine-tuning layout */
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .adjust-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            padding: 0; /* Override default padding */
+        }
+
+        .adjust-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .adjust-btn:active {
+            background: #fda085;
+            color: #000;
+        }
 
         input[type="range"] {
-            flex-grow: 1; height: 6px; background: rgba(255,255,255,0.2);
-            border-radius: 3px; outline: none; -webkit-appearance: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 18px; height: 18px;
-            background: #f6d365; border-radius: 50%; cursor: pointer;
-            box-shadow: 0 0 5px rgba(246, 211, 101, 0.8);
+            flex-grow: 1;
+            cursor: pointer;
         }
 
-        .layer-toggles { display: flex; justify-content: center; gap: 15px; margin-bottom: 5px; }
-        .toggle-btn {
-            padding: 8px 15px; background: transparent; border: 2px solid #f6d365;
-            color: #f6d365; border-radius: 20px; cursor: pointer;
-            font-family: 'Montserrat', sans-serif; font-weight: 600; transition: all 0.3s;
+        .section-title {
+            color: #f6d365;
+            font-family: 'Cinzel', serif;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        #reset-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
             font-size: 0.9rem;
-        }
-        .toggle-btn.active { background: #f6d365; color: #1b2735; box-shadow: 0 0 15px rgba(246, 211, 101, 0.4); }
-
-        #answer-area {
-            position: relative; z-index: 10; display: flex;
-            flex-direction: column; align-items: center; width: 100%; margin: 0 auto 20px auto;
-        }
-
-        .win-text {
-            font-family: 'Cinzel', serif; font-size: 2.5rem; color: #f6d365;
-            margin-bottom: 30px; text-shadow: 0 0 20px #f6d365; text-align: center;
         }
     </style>
 </head>
 <body>
     <canvas id="snow-canvas"></canvas>
-
+    
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 10: Spirographic</h1>
-            <p class="instructions">
-                The mechanism is misaligned. Use the controls to rotate, resize, and move the objects until alignment is achieved.  Only then will the message be revealed.
-            </p>
-
-            <div id="puzzle-stage">
-                <img src="code.png" id="layer-letters" class="puzzle-layer" alt="Code file">
-                <img src="key.png" id="layer-spiral" class="puzzle-layer" alt="Key file">
-            </div>
-
-            <div id="controls-area">
-                <div class="layer-toggles">
-                    <button class="toggle-btn" id="btn-letters" onclick="selectLayer('letters')">Code file</button>
-                    <button class="toggle-btn active" id="btn-spiral" onclick="selectLayer('spiral')">Key file</button>
-                </div>
-                <div class="control-group">
-                    <span class="control-label">Rotation</span>
-                    <input type="range" id="input-rotation" min="0" max="360" value="0">
-                </div>
-                <div class="control-group">
-                    <span class="control-label">Size</span>
-                    <input type="range" id="input-scale" min="0.2" max="3.0" step="0.01" value="1">
-                </div>
-            </div>
-
-            <div id="answer-area">
-                <input type="text" id="player-guess" class="answer-input" placeholder="Enter the secret message...">
-                <button class="btn-style" onclick="checkAnswer()">Unlock</button>
-            </div>
+            <h1>Puzzle 10: Intellectual Property</h1>
+            <p class="instructions">Align the code with the key to unlock the answer.</p>
             
-            <div id="win-modal" class="ui-layer hidden-ui">
-                <div class="win-text">Alignment complete!</div>
-                <button class="btn-style" id="next-btn" onclick="goNext()">Next puzzle</button>
+            <div id="img-manipulation-area">
+                <img src="key.png" id="key-img" class="manipulatable-img" alt="Key Layer">
+                <img src="code.png" id="code-img" class="manipulatable-img" alt="Code Layer">
+            </div>
+
+            <!-- CODE Controls (Top) -->
+            <div class="controls-container">
+                <div class="section-title">Code File Controls</div>
+                
+                <div class="control-group">
+                    <label>Opacity</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('opacity-code', -0.05)">&#60;</button>
+                        <input type="range" id="opacity-code" min="0" max="1" step="0.05" value="0.8">
+                        <button class="adjust-btn" onclick="adjustValue('opacity-code', 0.05)">&#62;</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Size</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('size-code', -10)">&#60;</button>
+                        <input type="range" id="size-code" min="50" max="600" step="10" value="300">
+                        <button class="adjust-btn" onclick="adjustValue('size-code', 10)">&#62;</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Rotation</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('rotate-code', -1)">&#60;</button>
+                        <input type="range" id="rotate-code" min="0" max="360" step="1" value="0">
+                        <button class="adjust-btn" onclick="adjustValue('rotate-code', 1)">&#62;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KEY Controls (Bottom) -->
+            <div class="controls-container">
+                <div class="section-title">Key File Controls</div>
+
+                <div class="control-group">
+                    <label>Opacity</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('opacity-key', -0.05)">&#60;</button>
+                        <input type="range" id="opacity-key" min="0" max="1" step="0.05" value="1">
+                        <button class="adjust-btn" onclick="adjustValue('opacity-key', 0.05)">&#62;</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Size</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('size-key', -10)">&#60;</button>
+                        <input type="range" id="size-key" min="50" max="600" step="10" value="300">
+                        <button class="adjust-btn" onclick="adjustValue('size-key', 10)">&#62;</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Rotation</label>
+                    <div class="slider-wrapper">
+                        <button class="adjust-btn" onclick="adjustValue('rotate-key', -1)">&#60;</button>
+                        <input type="range" id="rotate-key" min="0" max="360" step="1" value="0">
+                        <button class="adjust-btn" onclick="adjustValue('rotate-key', 1)">&#62;</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="reset-btn" class="btn-style" style="background: rgba(255,255,255,0.2);">Reset Images</button>
+
+            <br><br>
+            <p class="question">What 4-letter code is revealed?</p>
+            <input type="text" id="answerInput" class="answer-input" placeholder="XXXX">
+            <button class="btn-style" onclick="checkAnswer()">Unlock</button>
+            <p id="error" class="error-msg">Incorrect.</p>
+
+            <div id="ui-layer" class="ui-layer hidden-ui">
+                <div class="game-msg">Access Granted</div>
+                <button class="btn-style" onclick="proceed()">Next puzzle</button>
             </div>
         </div>
 
@@ -137,17 +202,160 @@
         <div class="hidden-clue">10. property</div>
     </div>
 
+    <script src="snow.js"></script>
     <script>
-        const layers = {
-            letters: { el: document.getElementById('layer-letters'), x: 0, y: 0, rot: 0, scale: 1, rotOffset: 0, scaleOffset: 1 },
-            spiral: { el: document.getElementById('layer-spiral'), x: 0, y: 0, rot: 0, scale: 1, rotOffset: 0, scaleOffset: 1 }
+        // --- DRAG & DROP LOGIC ---
+        function makeDraggable(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            elmnt.onmousedown = dragMouseDown;
+            elmnt.ontouchstart = dragTouchStart;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+
+            // Touch support
+            function dragTouchStart(e) {
+                const touch = e.touches[0];
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                document.ontouchend = closeDragElement;
+                document.ontouchmove = elementTouchDrag;
+            }
+
+            function elementTouchDrag(e) {
+                e.preventDefault(); // prevent scrolling
+                const touch = e.touches[0];
+                pos1 = pos3 - touch.clientX;
+                pos2 = pos4 - touch.clientY;
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+        }
+
+        const codeImg = document.getElementById("code-img");
+        const keyImg = document.getElementById("key-img");
+        
+        makeDraggable(codeImg);
+        makeDraggable(keyImg);
+
+        // --- IMAGE MANIPULATION LOGIC ---
+        
+        // Helper to update CSS based on inputs
+        function updateStyles() {
+            // Code Image
+            const opCode = document.getElementById('opacity-code').value;
+            const szCode = document.getElementById('size-code').value;
+            const rotCode = document.getElementById('rotate-code').value;
+            
+            codeImg.style.opacity = opCode;
+            codeImg.style.width = szCode + "px";
+            // We apply rotation via transform, but preserve the centering translation if we weren't dragging.
+            // However, since drag sets top/left, we just use rotate. 
+            // BUT: dragging uses top/left. Rotation is separate.
+            // Problem: standard CSS drag usually conflicts with transform translate.
+            // Solution: We will apply rotation to the transform, but NOT translate, because dragging handles position via top/left properties.
+            // The initial state had translate(-50%, -50%). If we drag, we are changing top/left absolutely.
+            // To simplify: let's remove the transform translation once we start moving, OR simply use rotation.
+            // Best approach for this simple tool: Apply rotate. The initial CSS centering (transform: translate) might fight with this.
+            // Let's check initial CSS: transform: translate(-50%, -50%).
+            // We need to keep that translate if we haven't moved it, OR just rely on rotation.
+            // Actually, best way is to apply rotation.
+            codeImg.style.transform = `translate(-50%, -50%) rotate(${rotCode}deg)`;
+            
+            // Key Image
+            const opKey = document.getElementById('opacity-key').value;
+            const szKey = document.getElementById('size-key').value;
+            const rotKey = document.getElementById('rotate-key').value;
+
+            keyImg.style.opacity = opKey;
+            keyImg.style.width = szKey + "px";
+            keyImg.style.transform = `translate(-50%, -50%) rotate(${rotKey}deg)`;
+        }
+
+        // Add event listeners to all inputs
+        ['opacity-code', 'size-code', 'rotate-code', 'opacity-key', 'size-key', 'rotate-key'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateStyles);
+        });
+
+        // Fine tuning function
+        window.adjustValue = function(id, delta) {
+            const input = document.getElementById(id);
+            let val = parseFloat(input.value);
+            let step = parseFloat(input.step) || 1; 
+            
+            // If delta is provided (e.g. 10 or 0.05), use it, otherwise fallback to step
+            // But the button calls pass explicit delta.
+            
+            let newVal = val + delta;
+            
+            // Clamp within min/max
+            if(input.min) newVal = Math.max(parseFloat(input.min), newVal);
+            if(input.max) newVal = Math.min(parseFloat(input.max), newVal);
+            
+            input.value = newVal;
+            
+            // Trigger update manually
+            updateStyles();
         };
-        let activeLayerId = 'spiral'; const stage = document.getElementById('puzzle-stage');
-        const rangeRot = document.getElementById('input-rotation'); const rangeScale = document.getElementById('input-scale');
-        const btnLetters = document.getElementById('btn-letters'); const btnSpiral = document.getElementById('btn-spiral');
+
+        // Initialize styles
+        updateStyles();
+
+        // Reset Button
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            // Reset Positions
+            codeImg.style.top = "50%";
+            codeImg.style.left = "50%";
+            keyImg.style.top = "50%";
+            keyImg.style.left = "50%";
+            
+            // Reset Inputs
+            document.getElementById('opacity-code').value = 0.8;
+            document.getElementById('size-code').value = 300;
+            document.getElementById('rotate-code').value = 0;
+            
+            document.getElementById('opacity-key').value = 1;
+            document.getElementById('size-key').value = 300;
+            document.getElementById('rotate-key').value = 0;
+            
+            updateStyles();
+        });
+
+
+        // --- GAME LOGIC ---
+        const _a = [55, 48, 55, 55]; // 7077
+        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108]; 
+
+        function _decode(arr) { return String.fromCharCode(...arr); }
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
+
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             if (type === 'win') {
@@ -156,142 +364,29 @@
             }
         }
 
-        function init() {
-            randomizeLayer(layers.letters); randomizeLayer(layers.spiral);
-            updateInputs(); applyTransforms('letters'); applyTransforms('spiral');
-        }
-        function randomizeLayer(layerObj) {
-            layerObj.x = (Math.random() * 300) - 150; layerObj.y = (Math.random() * 200) - 100;
-            layerObj.rotOffset = Math.floor(Math.random() * 360); layerObj.scaleOffset = 0.8 + (Math.random() * 0.4); 
-            layerObj.rot = Math.floor(Math.random() * 360); layerObj.scale = 0.5 + (Math.random() * 1.5); 
-        }
-        function selectLayer(id) {
-            activeLayerId = id;
-            if(id === 'letters') { btnLetters.classList.add('active'); btnSpiral.classList.remove('active'); } 
-            else { btnSpiral.classList.add('active'); btnLetters.classList.remove('active'); }
-            updateInputs();
-        }
-        function updateInputs() { const l = layers[activeLayerId]; rangeRot.value = l.rot; rangeScale.value = l.scale; }
-        function applyTransforms(id) {
-            const l = layers[id]; const visualRot = (l.rot + l.rotOffset) % 360; const visualScale = l.scale * l.scaleOffset;
-            l.el.style.transform = `translate(calc(-50% + ${l.x}px), calc(-50% + ${l.y}px)) rotate(${visualRot}deg) scale(${visualScale})`;
-        }
-        rangeRot.addEventListener('input', (e) => { layers[activeLayerId].rot = parseInt(e.target.value); applyTransforms(activeLayerId); });
-        rangeScale.addEventListener('input', (e) => { layers[activeLayerId].scale = parseFloat(e.target.value); applyTransforms(activeLayerId); });
-
-        let isDragging = false; let startX, startY; let initialLayerX, initialLayerY; let draggedLayerId = null;
-        
-        // Listeners for dragging. Note: 'touch-action: none' on #puzzle-stage handles the scroll blocking.
-        // We attach move/end listeners to the document to handle dragging outside the box, 
-        // BUT we must only block default if we are actively dragging.
-        stage.addEventListener('mousedown', startDrag); 
-        stage.addEventListener('touchstart', startDrag, {passive: false});
-        
-        document.addEventListener('mousemove', drag); 
-        document.addEventListener('touchmove', drag, {passive: false});
-        
-        document.addEventListener('mouseup', endDrag); 
-        document.addEventListener('touchend', endDrag);
-
-        function startDrag(e) {
-            if (e.target.classList.contains('puzzle-layer')) {
-                e.preventDefault(); 
-                isDragging = true;
-                draggedLayerId = (e.target.id === 'layer-letters') ? 'letters' : 'spiral';
-                selectLayer(draggedLayerId);
-                const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
-                startX = clientX; startY = clientY;
-                initialLayerX = layers[draggedLayerId].x; initialLayerY = layers[draggedLayerId].y;
-            }
-        }
-        function drag(e) {
-            if (!isDragging) return; 
-            // Prevent scrolling ONLY if we are actively dragging a piece
-            if(e.cancelable) e.preventDefault(); 
-            
-            const clientX = e.clientX || e.touches[0].clientX; const clientY = e.clientY || e.touches[0].clientY;
-            const dx = clientX - startX; const dy = clientY - startY;
-            layers[draggedLayerId].x = initialLayerX + dx; layers[draggedLayerId].y = initialLayerY + dy;
-            applyTransforms(draggedLayerId);
-        }
-        function endDrag() { isDragging = false; draggedLayerId = null; }
-
-        const _k = [72, 97, 112, 112, 121, 32, 78, 101, 119, 32, 89, 101, 97, 114];
         function checkAnswer() {
-            const input = document.getElementById('player-guess'); const val = input.value.trim(); 
-            let keyStr = ""; for(let i=0; i<_k.length; i++) keyStr += String.fromCharCode(_k[i]);
-            if (val.toLowerCase() === keyStr.toLowerCase()) { 
-                playSound('win'); // Added chime
-                const ui = document.getElementById('win-modal'); ui.classList.remove('hidden-ui'); ui.classList.add('active-ui');
+            const input = document.getElementById('answerInput').value.trim();
+            const correct = _decode(_a);
+            
+            if(input === correct) {
+                playSound('win');
+                const ui = document.getElementById('ui-layer');
+                ui.classList.remove('hidden-ui');
+                ui.classList.add('active-ui');
             } else {
-                input.style.borderColor = "#ff4444";
-                input.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(0)' }], { duration: 400 });
-                setTimeout(() => input.style.borderColor = "#f6d365", 1000);
-            }
-        }
-        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108];
-        function goNext() {
-            let nextUrl = ""; for(let i=0; i<_n.length; i++) nextUrl += String.fromCharCode(_n[i]);
-            try { window.location.href = nextUrl; } catch(e) { const btn = document.getElementById('next-btn'); btn.innerText = "Redirecting..."; const a = document.createElement('a'); a.href = nextUrl; a.click(); }
-        }
-        
-        /* --- SNOW ANIMATION --- */
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.radius = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y > height) this.y = 0;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
+                const err = document.getElementById('error');
+                err.style.display = 'block';
+                setTimeout(() => err.style.display = 'none', 2000);
             }
         }
 
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
+        function proceed() {
+            window.location.href = _decode(_n);
         }
 
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
+        document.getElementById("answerInput").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") checkAnswer();
         });
-
-        init();
     </script>
 </body>
 </html>
