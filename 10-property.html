@@ -45,7 +45,7 @@
         /* Code Image (Background) */
         #code-img { 
             z-index: 5; 
-            /* Width is randomized in JS */
+            /* Width is fixed at 600px now */
             width: 600px; 
             transform: translate(-50%, -50%); 
             
@@ -288,9 +288,9 @@
         }
 
         function randomizeInit() {
-            // 1. Randomize CODE Image (Target) Size
-            // Range 300-550 so it's not always max (600)
-            const codeTargetWidth = getRandomInt(300, 550);
+            // 1. Fixed CODE Image (Target) Size
+            // Explicitly set to full size: 600px
+            const codeTargetWidth = 600; 
             codeImg.style.width = codeTargetWidth + "px";
 
             // 2. Randomize Initial KEY Image (Visuals)
