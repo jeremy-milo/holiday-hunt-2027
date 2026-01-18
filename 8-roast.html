@@ -89,6 +89,21 @@
             }
         }
         .key-hint { animation: pulse-hint 1.5s infinite; z-index: 5 !important; }
+
+        @media (max-width: 600px) {
+            .piano-wrapper {
+                overflow-x: scroll; /* Allow scrolling if keys are too narrow to comfortably fit */
+                padding: 40px 10px 20px 10px; /* Reduce horizontal padding */
+            }
+            .white-key {
+                width: 30px; /* Smaller width for white keys */
+            }
+            .black-key {
+                width: 18px; /* Smaller width for black keys */
+                right: -9px; /* Adjust position to stay centered relative to white keys */
+                height: 55%; /* Slightly less height to fit proportion */
+            }
+        }
     </style>
 </head>
 <body>
