@@ -31,7 +31,15 @@
             user-select: none;
             touch-action: none; 
             transform-origin: center center;
-            /* Removed clip-path: polygon(...) to eliminate corner effect */
+            
+            /* Restored Clipped corner: 10px on top-left */
+            clip-path: polygon(
+                10px 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%, 
+                0 10px
+            );
         }
         
         /* Code Image (Background) */
@@ -43,7 +51,6 @@
             
             /* High visibility for the code itself */
             opacity: 1.0; 
-            /* Remove blend mode so it's solid ink on paper */
             mix-blend-mode: normal; 
         }
         
@@ -52,11 +59,12 @@
             z-index: 10; 
             width: 300px; 
             
-            /* Multiply mode makes white pixels transparent but keeps dark pixels (the curve) visible.
-               This allows seeing the code file clearly "through" the white parts of the key file.
-            */
+            /* Multiply mode makes white pixels transparent but keeps dark pixels (the curve) visible. */
             mix-blend-mode: multiply;
-            opacity: 1.0; /* Full opacity for the line */
+            opacity: 1.0; 
+            
+            /* Add 1px gray outline effect that respects the clip-path */
+            filter: drop-shadow(0 0 1px #555);
         }
 
         .controls-container {
@@ -143,8 +151,6 @@
 
             <!-- KEY Controls Only -->
             <div class="controls-container">
-                <div class="section-title">Key File Controls</div>
-
                 <div class="control-group">
                     <label>Size</label>
                     <div class="slider-wrapper">
