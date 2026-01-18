@@ -31,16 +31,7 @@
             user-select: none;
             touch-action: none; 
             transform-origin: center center;
-            box-sizing: border-box; /* Ensure padding doesn't affect dimensions calculation logic excessively */
-            
-            /* Clipped corner: 10px on top-left */
-            clip-path: polygon(
-                10px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 10px
-            );
+            box-sizing: border-box; 
         }
         
         /* Code Image (Background) */
@@ -58,26 +49,42 @@
         /* Key Image Container (Foreground/Draggable) */
         #key-img { 
             z-index: 10; 
-            /* Initial width set by JS, but good to have default */
+            /* Initial width set by JS */
             width: 300px; 
             
             /* Multiply mode makes white pixels transparent */
             mix-blend-mode: multiply;
             opacity: 1.0; 
 
-            /* BORDER TECHNIQUE: Container Background + Padding */
-            /* This creates a solid border that perfectly follows the clip-path */
-            background-color: #222; /* Dark Grey Border Color */
-            padding: 2px;           /* Width of the border */
+            /* BORDER CONFIGURATION */
+            background-color: #555; /* The Border Color (Lighter Dark Grey) */
+            padding: 2px;           /* The Border Width (Wider) */
+            
+            /* Outer Clip: Larger cut to contain the border */
+            clip-path: polygon(
+                15px 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%, 
+                0 15px
+            );
         }
 
-        /* Inner image style to ensure it fills the container and provides white background for multiply */
+        /* Inner image style */
         #key-img img {
             width: 100%;
             height: 100%;
             display: block;
-            background-color: white; /* Blocks the border color from showing through transparency */
-            /* The image itself is rectangular, but the container clips it */
+            background-color: white; /* Necessary for multiply blend mode to work correctly on the content */
+            
+            /* Inner Clip: Smaller cut to create the inner edge of the border */
+            clip-path: polygon(
+                10px 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%, 
+                0 10px
+            );
         }
 
         .controls-container {
@@ -160,7 +167,7 @@
             <div id="img-manipulation-area">
                 <img src="code.png" id="code-img" class="manipulatable-img" style="top: 50%; left: 50%;" alt="Code Layer">
                 
-                <!-- Updated Structure: Wrapper DIV for Border -->
+                <!-- Wrapper DIV for Border -->
                 <div id="key-img" class="manipulatable-img">
                     <img src="key.png" alt="Key Layer">
                 </div>
