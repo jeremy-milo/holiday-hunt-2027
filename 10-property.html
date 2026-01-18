@@ -16,7 +16,7 @@
             width: 100%;
             height: 350px; 
             background: rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.3); /* Changed from dashed to solid */
+            border: 2px solid rgba(255, 255, 255, 0.3); 
             margin-bottom: 20px;
             overflow: hidden;
             border-radius: 10px;
@@ -46,16 +46,18 @@
             );
         }
         
-        /* Added translate(-50%, -50%) to perfectly center the element 
-           relative to the top: 50% / left: 50% positioning.
-        */
+        /* Code Image: Lower z-index so it sits behind the key */
         #code-img { 
-            z-index: 10; 
+            z-index: 5; 
             width: 600px; 
             transform: translate(-50%, -50%); 
         }
         
-        #key-img { z-index: 5; width: 300px; }
+        /* Key Image: Higher z-index so it is draggable and on top */
+        #key-img { 
+            z-index: 10; 
+            width: 300px; 
+        }
 
         .controls-container {
             background: rgba(0, 0, 0, 0.6);
@@ -132,12 +134,12 @@
     <div class="container">
         <div class="puzzle-box">
             <h1>Puzzle 10: Spirographic</h1>
-            <p class="instructions">Alignment has been compromised. Resize and rotate the key to recover the encoded message.</p>
+            <p class="instructions">Alignment has been compromised. Resize and rotate the Key file to match the Code file and recover the encoded message.</p>
             
             <div id="img-manipulation-area">
-                <img src="key.png" id="key-img" class="manipulatable-img" alt="Key Layer">
-                <!-- Code Image is now fixed and centered via CSS -->
+                <!-- Swapped order in DOM for clarity, though z-index handles the layering -->
                 <img src="code.png" id="code-img" class="manipulatable-img" style="top: 50%; left: 50%;" alt="Code Layer">
+                <img src="key.png" id="key-img" class="manipulatable-img" alt="Key Layer">
             </div>
 
             <!-- KEY Controls Only -->
@@ -236,7 +238,6 @@
         const keyImg = document.getElementById("key-img");
         
         // Code image is static now, only Key is draggable
-        // makeDraggable(codeImg); 
         makeDraggable(keyImg);
 
         // --- IMAGE MANIPULATION LOGIC ---
