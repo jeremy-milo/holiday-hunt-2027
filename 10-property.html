@@ -14,7 +14,7 @@
         #img-manipulation-area {
             position: relative;
             width: 100%;
-            height: 500px;
+            height: 350px; /* Reduced by 30% from 500px */
             background: rgba(0, 0, 0, 0.3);
             border: 2px dashed rgba(255, 255, 255, 0.3);
             margin-bottom: 20px;
@@ -24,10 +24,8 @@
 
         .manipulatable-img {
             position: absolute;
-            /* Initial centering, overridden by JS randomization */
             top: 50%;
             left: 50%;
-            /* transform: translate(-50%, -50%); Removed because randomization sets explicit top/left */
             max-width: none; 
             cursor: move;
             user-select: none;
@@ -35,11 +33,20 @@
             
             /* Visual settings for overlapping */
             opacity: 0.6; 
-            mix-blend-mode: screen; /* Helps visibility on dark backgrounds */
+            mix-blend-mode: screen; 
             transform-origin: center center;
+
+            /* Clipped corner: 10px on top-left */
+            clip-path: polygon(
+                10px 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%, 
+                0 10px
+            );
         }
         
-        #code-img { z-index: 10; width: 300px; }
+        #code-img { z-index: 10; width: 600px; transform: rotate(0deg); }
         #key-img { z-index: 5; width: 300px; }
 
         .controls-container {
@@ -117,36 +124,15 @@
     <div class="container">
         <div class="puzzle-box">
             <h1>Puzzle 10: Spirographic</h1>
-            <p class="instructions">Alignment has been compromised.  Rotate, resize and reposition the files to restore alignment and recover the encoded message.</p>
+            <p class="instructions">Alignment has been compromised. Resize and rotate the Key file to match the Code file and recover the encoded message.</p>
             
             <div id="img-manipulation-area">
                 <img src="key.png" id="key-img" class="manipulatable-img" alt="Key Layer">
-                <img src="code.png" id="code-img" class="manipulatable-img" alt="Code Layer">
+                <!-- Code Image is now fixed -->
+                <img src="code.png" id="code-img" class="manipulatable-img" style="top: 50%; left: 50%;" alt="Code Layer">
             </div>
 
-            <!-- CODE Controls (Top) -->
-            <div class="controls-container">
-                <div class="section-title">Code File Controls</div>
-                
-                <div class="control-group">
-                    <label>Size</label>
-                    <div class="slider-wrapper">
-                        <button class="adjust-btn" onclick="adjustValue('size-code', -10)">&#60;</button>
-                        <input type="range" id="size-code" min="50" max="600" step="10" value="300">
-                        <button class="adjust-btn" onclick="adjustValue('size-code', 10)">&#62;</button>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label>Rotation</label>
-                    <div class="slider-wrapper">
-                        <button class="adjust-btn" onclick="adjustValue('rotate-code', -1)">&#60;</button>
-                        <input type="range" id="rotate-code" min="0" max="360" step="1" value="0">
-                        <button class="adjust-btn" onclick="adjustValue('rotate-code', 1)">&#62;</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KEY Controls (Bottom) -->
+            <!-- KEY Controls Only -->
             <div class="controls-container">
                 <div class="section-title">Key File Controls</div>
 
@@ -241,28 +227,15 @@
         const codeImg = document.getElementById("code-img");
         const keyImg = document.getElementById("key-img");
         
-        makeDraggable(codeImg);
+        // Code image is static now, only Key is draggable
+        // makeDraggable(codeImg); 
         makeDraggable(keyImg);
 
         // --- IMAGE MANIPULATION LOGIC ---
         
-        // Random offsets for rotation so sliders don't reveal the solution
-        let codeRotOffset = 0;
         let keyRotOffset = 0;
 
         function updateStyles() {
-            // Code Image
-            const szCode = document.getElementById('size-code').value;
-            const rotCodeInput = parseFloat(document.getElementById('rotate-code').value);
-            
-            // Apply offset to rotation
-            const finalRotCode = rotCodeInput + codeRotOffset;
-            
-            codeImg.style.width = szCode + "px";
-            // Rotation around center. 
-            // Note: Since we use top/left for position (drag), we don't need translate() here.
-            codeImg.style.transform = `rotate(${finalRotCode}deg)`;
-            
             // Key Image
             const szKey = document.getElementById('size-key').value;
             const rotKeyInput = parseFloat(document.getElementById('rotate-key').value);
@@ -274,8 +247,8 @@
             keyImg.style.transform = `rotate(${finalRotKey}deg)`;
         }
 
-        // Add event listeners to all inputs
-        ['size-code', 'rotate-code', 'size-key', 'rotate-key'].forEach(id => {
+        // Add event listeners to remaining inputs
+        ['size-key', 'rotate-key'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateStyles);
         });
 
@@ -300,40 +273,24 @@
 
         function randomizeInit() {
             // 1. Randomize Visuals (Size & Position)
-            const codeSize = getRandomInt(200, 450);
             const keySize = getRandomInt(200, 450);
-            
-            document.getElementById('size-code').value = codeSize;
             document.getElementById('size-key').value = keySize;
 
-            codeImg.style.top = getRandomInt(30, 60) + "%";
-            codeImg.style.left = getRandomInt(30, 60) + "%";
             keyImg.style.top = getRandomInt(30, 60) + "%";
             keyImg.style.left = getRandomInt(30, 60) + "%";
 
             // 2. Randomize Rotation Solution
-            // We want the puzzle to be solvable at a random absolute angle (e.g. 45 degrees absolute)
-            // BUT we want the SLIDERS to be at different values when solved.
+            // The Code file is fixed at 0 degrees.
+            // Therefore, the user must rotate the Key file to 0 degrees visual rotation to align.
+            // We want the Slider to show a random value (e.g., 200) when the Visual Rotation is 0.
+            // Visual = Slider + Offset
+            // 0 = TargetSlider + Offset
+            // Offset = -TargetSlider
             
-            const solutionAbsAngle = getRandomInt(0, 360); // Visual angle when aligned
+            const targetSliderKey = getRandomInt(45, 315); // Random solution value on the slider
+            keyRotOffset = -targetSliderKey;
 
-            // Pick a target slider position for Code (e.g., 100)
-            const targetSliderCode = getRandomInt(20, 340);
-            
-            // Pick a target slider position for Key that is DIFFERENT (e.g., 200)
-            // Ensure at least 60 degrees difference so user can't just match numbers
-            let targetSliderKey;
-            do {
-                targetSliderKey = getRandomInt(20, 340);
-            } while (Math.abs(targetSliderCode - targetSliderKey) < 60);
-
-            // Calculate Offsets required to achieve this
-            // Visual = Slider + Offset  -->  Offset = Visual - Slider
-            codeRotOffset = solutionAbsAngle - targetSliderCode;
-            keyRotOffset = solutionAbsAngle - targetSliderKey;
-
-            // 3. Scramble initial slider positions (so it doesn't start solved)
-            document.getElementById('rotate-code').value = getRandomInt(0, 360);
+            // 3. Scramble initial slider positions
             document.getElementById('rotate-key').value = getRandomInt(0, 360);
 
             // Apply these values
