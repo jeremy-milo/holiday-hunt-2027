@@ -44,15 +44,6 @@
             /* High visibility for the code itself */
             opacity: 1.0; 
             mix-blend-mode: normal; 
-
-            /* Restore clipped corner */
-            clip-path: polygon(
-                10px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 10px
-            );
         }
         
         /* Key Image Container (Foreground/Draggable) */
@@ -64,19 +55,6 @@
             /* Multiply mode makes white pixels transparent */
             mix-blend-mode: multiply;
             opacity: 1.0; 
-
-            /* BORDER CONFIGURATION */
-            background-color: #777; /* The Border Color (Lighter Grey) */
-            padding: 5px;           /* The Border Width (Wider) */
-            
-            /* Outer Clip: Larger cut to contain the border */
-            clip-path: polygon(
-                15px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 15px
-            );
         }
 
         /* Inner image style */
@@ -86,14 +64,6 @@
             display: block;
             background-color: white; /* Necessary for multiply blend mode to work correctly on the content */
             
-            /* Inner Clip: Smaller cut to create the inner edge of the border */
-            clip-path: polygon(
-                10px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 10px
-            );
         }
 
         .controls-container {
