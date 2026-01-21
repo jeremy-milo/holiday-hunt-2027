@@ -214,7 +214,7 @@
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
                     <div class="game-msg">The yeti is stoked!</div>
-                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Next puzzle</button>
+                    <button class="btn-style" id="next-level-btn" onclick="goToNextLevel(_next)">Next puzzle</button>
                 </div>
                 <div id="lose-screen">
                     <div class="game-msg" style="color: #ff6b6b;" id="death-msg">You failed to feed the yeti this time!</div>
@@ -402,24 +402,6 @@
                     d.className = 'map-cell';
                     if (x === playerPos.x && y === playerPos.y) d.classList.add('current');
                     else if (visited.some(p => p.x === x && p.y === y)) d.classList.add('visited');
-                    
-                    // Logic to show letters
-                    let letter = '';
-                    if (x === yetiPos.x && y === yetiPos.y) letter = 'Y';
-                    else if ((x === batPos1.x && y === batPos1.y) || (x === batPos2.x && y === batPos2.y)) letter = 'B';
-                    else if ((x === pitPos1.x && y === pitPos1.y) || (x === pitPos2.x && y === pitPos2.y)) letter = 'P';
-                    
-                    if (letter) {
-                        // In a real game, you wouldn't show these letters on the map unless revealed!
-                        // But for debugging or easy mode, we can leave them hidden or show them.
-                        // The original code tried to show them but only if visited?
-                        // Actually, logic below hides them unless visited or cheats are on. 
-                        // Let's just keep the visited logic for now.
-                        if (visited.some(p => p.x === x && p.y === y)) {
-                             // d.innerText = letter; // Optional: Reveal contents of visited rooms
-                        }
-                    }
-
                     map.appendChild(d);
                 }
             }
@@ -442,15 +424,6 @@
         }
 
         const _next = [49, 50, 45, 111, 117, 116, 100, 111, 111, 114, 46, 104, 116, 109, 108]; 
-        function goToNextLevel() {
-            const url = String.fromCharCode(..._next);
-            try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } 
-            catch (e) { 
-                const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Opening..."; 
-                const a = document.createElement('a'); a.href = url; a.innerText = "Click here"; a.style.color="#333"; a.style.display="block"; 
-                btn.parentNode.appendChild(a); a.click(); 
-            }
-        }
 
         initGame();
     </script>
