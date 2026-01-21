@@ -154,15 +154,6 @@
             flex-grow: 1;
             cursor: pointer;
         }
-
-        .section-title {
-            color: #f6d365;
-            font-family: 'Cinzel', serif;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
     </style>
 </head>
 <body>
@@ -206,11 +197,12 @@
             <br><br>
             <input type="text" id="answerInput" class="answer-input" placeholder="Enter the message">
             <button class="btn-style" onclick="checkAnswer()">Verify message</button>
-            <p id="error" class="error-msg">Incorrect.</p>
 
             <div id="ui-layer" class="ui-layer hidden-ui">
-                <div class="game-msg">Excellent!</div>
-                <button class="btn-style" onclick="proceed()">Next puzzle</button>
+                <div id="win-screen">
+                    <div class="game-msg">Excellent!</div>
+                    <button class="btn-style" onclick="proceed()">Next puzzle</button>
+                </div>
             </div>
         </div>
 
@@ -218,8 +210,13 @@
         <div class="hidden-clue">10. property</div>
     </div>
 
+    <!-- LOAD SHARED SCRIPTS -->
+    <script src="utils.js"></script>
     <script src="snow.js"></script>
+    
     <script>
+        const uiLayer = document.getElementById('ui-layer');
+
         // --- DRAG & DROP LOGIC ---
         function makeDraggable(elmnt) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -356,40 +353,35 @@
 
 
         // --- GAME LOGIC ---
-        const _a = [55, 48, 55, 55]; // 7077
-        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 101, 108]; 
-
-        function _decode(arr) { return String.fromCharCode(...arr); }
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (type === 'win') {
-                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
-            }
-        }
+        // Obfuscated Answer: "happy new year"
+        const _a = [104, 97, 112, 112, 121, 32, 110, 101, 119, 32, 121, 101, 97, 114];
+        
+        // Obfuscated Next Link: "11-case.html"
+        const _n = [49, 49, 45, 99, 97, 115, 101, 46, 104, 116, 109, 108]; 
 
         function checkAnswer() {
-            const input = document.getElementById('answerInput').value.trim();
+            const inputEl = document.getElementById('answerInput');
+            const inputVal = inputEl.value.toLowerCase().trim();
+            // _decode is in utils.js
             const correct = _decode(_a);
             
-            if(input === correct) {
+            if(inputVal === correct) {
+                // playSound is in utils.js
                 playSound('win');
-                const ui = document.getElementById('ui-layer');
-                ui.classList.remove('hidden-ui');
-                ui.classList.add('active-ui');
+                uiLayer.classList.remove('hidden-ui');
+                uiLayer.classList.add('active-ui');
             } else {
-                const err = document.getElementById('error');
-                err.style.display = 'block';
-                setTimeout(() => err.style.display = 'none', 2000);
+                // playSound('slide') as error sound
+                playSound('slide'); 
+                inputEl.classList.remove('shake');
+                void inputEl.offsetWidth; // trigger reflow
+                inputEl.classList.add('shake');
             }
         }
 
         function proceed() {
-            window.location.href = _decode(_n);
+            // goToNextLevel is in utils.js
+            goToNextLevel(_n);
         }
 
         document.getElementById("answerInput").addEventListener("keyup", function(event) {
