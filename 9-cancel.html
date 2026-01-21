@@ -121,7 +121,7 @@
                 <div id="win-screen">
                     <div class="game-msg" id="end-title">Sweet success!</div>
                     <p id="end-subtitle" style="color: #ddd; margin-bottom: 20px;"></p>
-                    <button class="btn-style" id="end-btn" onclick="">Next puzzle</button>
+                    <button class="btn-style" id="end-btn">Next puzzle</button>
                 </div>
             </div>
         </div>
@@ -203,7 +203,6 @@
                         feedbackEl.style.textShadow = "none"; 
                     }
                 }
-                // Check if this hit won the game
                 won = checkWin();
             } else {
                 cell.classList.add('miss'); 
@@ -212,8 +211,6 @@
                 feedbackEl.style.textShadow = "none"; 
             }
 
-            // Always check for loss if we haven't won
-            // This ensures if guesses hit 0 on a valid hit (that wasn't a win) or a miss, game ends.
             if (!won) {
                 checkLoss();
             }
@@ -241,7 +238,6 @@
             if (hits === totalTarget) { 
                 gameActive = false; 
                 showEndScreen(true);
-                // Use shared utils playSound
                 if (typeof playSound === 'function') playSound('win'); 
                 return true;
             }
@@ -255,10 +251,12 @@
             }
         }
 
-function showEndScreen(won) {
+        // ASCII for 10-property.html
+        const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
+
+        function showEndScreen(won) {
             const layer = document.getElementById('ui-layer'); 
             const title = document.getElementById('end-title'); 
-            const sub = document.getElementById('end-subtitle'); 
             const btn = document.getElementById('end-btn');
             
             layer.classList.remove('hidden-ui'); 
@@ -267,25 +265,18 @@ function showEndScreen(won) {
             if (won) { 
                 if(title) title.innerText = "Sweet victory!"; 
                 btn.innerText = "Next Puzzle"; 
-                // FIX: Update to call the renamed local function
-                btn.onclick = proceedToNext; 
+                // Wrap in anonymous function to pass the array to shared utils function
+                btn.onclick = function() { 
+                    if (typeof goToNextLevel === 'function') {
+                        goToNextLevel(_nextUrl);
+                    } else {
+                        window.location.href = String.fromCharCode(..._nextUrl);
+                    }
+                }; 
             } else { 
                 if(title) title.innerText = "You're out of guesses"; 
                 btn.innerText = "Try Again"; 
                 btn.onclick = initGame; 
-            }
-        }
-
-        const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
-        
-        // FIX: Renamed function to avoid overwriting utils.js 'goToNextLevel'
-        function proceedToNext() { 
-            // Now window.goToNextLevel correctly refers to the function in utils.js
-            if (typeof window.goToNextLevel === 'function') {
-                window.goToNextLevel(_nextUrl);
-            } else {
-                // Fallback
-                window.location.href = String.fromCharCode(..._nextUrl); 
             }
         }
         
