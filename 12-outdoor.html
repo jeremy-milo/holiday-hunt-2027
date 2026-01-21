@@ -102,7 +102,8 @@
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
                     <div class="game-msg">You ate that one for breakfast!</div>
-                    <button id="final-btn" class="btn-style" onclick="goToTreasure()">Unlock the treasure</button>
+                    <!-- Use shared goToNextLevel -->
+                    <button id="final-btn" class="btn-style" onclick="goToNextLevel(_t)">Unlock the treasure</button>
                 </div>
             </div>
         </div>
@@ -111,28 +112,20 @@
         <div class="hidden-clue">12. outdoor</div>
     </div>
 
+    <!-- UTILS loaded FIRST -->
+    <script src="utils.js"></script>
     <script>
         const _a = [84, 72, 69, 32, 72, 85, 78, 84, 32, 73, 83, 32, 87, 79, 78];
         const _t = [104, 111, 108, 105, 100, 97, 121, 45, 104, 117, 110, 116, 45, 116, 114, 101, 97, 115, 117, 114, 101, 46, 104, 116, 109, 108];
 
-        function _decode(arr) { return String.fromCharCode(...arr); }
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (type === 'win') {
-                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
-            }
-        }
+        // Use shared _decode and playSound
 
         function checkAnswer() {
             const input = document.getElementById('answerInput').value.toUpperCase().trim().replace(/\s+/g, ' ');
             const correct = _decode(_a);
             
             if(input === correct) {
-                playSound('win'); // Added sound
+                playSound('win'); 
                 const ui = document.getElementById('ui-layer');
                 ui.classList.remove('hidden-ui');
                 ui.classList.add('active-ui');
@@ -144,25 +137,6 @@
                 void inputEl.offsetWidth; 
                 inputEl.classList.add('shake');
                 setTimeout(() => err.style.display = 'none', 2000);
-            }
-        }
-
-        function goToTreasure() {
-            const url = _decode(_t);
-            try {
-                if (window.location.protocol === 'blob:') throw new Error("Restricted");
-                window.location.href = url;
-            } catch (e) {
-                const btn = document.getElementById('final-btn');
-                btn.innerText = "Redirecting...";
-                const a = document.createElement('a');
-                a.href = url;
-                a.innerText = "Click here if not redirected";
-                a.style.color = "#cfdef3";
-                a.style.display = "block";
-                a.style.marginTop = "15px";
-                btn.parentNode.appendChild(a);
-                a.click();
             }
         }
 
