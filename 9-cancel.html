@@ -255,13 +255,20 @@
             }
         }
 
-        function showEndScreen(won) {
-            const layer = document.getElementById('ui-layer'); const title = document.getElementById('end-title'); const sub = document.getElementById('end-subtitle'); const btn = document.getElementById('end-btn');
-            layer.classList.remove('hidden-ui'); layer.classList.add('active-ui');
+function showEndScreen(won) {
+            const layer = document.getElementById('ui-layer'); 
+            const title = document.getElementById('end-title'); 
+            const sub = document.getElementById('end-subtitle'); 
+            const btn = document.getElementById('end-btn');
+            
+            layer.classList.remove('hidden-ui'); 
+            layer.classList.add('active-ui');
+            
             if (won) { 
                 if(title) title.innerText = "Sweet victory!"; 
                 btn.innerText = "Next Puzzle"; 
-                btn.onclick = goToNextLevel; 
+                // FIX: Update to call the renamed local function
+                btn.onclick = proceedToNext; 
             } else { 
                 if(title) title.innerText = "You're out of guesses"; 
                 btn.innerText = "Try Again"; 
@@ -270,11 +277,14 @@
         }
 
         const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
-        function goToNextLevel() { 
-            // Prefer shared utils function if available, else fallback
+        
+        // FIX: Renamed function to avoid overwriting utils.js 'goToNextLevel'
+        function proceedToNext() { 
+            // Now window.goToNextLevel correctly refers to the function in utils.js
             if (typeof window.goToNextLevel === 'function') {
                 window.goToNextLevel(_nextUrl);
             } else {
+                // Fallback
                 window.location.href = String.fromCharCode(..._nextUrl); 
             }
         }
