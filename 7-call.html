@@ -69,17 +69,25 @@
         const DOT = UNIT;
         const DASH = UNIT * 3;
         const SYMBOL_SPACE = UNIT;      // Space between dots/dashes
-        const LETTER_SPACE = UNIT * 3;  // Space between letters
-        const WORD_SPACE = UNIT * 7;    // Space between words
+        const LETTER_SPACE = UNIT * 4;  // Space between letters (increased by 30% from 3)
+        const WORD_SPACE = UNIT * 10;    // Space between words
         const LOOP_DELAY = 3000;        // 3 seconds pause at end
 
-        // Morse Dictionary for required letters
+        // Morse Dictionary
         const morseMap = {
-            'J': '.---', 'I': '..', 'N': '-.', 'G': '--.', 'L': '.-..', 'E': '.',
-            'B': '-...', 'S': '...', ' ': ' '
+            74: '.---',
+            73: '..',
+            78: '-.',
+            71: '--.',
+            76: '.-..',
+            69: '.',
+            66: '-...',
+            83: '...',
+            32: ' '
         };
 
-        const message = "JINGLE BELLS";
+        const _m = [74, 73, 78, 71, 76, 69, 32, 66, 69, 76, 76, 83];
+        
         let isAnimating = true;
         let soundEnabled = false;
 
@@ -90,15 +98,15 @@
                 // Initial pause before starting
                 await wait(1000);
 
-                for (let i = 0; i < message.length; i++) {
-                    const char = message[i];
+                for (let i = 0; i < _m.length; i++) {
+                    const charCode = _m[i];
                     
-                    if (char === ' ') {
+                    if (charCode === 32) {
                         await wait(WORD_SPACE);
                         continue;
                     }
 
-                    const code = morseMap[char];
+                    const code = morseMap[charCode];
                     if (!code) continue;
 
                     // Play each symbol in the letter
@@ -175,7 +183,6 @@
 
         // --- PUZZLE VALIDATION ---
         
-        // Obfuscated Answer: "jingle bells"
         const _k = [106, 105, 110, 103, 108, 101, 32, 98, 101, 108, 108, 115];
 
         function checkAnswers() {
