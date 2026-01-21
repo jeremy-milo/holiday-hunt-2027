@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="puzzle-style.css">
     
     <style>
-        /* Specific Styles for Image & Input Grid Layout */
         #game-container {
             max-width: 600px; 
             padding: 20px;
@@ -23,7 +22,7 @@
         }
 
         #puzzle-image {
-            width: auto; /* Changed from 100% to auto to shrinkwrap the shadow to the image */
+            width: auto; 
             max-width: 100%; 
             height: auto;
             max-height: 50vh; 
@@ -59,7 +58,6 @@
                 <img src="selfie.jpg" id="puzzle-image" alt="Selfie">
 
                 <div id="input-area">
-                    <!-- Class answer-input is defined in puzzle-style.css -->
                     <input type="text" class="answer-input" placeholder="Difference 1">
                     <input type="text" class="answer-input" placeholder="Difference 2">
                     <input type="text" class="answer-input" placeholder="Difference 3">
@@ -73,7 +71,8 @@
                 <div id="ui-layer" class="ui-layer hidden-ui">
                     <div id="win-screen">
                         <div class="game-msg">Sharp eyes!</div>
-                        <button class="btn-style" id="next-level-btn" onclick="goToNextLevel()">Next puzzle</button>
+                        <!-- Using shared goToNextLevel -->
+                        <button class="btn-style" id="next-level-btn" onclick="goToNextLevel(_next)">Next puzzle</button>
                     </div>
                 </div>
             </div>
@@ -83,6 +82,8 @@
         <div class="hidden-clue">6. kind</div>
     </div>
 
+    <!-- UTILS loaded FIRST -->
+    <script src="utils.js"></script>
     <script>
         const uiLayer = document.getElementById('ui-layer');
         const _k1 = [ [109, 117, 115, 116, 97, 99, 104, 101] ];
@@ -92,7 +93,8 @@
         const _k5 = [ [98, 97, 116] ];
         const _k6 = [ [104, 97, 116], [99, 97, 112], [98, 101, 97, 110, 105, 101] ];
         const _masterKey = [_k1, _k2, _k3, _k4, _k5, _k6];
-        const _d = (arr) => String.fromCharCode(...arr);
+        
+        // Remove local _d and use shared _decode
 
         function checkAnswers() {
             const inputElements = document.querySelectorAll('.answer-input');
@@ -100,7 +102,8 @@
             const allRequirementsMet = _masterKey.every(group => {
                 return userInputs.some(inputVal => {
                     if(!inputVal) return false;
-                    return group.some(encodedWord => { return inputVal.includes(_d(encodedWord)); });
+                    // Use shared _decode
+                    return group.some(encodedWord => { return inputVal.includes(_decode(encodedWord)); });
                 });
             });
             if (allRequirementsMet) {
@@ -113,25 +116,9 @@
             }
         }
 
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (type === 'slide') { 
-                const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-                osc.connect(gainNode); gainNode.connect(audioCtx.destination);
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'win') {
-                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
-            }
-        }
+        // Removed local playSound, use shared utils
+
         const _next = [55, 45, 99, 97, 108, 108, 46, 104, 116, 109, 108];
-        function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') throw new Error("Restricted"); window.location.href = url; } catch (e) { const btn = document.getElementById('next-level-btn'); btn.innerHTML = "Click manual link below"; const a = document.createElement('a'); a.href = url; a.innerText = "Click here to proceed"; a.style.color = "#cfdef3"; a.style.display = "block"; a.style.marginTop = "10px"; btn.parentNode.appendChild(a); } }
         
         /* --- SNOW ANIMATION --- */
         const canvas = document.getElementById("snow-canvas");
