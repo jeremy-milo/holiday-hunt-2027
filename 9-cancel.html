@@ -130,19 +130,13 @@
         <div class="hidden-clue">9. cancel</div>
     </div>
 
+    <!-- SHARED SCRIPTS -->
+    <script src="utils.js"></script>
+    <script src="snow.js"></script>
+
     <script>
         const GRID_SIZE = 10; const NUM_SHIPS = 3; const SHIP_LENGTH = 4; const MAX_GUESSES = 35;
         let grid = []; let ships = []; let guesses = []; let hits = 0; let guessesLeft = MAX_GUESSES; let gameActive = true;
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (type === 'win') {
-                const now = audioCtx.currentTime; const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.type = 'triangle'; o.frequency.value = freq; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.5); o.start(now + i*0.1); o.stop(now + i*0.1 + 0.5); });
-            }
-        }
 
         function initGame() {
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
@@ -184,8 +178,14 @@
             if (!gameActive) return;
             const feedbackEl = document.getElementById('feedback'); const statusEl = document.getElementById('status-display');
             const key = `${r},${c}`; if (guesses.includes(key)) return;
-            guesses.push(key); guessesLeft--; statusEl.innerText = `${guessesLeft} guesses remaining`;
-            const cell = document.getElementById(`cell-${r}-${c}`); cell.style.cursor = 'default';
+            
+            guesses.push(key); 
+            guessesLeft--; 
+            statusEl.innerText = `${guessesLeft} guesses remaining`;
+            const cell = document.getElementById(`cell-${r}-${c}`); 
+            cell.style.cursor = 'default';
+
+            let won = false;
 
             if (grid[r][c] === 1) {
                 let swirl = document.createElement('div'); swirl.className = 'swirl'; cell.appendChild(swirl); hits++;
@@ -193,12 +193,29 @@
                 if (ship) {
                     ship.hits++;
                     if (ship.hits === SHIP_LENGTH) {
-                        setTimeout(() => revealCandyCane(ship), 300); feedbackEl.innerText = "DELICIOUS! You found a whole Candy Cane!"; feedbackEl.style.color = "#fff"; feedbackEl.style.textShadow = "0 0 10px #f00";
-                    } else { feedbackEl.innerText = "Tasty! Found a piece of candy cane."; feedbackEl.style.color = "#8f8"; feedbackEl.style.textShadow = "none"; }
+                        setTimeout(() => revealCandyCane(ship), 300); 
+                        feedbackEl.innerText = "DELICIOUS! You found a whole Candy Cane!"; 
+                        feedbackEl.style.color = "#fff"; 
+                        feedbackEl.style.textShadow = "0 0 10px #f00";
+                    } else { 
+                        feedbackEl.innerText = "Tasty! Found a piece of candy cane."; 
+                        feedbackEl.style.color = "#8f8"; 
+                        feedbackEl.style.textShadow = "none"; 
+                    }
                 }
-                checkWin();
+                // Check if this hit won the game
+                won = checkWin();
             } else {
-                cell.classList.add('miss'); feedbackEl.innerText = "Nothing here but snow."; feedbackEl.style.color = "#ff9"; feedbackEl.style.textShadow = "none"; checkLoss();
+                cell.classList.add('miss'); 
+                feedbackEl.innerText = "Nothing here but snow."; 
+                feedbackEl.style.color = "#ff9"; 
+                feedbackEl.style.textShadow = "none"; 
+            }
+
+            // Always check for loss if we haven't won
+            // This ensures if guesses hit 0 on a valid hit (that wasn't a win) or a miss, game ends.
+            if (!won) {
+                checkLoss();
             }
         }
 
@@ -224,12 +241,18 @@
             if (hits === totalTarget) { 
                 gameActive = false; 
                 showEndScreen(true);
-                playSound('win'); // Play success sound
+                // Use shared utils playSound
+                if (typeof playSound === 'function') playSound('win'); 
+                return true;
             }
+            return false;
         }
 
         function checkLoss() {
-            if (guessesLeft <= 0 && hits < (NUM_SHIPS * SHIP_LENGTH)) { gameActive = false; showEndScreen(false); }
+            if (guessesLeft <= 0) { 
+                gameActive = false; 
+                showEndScreen(false); 
+            }
         }
 
         function showEndScreen(won) {
@@ -247,65 +270,16 @@
         }
 
         const _nextUrl = [49, 48, 45, 112, 114, 111, 112, 101, 114, 116, 121, 46, 104, 116, 109, 108];
-        function goToNextLevel() { window.location.href = String.fromCharCode(..._nextUrl); }
+        function goToNextLevel() { 
+            // Prefer shared utils function if available, else fallback
+            if (typeof window.goToNextLevel === 'function') {
+                window.goToNextLevel(_nextUrl);
+            } else {
+                window.location.href = String.fromCharCode(..._nextUrl); 
+            }
+        }
         
-        /* --- SNOW ANIMATION --- */
-        const canvas = document.getElementById("snow-canvas");
-        const ctx = canvas.getContext("2d");
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const particles = [];
-        const particleCount = 100;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.radius = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.3;
-            }
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                if (this.y > height) this.y = 0;
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
         initGame();
-        
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        });
     </script>
 </body>
 </html>
