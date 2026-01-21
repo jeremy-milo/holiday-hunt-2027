@@ -15,7 +15,6 @@
         #game-container {
             width: 100%;
             max-width: 800px;
-            /* Enforce aspect ratio to match canvas dimensions (800x400 = 2/1) */
             aspect-ratio: 2 / 1; 
             height: auto;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
@@ -27,7 +26,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             -webkit-user-select: none;
             user-select: none;
-            /* Allow generic touch actions, we handle specific gestures in JS */
             touch-action: manipulation; 
         }
         
@@ -91,7 +89,8 @@
 
                     <div id="win-screen" style="display:none;">
                         <div class="game-msg">Good girl, Willow!</div>
-                        <button id="next-level-btn" onclick="goToNextLevel()" class="btn-style">Next puzzle</button>
+                        <!-- Use shared goToNextLevel -->
+                        <button id="next-level-btn" onclick="goToNextLevel(_next)" class="btn-style">Next puzzle</button>
                     </div>
                 </div>
             </div>
@@ -101,6 +100,7 @@
         <div class="hidden-clue">4. subject</div>
     </div>
 
+    <script src="utils.js"></script>
     <script>
         const gameCanvas = document.getElementById('gameCanvas');
         const gCtx = gameCanvas.getContext('2d');
@@ -108,24 +108,22 @@
         const GAME_WIDTH = 800;
         const GAME_HEIGHT = 400;
         
-        // Explicitly set internal resolution
         gameCanvas.width = GAME_WIDTH;
         gameCanvas.height = GAME_HEIGHT;
         
-        // Audio Context lazy initialization
-        let audioCtx;
+        // Use global audioCtx from utils.js, but check if it exists or init it
+        if (!window.audioCtx) {
+             window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
 
         function initAudio() {
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-            }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
         }
 
-        function playSound(type) {
+        // Renamed to avoid conflict with utils.js playSound, though we use this for specific game sfx
+        function playGameSound(type) {
             if (!audioCtx) return;
             
             const osc = audioCtx.createOscillator();
@@ -150,6 +148,7 @@
                 gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
                 osc.start(t); osc.stop(t + 0.08);
             } else if (type === 'win') {
+                // We can use the shared PlaySound('win') or this custom sequence
                 playNote(523.25, 0, 0.18); playNote(659.25, 0.16, 0.18); 
                 playNote(783.99, 0.32, 0.18); playNote(1046.50, 0.54, 0.6); 
             } else if (type === 'crash') {
@@ -215,7 +214,7 @@
             
             // ADJUST SPEED BASED ON DEVICE
             const isMobile = window.innerWidth < 768;
-            gameSpeed = isMobile ? 9 : 12; // Slower base speed for mobile
+            gameSpeed = isMobile ? 9 : 12; 
             
             isPlaying = true; isGameOver = false;
             document.getElementById('ui-layer').classList.add('hidden-ui');
@@ -327,23 +326,20 @@
             gCtx.fillStyle = '#cfdef3'; /* SILVER PROGRESS BAR */
             gCtx.fillRect(20, 20, Math.min(200, (distance/WIN_DISTANCE)*200), 10);
             
-            // --- VARIABILITY UPDATE ---
-            // Much wider variance in spawn distance
             const minGap = 450; 
-            const variance = Math.random() * 850; // Random extra gap between 0 and 850px
+            const variance = Math.random() * 850; 
             if (distance > nextSpawnDist && distance < WIN_DISTANCE - 400) { 
                 spawnObstacle(); 
                 nextSpawnDist = distance + minGap + variance; 
             }
-            // --------------------------
 
             if (!willow.grounded) { willow.dy += willow.gravity; willow.y += willow.dy; }
             let groundY = 300;
             if (willow.y >= groundY) {
                 let overHole = false; obstacles.forEach(obs => { if (obs.type === 'hole') { if (willow.x + 20 > obs.x && willow.x + 30 < obs.x + obs.w) { overHole = true; } } });
-                if (overHole) { playSound('crash'); gameOver(); return; } else { willow.y = groundY; willow.grounded = true; willow.dy = 0; if (frames % Math.max(1, Math.floor((30 - gameSpeed) / 2)) === 0) playSound('step'); }
+                if (overHole) { playGameSound('crash'); gameOver(); return; } else { willow.y = groundY; willow.grounded = true; willow.dy = 0; if (frames % Math.max(1, Math.floor((30 - gameSpeed) / 2)) === 0) playGameSound('step'); }
             }
-            if (willow.y > GAME_HEIGHT + 50) { playSound('crash'); gameOver(); return; }
+            if (willow.y > GAME_HEIGHT + 50) { playGameSound('crash'); gameOver(); return; }
             drawWillow();
             for (let i = 0; i < obstacles.length; i++) {
                 let obs = obstacles[i]; obs.x -= gameSpeed;
@@ -362,15 +358,15 @@
                     gCtx.fillStyle = '#8d6e63'; gCtx.beginPath(); gCtx.arc(obs.x + obs.w, obs.y + obs.h/2, obs.h/2, 0, Math.PI*2); gCtx.fill(); gCtx.strokeStyle = '#bcaaa4'; for (let r = obs.h/2-6; r > 2; r -= 4.5) { gCtx.beginPath(); gCtx.arc(obs.x + obs.w, obs.y + obs.h/2, r, 0, Math.PI*2); gCtx.stroke(); }
                 }
                 let wx = willow.x + 18; let wy = willow.y + 20; let ww = 22; let wh = 48;
-                if (wx < obs.x + obs.w && wx + ww > obs.x && wy < (obs.y + obs.h) && wy + wh > obs.y) { if (obs.type !== 'hole') { playSound('crash'); gameOver(); } }
+                if (wx < obs.x + obs.w && wx + ww > obs.x && wy < (obs.y + obs.h) && wy + wh > obs.y) { if (obs.type !== 'hole') { playGameSound('crash'); gameOver(); } }
                 if (obs.x + obs.w < -100) { obstacles.splice(i, 1); i--; }
             }
             if (distance > WIN_DISTANCE) { gameWin(); return; }
         }
 
-        function jump() { if (willow.grounded && isPlaying) { willow.dy = willow.jumpPower; willow.grounded = false; playSound('jump'); } }
+        function jump() { if (willow.grounded && isPlaying) { willow.dy = willow.jumpPower; willow.grounded = false; playGameSound('jump'); } }
         function gameOver() { isPlaying = false; isGameOver = true; document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'flex'; }
-        function gameWin() { isPlaying = false; playSound('win'); startFireworksShow(); document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('win-screen').style.display = 'flex'; requestAnimationFrame(gameLoop); }
+        function gameWin() { isPlaying = false; playGameSound('win'); startFireworksShow(); document.getElementById('ui-layer').classList.remove('hidden-ui'); document.getElementById('start-screen').style.display = 'none'; document.getElementById('win-screen').style.display = 'flex'; requestAnimationFrame(gameLoop); }
         
         const rockets = []; const fireParticles = [];
         function patrioticColor() { const palette = ['#ff0033', '#ffffff', '#0066ff', '#ffcc00']; return palette[Math.floor(Math.random() * palette.length)]; }
@@ -411,21 +407,13 @@
         
         document.body.onkeydown = function(e){ if(e.keyCode == 32) { e.preventDefault(); jump(); } }
         
-        // Touch Interaction Fix:
-        // preventDefault() on canvas touch prevents scrolling/zooming while playing.
-        // We explicitly allow clicks on UI buttons.
         const container = document.getElementById('game-container');
         container.addEventListener('touchstart', (e) => { 
-            // If the user touched a button (Start/Restart), do NOT prevent default, 
-            // so the click event can fire normally.
             if(e.target.tagName === 'BUTTON') return; 
-
-            // Otherwise, it's a jump tap.
             e.preventDefault(); 
             jump(); 
         }, {passive: false});
 
-        // Mouse interaction for desktop
         container.addEventListener('mousedown', (e) => {
             if(e.target.tagName === 'BUTTON') return;
             jump();
@@ -434,8 +422,7 @@
         document.getElementById('start-btn').addEventListener('click', resetGame);
         
         const _next = [53, 45, 115, 116, 97, 116, 101, 46, 104, 116, 109, 108];
-        function goToNextLevel() { const url = String.fromCharCode(..._next); try { if (window.location.protocol === 'blob:') { throw new Error("Blob navigation restricted"); } window.location.href = url; } catch (e) { console.log("Navigation restricted."); } }
-        
+
         const canvas = document.getElementById("snow-canvas"); const ctx = canvas.getContext("2d");
         let width = window.innerWidth; let height = window.innerHeight; canvas.width = width; canvas.height = height;
         const snowParticles = []; for (let i = 0; i < 100; i++) { snowParticles.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 3 + 1, sy: Math.random() * 1 + 0.5, sx: Math.random() * 0.6 - 0.3, o: Math.random() * 0.6 + 0.3 }); }
