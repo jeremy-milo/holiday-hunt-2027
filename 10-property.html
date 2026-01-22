@@ -155,10 +155,10 @@
                 <div class="control-group">
                     <label>Size</label>
                     <div class="slider-wrapper">
-                        <button class="adjust-btn" onclick="adjustValue('size-key', -10)">&#60;</button>
-                        <!-- Increased max to 800 to ensure solution isn't always 100% -->
-                        <input type="range" id="size-key" min="50" max="800" step="10" value="300">
-                        <button class="adjust-btn" onclick="adjustValue('size-key', 10)">&#62;</button>
+                        <!-- Changed step from 10 to 2 for more granular control -->
+                        <button class="adjust-btn" onclick="adjustValue('size-key', -2)">&#60;</button>
+                        <input type="range" id="size-key" min="50" max="800" step="2" value="300">
+                        <button class="adjust-btn" onclick="adjustValue('size-key', 2)">&#62;</button>
                     </div>
                 </div>
                 <div class="control-group">
@@ -173,7 +173,7 @@
 
             <br><br>
             <input type="text" id="answerInput" class="answer-input" placeholder="Enter the message">
-            <button class="btn-style" onclick="checkAnswer()">Submit</button>
+            <button class="btn-style" onclick="checkAnswer()">Verify message</button>
 
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen">
