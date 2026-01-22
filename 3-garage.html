@@ -45,7 +45,7 @@
             </div>
 
             <p class="question">Rick just wants to tell you how he's feeling. How many "nevers" are there?</p>
-            <input type="text" id="answerInput" placeholder="Enter the number..." autocomplete="off">
+            <input type="number" pattern="\d*" id="answerInput" placeholder="Enter the number..." autocomplete="off">
             <br>
             <button onclick="checkAnswer()">Submit</button>
             <p id="error" class="error-msg">Incorrect, try listening again!.</p>
