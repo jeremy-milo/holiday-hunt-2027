@@ -37,22 +37,17 @@
         /* Code Image (Background) */
         #code-img { 
             z-index: 5; 
-            /* Width is set by JS */
-            width: 600px; 
+            /* Fixed placement: centered */
             transform: translate(-50%, -50%); 
+
+            /* Size: Nearly full size of playable area (350px height) */
+            height: 90%;
+            width: auto;
+            max-width: 95%;
 
             /* High visibility for the code itself */
             opacity: 1.0; 
             mix-blend-mode: normal; 
-
-            /* Restore clipped corner */
-            clip-path: polygon(
-                10px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 10px
-            );
         }
 
         /* Key Image Container (Foreground/Draggable) */
@@ -65,18 +60,9 @@
             mix-blend-mode: multiply;
             opacity: 1.0; 
 
-            /* BORDER CONFIGURATION */
-            background-color: #777; /* The Border Color (Lighter Grey) */
-            padding: 5px;           /* The Border Width (Wider) */
-            
-            /* Outer Clip: Larger cut to contain the border */
-            clip-path: polygon(
-                15px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 15px
-            );
+            /* BORDER REMOVED */
+            background-color: transparent; 
+            padding: 0;           
         }
 
         /* Inner image style */
@@ -84,16 +70,7 @@
             width: 100%;
             height: 100%;
             display: block;
-            background-color: white; /* Necessary for multiply blend mode to work correctly on the content */
-
-            /* Inner Clip: Smaller cut to create the inner edge of the border */
-            clip-path: polygon(
-                10px 0, 
-                100% 0, 
-                100% 100%, 
-                0 100%, 
-                0 10px
-            );
+            /* background-color: white;  Removed background color since border is gone and multiply mode handles transparency */
         }
 
         .controls-container {
@@ -317,17 +294,13 @@
         }
 
         function randomizeInit() {
-            // 1. Fixed CODE Image (Target) Size
-            // Randomized between 500 and 700 so the solution position on the slider varies
-            const codeTargetWidth = getRandomInt(500, 700); 
-            codeImg.style.width = codeTargetWidth + "px";
+            // 1. Code Image (Target) Size
+            // Now handled by CSS to be fixed and nearly full height of the container
+            // We no longer randomize the width of codeImg here.
 
             // 2. Randomize Initial KEY Image (Visuals)
-            // Pick a start size that is visibly different from target
-            let keyStartSize;
-            do {
-                keyStartSize = getRandomInt(200, 500);
-            } while (Math.abs(keyStartSize - codeTargetWidth) < 50);
+            // Pick a random start size for the key
+            const keyStartSize = getRandomInt(200, 450);
 
             document.getElementById('size-key').value = keyStartSize;
 
