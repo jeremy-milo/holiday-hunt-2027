@@ -14,24 +14,19 @@
     <canvas id="snow-canvas"></canvas>
 
     <div class="container">
-        <!-- Using generic classes from puzzle-style.css where possible -->
         <div class="puzzle-box">
             <h1>Puzzle 7: The Nose Knows</h1>
             <p class="instructions">Give the yeti a high five if you need a hint.</p>
 
             <div id="game-container-morse">
-                <!-- Yeti Image -->
                 <img src="yeti-black.jpg" id="puzzle-image" alt="Yeti Puzzle">
 
-                <!-- Input Slots -->
                 <div id="input-area">
                     <input type="text" id="yeti-msg" class="answer-input answer-input-custom" placeholder="What is the yeti's favorite song?">
                 </div>
 
-                <!-- Submit Button -->
-                <button class="btn-style" onclick="checkAnswers()">Verify Message</button>
+                <button class="btn-style" onclick="checkAnswers()">Submit</button>
 
-                <!-- Win Screen -->
                 <div id="ui-layer" class="ui-layer hidden-ui">
                     <div id="win-screen">
                         <div class="game-msg">Message Received!</div>
@@ -41,14 +36,11 @@
             </div>
         </div>
 
-        <!-- The Long Space -->
         <div class="spacer-large"></div>
 
-        <!-- The Hidden Clue -->
         <div class="hidden-clue">7. call</div>
     </div>
 
-    <!-- UTILS and SNOW scripts -->
     <script src="utils.js"></script>
     <script src="snow.js"></script>
 
@@ -170,8 +162,11 @@
             // Envelope to avoid clicking sounds
             const now = audioCtx.currentTime;
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.1, now + 0.05);
-            gainNode.gain.setValueAtTime(0.1, now + (duration/1000) - 0.05);
+            
+            // FIX: Increased gain to 1.0 (was 0.1) so it is audible at low system volume
+            gainNode.gain.linearRampToValueAtTime(1.0, now + 0.05);
+            gainNode.gain.setValueAtTime(1.0, now + (duration/1000) - 0.05);
+            
             gainNode.gain.linearRampToValueAtTime(0, now + (duration/1000));
 
             osc.start(now);
