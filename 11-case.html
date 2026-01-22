@@ -171,9 +171,9 @@
     
     <div class="container">
         <div class="puzzle-box">
-            <h1>Puzzle 11: Snack Time for Yeti</h1>
+            <h1>Puzzle 11: Feed the Yeti</h1>
             <p class="instructions">
-                Navigate the 5x5 labyrinth of ice caves to feed the hungry Yeti.  But he's super shy, so you'll need to toss a snack into the correct room before running out!  Avoid the rooms with bats and slush puddles.<br>
+                Navigate the ice labyrinth and feed the hungry Yeti.  He's super shy, so you'll need to toss a snack into the correct room!  Avoid bats and slush puddles along the way.<br>
                 <strong>Draft</strong> = Slush Puddle nearby. <strong>Wings</strong> = Bats nearby. <strong>Rumble</strong> = Hungry Yeti nearby.<br>
             </p>
             
@@ -196,7 +196,8 @@
                             <button class="control-btn" id="btn-n" onclick="handleAction('N')">N</button>
                             <div></div>
                             <button class="control-btn" id="btn-w" onclick="handleAction('W')">W</button>
-                            <div style="display:flex;align-items:center;justify-content:center; color: #f6d365; font-weight: bold;" id="room-indicator"></div>
+                            <!-- Removed coordinates div, keeping empty div for grid spacing -->
+                            <div></div>
                             <button class="control-btn" id="btn-e" onclick="handleAction('E')">E</button>
                             <div></div>
                             <button class="control-btn" id="btn-s" onclick="handleAction('S')">S</button>
@@ -217,8 +218,8 @@
                     <button class="btn-style" id="next-level-btn" onclick="goToNextLevel(_next)">Next puzzle</button>
                 </div>
                 <div id="lose-screen">
-                    <div class="game-msg" style="color: #ff6b6b;" id="death-msg">You failed to feed the yeti this time!</div>
-                    <button class="btn-style" onclick="initGame()">Try Again</button>
+                    <div class="game-msg" style="color: #ff6b6b;" id="death-msg">The yeti is famished!</div>
+                    <button class="btn-style" onclick="initGame()">Try again</button>
                 </div>
             </div>
         </div>
@@ -374,8 +375,7 @@
             } else {
                 log("The room is quiet.");
             }
-            
-            document.getElementById('room-indicator').innerText = `${playerPos.x + 1},${playerPos.y + 1}`;
+            // Coordinates update removed per request
         }
 
         function getNeighbors(p) {
