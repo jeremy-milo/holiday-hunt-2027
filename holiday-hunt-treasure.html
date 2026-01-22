@@ -15,6 +15,12 @@
     <canvas id="snow-canvas"></canvas>
     
     <div class="container">
+        <!-- TREASURE STATUS WIDGET -->
+        <div class="treasure-widget" id="treasure-widget">
+            <div class="treasure-label">Treasure Status</div>
+            <div id="treasure-value" class="treasure-value">Checking...</div>
+        </div>
+
         <div class="puzzle-box">
             <h1>Congratulations!</h1>
             
@@ -33,5 +39,49 @@
     </div>
 
     <script src="snow.js"></script>
+    <script>
+        const treasureAddress = 'bc1qdluefrhrzu3px5p3x6qfgdcuw6qlyymwsk8kjy';
+
+        /* --- TREASURE CHECKER --- */
+        async function checkTreasureStatus() {
+            try {
+                // Fetch address balance and current price in parallel
+                const [addressRes, priceRes] = await Promise.all([
+                    fetch(`https://mempool.space/api/address/${treasureAddress}`),
+                    fetch('https://mempool.space/api/v1/prices')
+                ]);
+
+                const addressData = await addressRes.json();
+                const priceData = await priceRes.json();
+                
+                // Calculate balance in Satoshis
+                const totalSats = addressData.chain_stats.funded_txo_sum - addressData.chain_stats.spent_txo_sum;
+                
+                // Calculate Bitcoin Amount
+                const btcAmount = totalSats / 100000000;
+
+                // Calculate USD value
+                const btcPrice = priceData.USD;
+                const usdValue = btcAmount * btcPrice;
+                
+                const displayEl = document.getElementById('treasure-value');
+                
+                if (totalSats > 0) {
+                    displayEl.innerHTML = `${totalSats.toLocaleString()} satoshis<br><span style="font-size: 0.8em; opacity: 0.8;">${btcAmount} Bitcoin</span><br><span style="font-size: 0.8em; opacity: 0.8;">$${usdValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                } else {
+                    displayEl.innerText = "CLAIMED";
+                    displayEl.classList.add('treasure-claimed');
+                    // Update widget border to red to indicate claimed status
+                    document.getElementById('treasure-widget').style.borderColor = "rgba(255, 107, 107, 0.3)";
+                }
+            } catch (error) {
+                console.error("Error fetching treasure status:", error);
+                document.getElementById('treasure-value').innerText = "Status Unknown";
+            }
+        }
+        
+        // Check immediately on load
+        checkTreasureStatus();
+    </script>
 </body>
 </html>
