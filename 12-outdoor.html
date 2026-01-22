@@ -96,12 +96,12 @@
 
             <input type="text" id="answerInput" class="answer-input" placeholder="Enter the message" autocomplete="off">
             <br>
-            <button class="btn-style" onclick="checkAnswer()">Verify message</button>
+            <button class="btn-style" onclick="checkAnswer()">Submit</button>
             <p id="error" class="error-msg">That is not the correct message.</p>
 
             <div id="ui-layer" class="ui-layer hidden-ui">
                 <div id="win-screen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-                    <div class="game-msg">You ate that one for breakfast!</div>
+                    <div class="game-msg">Very impressive!</div>
                     <!-- Use shared goToNextLevel -->
                     <button id="final-btn" class="btn-style" onclick="goToNextLevel(_t)">Unlock the treasure</button>
                 </div>
